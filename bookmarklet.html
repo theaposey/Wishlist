@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Wishlist — Save Button</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --blue: #86EE86; }
+
+    html, body {
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      background: #fff;
+      color: #000;
+    }
+    body {
+      padding: 0 0 env(safe-area-inset-bottom, 24px);
+    }
+
+    /* ─── Header ─── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .back-btn {
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: #bbb; text-decoration: none; background: none; border: none;
+      font-family: inherit; cursor: pointer; padding: 4px 0;
+    }
+    .page-title {
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #000;
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      padding: 36px 24px 28px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .preview-fab {
+      flex-shrink: 0;
+      width: 52px; height: 52px;
+      background: var(--blue);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 12px rgba(48,92,222,.3);
+    }
+    .hero-text h1 {
+      font-size: 18px; font-weight: 800; letter-spacing: -0.01em;
+      text-transform: uppercase; line-height: 1.1; margin-bottom: 6px;
+    }
+    .hero-text p {
+      font-size: 11px; letter-spacing: 0.03em; color: #666; line-height: 1.7;
+    }
+
+    /* ─── Steps ─── */
+    .steps {
+      padding: 0 24px;
+    }
+    .step {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 18px 0; border-bottom: 1px solid #f4f4f4;
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 24px; height: 24px;
+      background: #f4f4f4;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    }
+    .step-num.done { background: #000; color: #fff; }
+    .step-content { flex: 1; padding-top: 2px; }
+    .step-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 5px;
+    }
+    .step-desc {
+      font-size: 12px; letter-spacing: 0.02em; color: #666; line-height: 1.7;
+    }
+    .step-desc strong { color: #000; font-weight: 600; }
+
+    /* ─── CTA area ─── */
+    .cta-area {
+      padding: 24px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .btn-copy {
+      display: block; width: 100%;
+      font-family: inherit; font-size: 10px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      padding: 16px; cursor: pointer;
+      border: none; text-align: center;
+      background: var(--blue); color: #fff;
+      transition: background 0.15s;
+    }
+    .btn-copy.copied { background: #1a3fa8; }
+    .copy-note {
+      font-size: 10px; letter-spacing: 0.06em; color: #bbb;
+      line-height: 1.6; margin-top: 14px; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <a href="/" class="back-btn">← Back</a>
+    <span class="page-title">Save Button</span>
+    <span style="width:48px"></span>
+  </div>
+
+  <div class="hero">
+    <div class="preview-fab">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+      </svg>
+    </div>
+    <div class="hero-text">
+      <h1>Safari<br/>Save Button</h1>
+      <p>Tap it on any product page<br/>to save straight to Wishlist.</p>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <p class="step-title">Copy the code below</p>
+        <p class="step-desc">Tap <strong>Copy Save Button Code</strong> at the bottom of this page.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <p class="step-title">Bookmark this page</p>
+        <p class="step-desc">
+          Tap the <strong>Share ↑</strong> button in Safari's toolbar<br/>
+          → <strong>Add Bookmark</strong><br/>
+          → Name it <strong>Wishlist Save</strong><br/>
+          → Tap <strong>Save</strong>
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <p class="step-title">Replace the bookmark URL with the code</p>
+        <p class="step-desc">
+          Tap the <strong>book icon</strong> in Safari's toolbar<br/>
+          → Find <strong>Wishlist Save</strong> → swipe left → <strong>Edit</strong><br/>
+          → Tap the URL field → <strong>Select All → Delete</strong><br/>
+          → <strong>Paste</strong> → <strong>Done</strong>
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num done">✓</div>
+      <div class="step-content">
+        <p class="step-title">Use it on any product page</p>
+        <p class="step-desc">
+          On SSENSE, Net-a-Porter, or anywhere — tap the book icon → <strong>Wishlist Save</strong>. A blue save button appears. Tap it, confirm, done.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-area">
+    <button class="btn-copy" id="copy-btn" onclick="copyCode()">Copy Save Button Code</button>
+    <p class="copy-note" id="copy-note">Copy first, then follow steps 2 and 3 above</p>
+  </div>
+
+  <script>
+    const ORIGIN = location.origin;
+    const BLUE = '#86EE86';
+
+    // ── Bookmarklet source ──────────────────────────────────────────
+    const bmSrc = `(function(){
+var V='${ORIGIN}',B='${BLUE}';
+var ex=document.getElementById('_vtr');
+if(ex){ex.remove();return;}
+function og(p){var m=document.querySelector('meta[property="'+p+'"]');return m?m.content:'';}
+function mt(n){var m=document.querySelector('meta[name="'+n+'"]');return m?m.content:'';}
+function cleanTitle(t){
+  t=(t||'').trim();
+  t=t.replace(/\s*[\|\-\u2013\u2014][^\|\-\u2013\u2014]{2,60}$/, '').trim();
+  t=t.replace(/\s*[\|\-\u2013\u2014][^\|\-\u2013\u2014]{2,60}$/, '').trim();
+  return t;
+}
+function getPrice(){
+  var p=og('product:price:amount')||og('og:price:amount')||mt('twitter:data1')||'';
+  if(!p){
+    var ss=document.querySelectorAll('script[type="application/ld+json"]');
+    for(var i=0;i<ss.length&&!p;i++){try{
+      var dig=function(o){if(!o||typeof o!=='object')return'';if(o.price!=null)return String(o.price);if(o.offers)return dig(o.offers);if(Array.isArray(o)){for(var j=0;j<o.length;j++){var r=dig(o[j]);if(r)return r;}}if(o['@graph'])return dig(o['@graph']);return'';};
+      p=dig(JSON.parse(ss[i].textContent));
+    }catch(e){}}
+  }
+  if(!p){
+    var els=document.querySelectorAll('[class*="price"],[class*="Price"],[itemprop="price"],[data-price]');
+    for(var k=0;k<els.length&&!p;k++){var txt=(els[k].getAttribute('data-price')||els[k].getAttribute('content')||els[k].textContent||'').trim();if(/[\$\€\£\¥]?\s*\d[\d,]*\.?\d{0,2}/.test(txt))p=txt;}
+  }
+  return (p||'').replace(/[^0-9.]/g,'');
+}
+var title=cleanTitle(og('og:title')||mt('twitter:title')||document.title||'');
+var img=og('og:image:secure_url')||og('og:image')||mt('twitter:image')||'';
+var price=getPrice();
+var pageUrl=location.href;
+var root=document.createElement('div');
+root.id='_vtr';
+root.style.cssText='position:fixed;inset:0;z-index:2147483647;pointer-events:none;font-family:-apple-system,Helvetica Neue,sans-serif;';
+var fab=document.createElement('button');
+fab.style.cssText='position:absolute;bottom:28px;right:20px;width:52px;height:52px;background:#fff;border:1.5px solid #ddd;border-radius:50%;box-shadow:0 2px 16px rgba(0,0,0,.18);cursor:pointer;pointer-events:all;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent;';
+fab.innerHTML='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>';
+root.appendChild(fab);
+var sheet=document.createElement('div');
+sheet.style.cssText='position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:22px 20px 48px;pointer-events:all;display:none;box-shadow:0 -2px 24px rgba(0,0,0,.1);';
+var st=title.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+sheet.innerHTML='<p style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#bbb;margin:0 0 16px">SAVE TO WISHLIST</p>'
++'<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:16px">'
++(img?'<img src="'+img+'" style="width:64px;height:64px;object-fit:contain;background:#fafafa;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
++'<div style="flex:1;min-width:0"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Name</p>'
++'<input id="_vtr-name" type="text" value="'+st+'" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div></div>'
++'<div style="display:flex;gap:14px;margin-bottom:20px">'
++'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Price</p><input id="_vtr-price" type="text" inputmode="decimal" value="'+price+'" placeholder="0.00" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
++'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Wishlist</p><input id="_vtr-wl" type="text" placeholder="Optional" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
++'</div>'
++'<button id="_vtr-save" style="width:100%;background:#000;color:#fff;border:none;padding:16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;-webkit-appearance:none;border-radius:0;">SAVE</button>'
++'<button id="_vtr-cancel" style="display:block;width:100%;background:none;border:none;padding:10px 0;margin-top:6px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#bbb;text-decoration:underline;cursor:pointer;font-family:inherit;">Cancel</button>';
+root.appendChild(sheet);
+document.body.appendChild(root);
+var open=false;
+fab.onclick=function(e){
+e.stopPropagation();
+open=!open;
+if(open){fab.style.background=B;fab.style.borderColor=B;fab.querySelector('svg').setAttribute('stroke','#fff');sheet.style.display='block';setTimeout(function(){var inp=document.getElementById('_vtr-name');if(inp)inp.select();},80);}
+else{fab.style.background='#fff';fab.style.borderColor='#ddd';fab.querySelector('svg').setAttribute('stroke','#aaa');sheet.style.display='none';}
+};
+document.getElementById('_vtr-cancel').onclick=function(){root.remove();};
+document.getElementById('_vtr-save').onclick=function(){
+var n=(document.getElementById('_vtr-name').value||'').trim()||title;
+var pr=(document.getElementById('_vtr-price').value||'').trim();
+var wl=(document.getElementById('_vtr-wl').value||'').trim();
+var d=encodeURIComponent(JSON.stringify({url:pageUrl,name:n,img:img,price:pr,wl:wl}));
+window.open(V+'/?vtr=1&d='+d,'_blank');
+root.remove();
+};
+})()`;
+
+    const bmUrl = 'javascript:' + bmSrc;
+
+    function copyCode() {
+      const btn = document.getElementById('copy-btn');
+      const note = document.getElementById('copy-note');
+
+      const doFallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = bmUrl;
+        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(ta);
+        markCopied(btn, note);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(bmUrl).then(() => markCopied(btn, note)).catch(doFallback);
+      } else {
+        doFallback();
+      }
+    }
+
+    function markCopied(btn, note) {
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('copied');
+      note.textContent = 'Now follow steps 2 and 3 above ↑';
+      setTimeout(() => {
+        btn.textContent = 'Copy Save Button Code';
+        btn.classList.remove('copied');
+        note.textContent = 'Copy first, then follow steps 2 and 3 above';
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html>

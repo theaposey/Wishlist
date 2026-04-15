@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vitrine — Prototype</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0 !important; }
+
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      gap: 32px;
+      padding: 32px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    /* ── Phone frame ── */
+    .frame {
+      width: 390px;
+      height: 844px;
+      background: #fff;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 0 1px #ccc, 0 24px 64px rgba(0,0,0,0.18);
+      flex-shrink: 0;
+    }
+    .frame-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 8px;
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    }
+
+    /* ── Shared chrome ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid #f0f0f0;
+      flex-shrink: 0;
+    }
+    header span {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #000;
+    }
+    header span.muted { color: #999; }
+
+    .bottom-nav {
+      display: flex;
+      border-top: 1px solid #f0f0f0;
+      background: #fff;
+      flex-shrink: 0;
+      margin-top: auto;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0 10px;
+      gap: 4px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+    .nav-tab span {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #999;
+    }
+    .nav-tab.active span { color: #000; }
+    .nav-dot {
+      width: 4px;
+      height: 4px;
+      background: #000;
+      border-radius: 50% !important;
+    }
+
+    /* ── Screen: Vitrine grid ── */
+    .screen {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nudge-banner {
+      background: #000;
+      color: #fff;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .nudge-banner span, .nudge-banner button {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .nudge-banner button {
+      background: none;
+      border: none;
+      color: #fff;
+      text-decoration: underline;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: #e8e8e8;
+      flex: 1;
+    }
+    .card {
+      background: #fff;
+      cursor: pointer;
+    }
+    .card-image {
+      aspect-ratio: 1 / 1;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .card-image.no-image {
+      background: #fafafa;
+    }
+    .card-image .placeholder-text {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    .card-meta {
+      padding: 8px 10px 10px;
+    }
+    .card-prefix {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .card-days {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: #bbb;
+    }
+    .card-status {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #999;
+    }
+    .nudge-dot {
+      width: 5px;
+      height: 5px;
+      background: #000;
+      border-radius: 50% !important;
+      display: inline-block;
+    }
+    .card-name {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #000;
+    }
+    .savings-bar {
+      margin-top: 6px;
+      height: 1px;
+      background: #eee;
+      position: relative;
+    }
+    .savings-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      background: #000;
+    }
+
+    /* ── Screen: Empty state ── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 32px 24px;
+    }
+    .empty-hero {
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      line-height: 0.92;
+      color: #e8e8e8;
+    }
+    .empty-cta {
+      margin-top: 32px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #000;
+      padding-bottom: 2px;
+      cursor: pointer;
+      font-family: inherit;
+      color: #000;
+    }
+
+    /* ── Screen: Item Detail ── */
+    .detail-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .detail-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .detail-body {
+      padding: 20px 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .detail-watching {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 6px;
+    }
+    .detail-name {
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .detail-url {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #999;
+      text-decoration: underline;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .detail-section-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 6px;
+      margin-top: 20px;
+    }
+    .detail-note {
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: #333;
+      line-height: 1.6;
+    }
+    .savings-detail {
+      margin-top: 4px;
+    }
+    .savings-detail-bar {
+      height: 1px;
+      background: #eee;
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .savings-detail-fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      background: #000;
+    }
+    .savings-detail-stats {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #999;
+      display: flex;
+      justify-content: space-between;
+    }
+    .detail-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .btn {
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 14px;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+    }
+    .btn-primary {
+      background: #000;
+      color: #fff;
+    }
+    .btn-outline {
+      background: none;
+      border: 1px solid #000;
+      color: #000;
+    }
+    .btn-ghost {
+      background: none;
+      color: #999;
+      border: 1px solid #e0e0e0;
+    }
+    .btn-danger {
+      background: none;
+      color: #999;
+      text-decoration: underline;
+      padding: 8px;
+    }
+
+    /* ── Screen: Add Item ── */
+    .add-screen {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px 100px;
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    .form-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #999;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #000;
+      padding: 8px 0;
+      font-size: 13px;
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      letter-spacing: 0.05em;
+      outline: none;
+      color: #000;
+      background: transparent;
+    }
+    .form-input::placeholder { color: #ccc; }
+    .form-input-area {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid #000;
+      padding: 8px 0;
+      font-size: 13px;
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      letter-spacing: 0.05em;
+      outline: none;
+      color: #000;
+      background: transparent;
+      resize: none;
+      min-height: 60px;
+    }
+    .image-picker {
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      border: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      background: #fafafa;
+    }
+    .image-picker span {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #999;
+    }
+    .image-picker .plus {
+      font-size: 24px;
+      color: #ccc;
+      line-height: 1;
+    }
+
+    /* ── Screen: Archive ── */
+    .archive-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .archive-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      align-items: flex-start;
+    }
+    .archive-thumb {
+      width: 60px;
+      height: 60px;
+      background: #fafafa;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .archive-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .archive-thumb .ph {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ccc;
+      text-align: center;
+      padding: 4px;
+    }
+    .archive-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .archive-reason {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 3px;
+    }
+    .archive-name {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #000;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .archive-meta {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #ccc;
+    }
+    .archive-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .archive-btn {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: none;
+      border: 1px solid #e0e0e0;
+      padding: 5px 8px;
+      cursor: pointer;
+      font-family: inherit;
+      color: #555;
+    }
+
+    /* ── Screen: Check-in modal ── */
+    .checkin-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 32px 24px;
+      padding-bottom: 100px;
+    }
+    .checkin-days {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+    .checkin-headline {
+      font-size: 28px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      line-height: 1.05;
+      margin-bottom: 32px;
+    }
+    .checkin-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── Delete confirm ── */
+    .delete-confirm {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 32px 24px;
+    }
+    .delete-confirm-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+    .delete-confirm-text {
+      font-size: 22px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      margin-bottom: 32px;
+    }
+    .delete-confirm-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── SCREEN 1: Vitrine Grid (with items) ── -->
+  <div>
+    <p class="frame-label">01 — Vitrine (main grid)</p>
+    <div class="frame">
+      <header>
+        <span>Vitrine</span>
+        <span class="muted">4 Watching</span>
+      </header>
+      <div class="nudge-banner">
+        <span>1 Item Needs Your Verdict</span>
+        <button>Review</button>
+      </div>
+      <div class="screen">
+        <div class="grid">
+
+          <!-- Card 1: with image, nudge -->
+          <div class="card">
+            <div class="card-image">
+              <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80" alt="Bag" />
+            </div>
+            <div class="card-meta">
+              <div class="card-prefix">
+                <span class="card-days">047</span>
+                <span class="nudge-dot"></span>
+              </div>
+              <p class="card-name">Lemaire Soft Game Bag</p>
+            </div>
+          </div>
+
+          <!-- Card 2: with image, savings bar -->
+          <div class="card">
+            <div class="card-image">
+              <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" alt="Shoes" />
+            </div>
+            <div class="card-meta">
+              <div class="card-prefix">
+                <span class="card-days">012</span>
+                <span class="card-status">Watching</span>
+              </div>
+              <p class="card-name">New Balance 990v6</p>
+              <div class="savings-bar">
+                <div class="savings-fill" style="width: 38%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: no image -->
+          <div class="card">
+            <div class="card-image no-image">
+              <span class="placeholder-text">Aesop Resurrection Aromatique Hand Balm</span>
+            </div>
+            <div class="card-meta">
+              <div class="card-prefix">
+                <span class="card-days">003</span>
+                <span class="card-status">Watching</span>
+              </div>
+              <p class="card-name">Aesop Hand Balm</p>
+            </div>
+          </div>
+
+          <!-- Card 4: with image -->
+          <div class="card">
+            <div class="card-image">
+              <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80" alt="Watch" />
+            </div>
+            <div class="card-meta">
+              <div class="card-prefix">
+                <span class="card-days">086</span>
+                <span class="card-status">Watching</span>
+              </div>
+              <p class="card-name">Seiko SARB033</p>
+              <div class="savings-bar">
+                <div class="savings-fill" style="width: 70%"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <nav class="bottom-nav">
+        <button class="nav-tab active">
+          <span>Vitrine</span>
+          <div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab">
+          <span>Archive</span>
+        </button>
+        <button class="nav-tab">
+          <span>+ Add</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 2: Empty State ── -->
+  <div>
+    <p class="frame-label">02 — Empty state</p>
+    <div class="frame">
+      <header>
+        <span>Vitrine</span>
+        <span class="muted">0 Watching</span>
+      </header>
+      <div class="screen">
+        <div class="empty-state">
+          <p class="empty-hero">Save<br />What<br />You're<br />Watching.</p>
+          <button class="empty-cta">+ Add Your First Item</button>
+        </div>
+      </div>
+      <nav class="bottom-nav">
+        <button class="nav-tab active">
+          <span>Vitrine</span>
+          <div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab">
+          <span>Archive</span>
+        </button>
+        <button class="nav-tab">
+          <span>+ Add</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 3: Item Detail ── -->
+  <div>
+    <p class="frame-label">03 — Item detail</p>
+    <div class="frame">
+      <header>
+        <span>← Back</span>
+        <span class="muted">Edit</span>
+      </header>
+      <div class="screen">
+        <div class="detail-image">
+          <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80" alt="Bag" />
+        </div>
+        <div class="detail-body">
+          <p class="detail-watching">047 — Watching</p>
+          <p class="detail-name">Lemaire Soft Game Bag</p>
+          <a class="detail-url" href="#">ssense.com/en-us/women/bags/...</a>
+
+          <p class="detail-section-label">Note</p>
+          <p class="detail-note">The tan version specifically. Size medium. Keep an eye for end-of-season markdowns — usually drops 20% in Jan.</p>
+
+          <p class="detail-section-label">Savings</p>
+          <div class="savings-detail">
+            <div class="savings-detail-bar">
+              <div class="savings-detail-fill" style="width: 38%"></div>
+            </div>
+            <div class="savings-detail-stats">
+              <span>$760 of $2,000 saved</span>
+              <span>38%</span>
+            </div>
+          </div>
+
+          <p class="detail-section-label">Added</p>
+          <p style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#999">February 12, 2026</p>
+
+          <div class="detail-actions">
+            <button class="btn btn-primary">Still Want It — Keep Watching</button>
+            <button class="btn btn-outline">Let It Go</button>
+            <button class="btn btn-ghost">Archive</button>
+            <button class="btn btn-danger">Delete Permanently</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 4: Check-in prompt ── -->
+  <div>
+    <p class="frame-label">04 — Check-in / nudge</p>
+    <div class="frame" style="position:relative">
+      <header>
+        <span>← Back</span>
+        <span class="muted">Edit</span>
+      </header>
+      <div class="screen">
+        <div class="detail-image" style="filter:blur(2px);opacity:0.4">
+          <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80" alt="Bag" />
+        </div>
+      </div>
+      <div class="checkin-overlay">
+        <p class="checkin-days">047 — Lemaire Soft Game Bag</p>
+        <p class="checkin-headline">Still<br />Want It?</p>
+        <div class="checkin-buttons">
+          <button class="btn btn-primary">Yes, Keep Watching</button>
+          <button class="btn btn-outline">Let It Go</button>
+        </div>
+      </div>
+      <nav class="bottom-nav" style="position:relative;z-index:2">
+        <button class="nav-tab active">
+          <span>Vitrine</span>
+          <div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab"><span>Archive</span></button>
+        <button class="nav-tab"><span>+ Add</span></button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 5: Add Item ── -->
+  <div>
+    <p class="frame-label">05 — Add item</p>
+    <div class="frame">
+      <header>
+        <span>Add Item</span>
+        <span class="muted">Cancel</span>
+      </header>
+      <div class="screen">
+        <div class="add-screen">
+          <div class="form-group">
+            <label class="form-label">Image</label>
+            <div class="image-picker">
+              <span class="plus">+</span>
+              <span>Upload Photo or Paste URL</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Name *</label>
+            <input class="form-input" type="text" placeholder="Item name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL</label>
+            <input class="form-input" type="text" placeholder="https://..." />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Note</label>
+            <textarea class="form-input-area" placeholder="Size, colorway, timing notes..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price Target</label>
+            <input class="form-input" type="text" placeholder="0.00" style="width:50%" />
+          </div>
+          <button class="btn btn-primary" style="width:100%;margin-top:12px">Save to Vitrine</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 6: Archive ── -->
+  <div>
+    <p class="frame-label">06 — Archive</p>
+    <div class="frame">
+      <header>
+        <span>Archive</span>
+        <span class="muted">3 Items</span>
+      </header>
+      <div class="screen">
+        <div class="archive-list">
+
+          <div class="archive-item">
+            <div class="archive-thumb">
+              <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&q=80" alt="" />
+            </div>
+            <div class="archive-info">
+              <p class="archive-reason">Let Go</p>
+              <p class="archive-name">Adidas Samba OG</p>
+              <p class="archive-meta">Watched 34 days</p>
+            </div>
+            <div class="archive-actions">
+              <button class="archive-btn">Restore</button>
+              <button class="archive-btn" style="color:#ccc">Delete</button>
+            </div>
+          </div>
+
+          <div class="archive-item">
+            <div class="archive-thumb">
+              <div class="ph">Loro Piana Baby Cashmere Scarf</div>
+            </div>
+            <div class="archive-info">
+              <p class="archive-reason">Let Go</p>
+              <p class="archive-name">Loro Piana Scarf</p>
+              <p class="archive-meta">Watched 112 days</p>
+            </div>
+            <div class="archive-actions">
+              <button class="archive-btn">Restore</button>
+              <button class="archive-btn" style="color:#ccc">Delete</button>
+            </div>
+          </div>
+
+          <div class="archive-item">
+            <div class="archive-thumb">
+              <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&q=80" alt="" />
+            </div>
+            <div class="archive-info">
+              <p class="archive-reason">Got It</p>
+              <p class="archive-name">Seiko SARB033</p>
+              <p class="archive-meta">Watched 86 days</p>
+            </div>
+            <div class="archive-actions">
+              <button class="archive-btn" style="color:#ccc">Delete</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <nav class="bottom-nav">
+        <button class="nav-tab">
+          <span>Vitrine</span>
+        </button>
+        <button class="nav-tab active">
+          <span>Archive</span>
+          <div class="nav-dot"></div>
+        </button>
+        <button class="nav-tab"><span>+ Add</span></button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 7: Delete confirm ── -->
+  <div>
+    <p class="frame-label">07 — Delete confirmation</p>
+    <div class="frame" style="position:relative">
+      <header>
+        <span>← Back</span>
+        <span class="muted">Edit</span>
+      </header>
+      <div class="screen" style="opacity:0.15;pointer-events:none">
+        <div class="detail-image">
+          <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80" alt="Bag" />
+        </div>
+      </div>
+      <div class="delete-confirm">
+        <p class="delete-confirm-label">This Cannot Be Undone</p>
+        <p class="delete-confirm-text">Delete<br />Lemaire<br />Soft Game<br />Bag?</p>
+        <div class="delete-confirm-actions">
+          <button class="btn btn-primary" style="background:#000">Delete Permanently</button>
+          <button class="btn btn-ghost">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

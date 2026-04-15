@@ -1,0 +1,4275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XFFKTX850F"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XFFKTX850F', {
+      page_title: 'The Wishlist',
+      page_location: location.href
+    });
+  </script>
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="The Wishlist" />
+  <meta property="og:title" content="The Wishlist" />
+  <meta property="og:description" content="Save what you want. Share what you love." />
+  <meta property="og:image" content="/icon.svg" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="The Wishlist" />
+  <meta name="twitter:description" content="Save what you want. Share what you love." />
+  <meta name="twitter:image" content="/icon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <title>The Wishlist</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --accent: #86EE86; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    }
+
+    /* ─── App root ─── */
+    #app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    /* ─── Safe areas ─── */
+    .safe-top {
+      height: env(safe-area-inset-top, 44px);
+      min-height: 44px;
+      flex-shrink: 0;
+    }
+    .safe-bottom {
+      height: max(env(safe-area-inset-bottom), 8px);
+      flex-shrink: 0;
+    }
+
+    /* ─── Header ─── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      flex-shrink: 0;
+      min-height: 44px;
+    }
+    .h-left, .h-right {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+      font-family: inherit;
+      cursor: pointer;
+      color: #000;
+      padding: 4px 0;
+      line-height: 1;
+    }
+    .h-right { text-align: right; }
+    .h-muted { color: #bbb !important; }
+
+    /* ─── Bottom nav ─── */
+    .bottom-nav {
+      display: flex;
+      border-top: 1px solid #f0f0f0;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* balance top/bottom so labels appear centered in the full bar including safe area */
+      padding-top: calc(10px + env(safe-area-inset-bottom, 0px) * 0.4);
+      padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px) * 0.6);
+      gap: 4px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+    .nav-tab span {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #ccc;
+    }
+    .nav-tab.active span { color: #000; }
+    .nav-dot { width: 4px; height: 4px; background: #000; border-radius: 50%; }
+
+    /* ─── Sub-tab bar (Wishlists / Items / Archive) ─── */
+    .sub-tab-bar {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .sub-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 0;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+    .sub-tab span {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #bbb;
+    }
+    .sub-tab.active span { color: #000; font-weight: 600; }
+    @keyframes wlSlideFromRight { from { transform: translateX(100%); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes wlSlideFromLeft  { from { transform: translateX(-100%); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
+    .wl-slide-from-right { animation: wlSlideFromRight 0.42s cubic-bezier(0.4,0,0.2,1) both; }
+    .wl-slide-from-left  { animation: wlSlideFromLeft  0.42s cubic-bezier(0.4,0,0.2,1) both; }
+
+    /* ─── Filter + view-toggle control bar ─── */
+    .filter-control-bar {
+      display: flex; align-items: stretch; border-bottom: 1px solid #f4f4f4;
+      background: #fff; flex-shrink: 0; min-height: 40px; position: relative;
+    }
+    .filter-pills-scroll {
+      flex: 1; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+      padding: 8px 12px; touch-action: pan-x; align-items: center;
+    }
+    .filter-pills-scroll::-webkit-scrollbar { display: none; }
+    .filter-toggle-end {
+      display: flex; align-items: center; gap: 0; flex-shrink: 0;
+      padding: 0 10px 0 6px; background: #fff; position: sticky; right: 0;
+    }
+    .filter-toggle-end::before {
+      content: ''; display: block; width: 24px; height: 100%;
+      background: linear-gradient(to right, transparent, #fff);
+      position: absolute; left: -24px; top: 0; pointer-events: none;
+    }
+
+    /* ─── Scroll areas ─── */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ─── Grid ─── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      background: #fff;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .card {
+      min-width: 0;
+      overflow: hidden;
+      background: #fff;
+      cursor: pointer;
+    }
+    .card:active { opacity: 0.8; }
+    .card-image {
+      aspect-ratio: 1 / 1;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card-image img { width: 100%; height: 100%; object-fit: contain; }
+    .card-image .ph {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #d0d0d0;
+      padding: 12px;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .card-meta { padding: 8px 10px 10px; }
+    .card-prefix {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 3px;
+    }
+    .card-days { font-size: 10px; letter-spacing: 0.1em; color: #ccc; }
+    .card-name {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #000;
+    }
+    .card-price {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    /* ─── FAB (floating + button) ─── */
+    .fab {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 58px;
+      height: 58px;
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 200;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fab:active { background: #6ad46a; }
+    .fab svg { display: block; }
+
+    /* ─── Shared wishlist footer ─── */
+    .shared-footer {
+      padding: 28px 24px;
+      text-align: center;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    /* ─── Wishlist folder cards ─── */
+    .folder-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; }
+    .folder-count { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
+    .folder-initial {
+      font-size: 32px;
+      font-weight: 700;
+      color: #e8e8e8;
+      letter-spacing: -0.02em;
+    }
+
+    /* ─── Wishlist collage thumbnail ─── */
+    .wl-collage {
+      width: 100%; aspect-ratio: 1;
+      display: grid; background: #f5f5f5;
+      overflow: hidden; gap: 0;
+    }
+    .wl-collage img { width: 100%; height: 100%; object-fit: contain; background: #fff; display: block; }
+    .wl-collage-1 { grid-template-columns: 1fr; }
+    .wl-collage-2 { grid-template-columns: 1fr 1fr; }
+    .wl-collage-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+    .wl-collage-3 img:first-child { grid-row: 1 / 3; }
+    .wl-collage-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+    /* ─── Wishlist edit mode ─── */
+    .card-editing {
+      position: relative;
+      cursor: grab;
+      user-select: none;
+    }
+    .card-editing:active { cursor: grabbing; opacity: 0.55; }
+    .card-drag-over { outline: 2px solid #000; outline-offset: -2px; }
+    .wl-delete-btn {
+      position: absolute;
+      top: 0; right: 0;
+      z-index: 10;
+      width: 24px; height: 24px;
+      background: #000;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 300; line-height: 1;
+      cursor: pointer;
+    }
+
+    /* ─── Purchased / faded item treatment ─── */
+    .card-purchased .card-image img { opacity: 0.42; }
+    .card-purchased .card-image .ph { color: #ddd; }
+    .card-purchased .card-name { color: #ccc; }
+    .card-purchased .card-days { color: #e0e0e0; }
+    .card-purchased .card-price { color: #ddd; }
+    .card-purchased-tag {
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    /* ─── Item delete button (edit mode within wishlist) ─── */
+    .item-delete-btn {
+      position: absolute;
+      top: 0; right: 0;
+      z-index: 10;
+      width: 22px; height: 22px;
+      background: #000;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 300; line-height: 1;
+      cursor: pointer;
+    }
+
+    /* ─── Wishlist detail cover + sticky scroll ─── */
+    .wl-detail-scroll {
+      flex: 1;
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      background: #fff;
+    }
+    .wl-cover-wrap {
+      width: 100%;
+      height: 230px;
+      position: sticky;
+      top: 0;
+      overflow: hidden;
+      background: #ebebeb;
+      flex-shrink: 0;
+      z-index: 0;
+    }
+    .wl-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .wl-cover-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, transparent 40%, rgba(0,0,0,0.28) 100%);
+      pointer-events: none;
+    }
+    .wl-edit-cover-btn {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.85);
+      border: none;
+      padding: 7px 14px;
+      cursor: pointer;
+      font-family: inherit;
+      color: #000;
+    }
+    .wl-cover-empty-label {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #ccc;
+    }
+    .wl-content-wrap {
+      position: relative;
+      z-index: 2;
+      background: #fff;
+      margin-top: -1px;
+    }
+    .wl-sticky-top {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .wl-name-row {
+      padding: 12px 20px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .wl-top-metrics {
+      border-bottom: 1px solid #f4f4f4;
+      background: #fff;
+    }
+    .wl-name-big {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: block;
+    }
+    .wl-count-sm {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #bbb;
+      display: block;
+      margin-top: 2px;
+    }
+    .view-toggle { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
+    .view-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 6px; color: #ccc; display: flex; align-items: center;
+    }
+    .view-btn.active svg rect, .view-btn.active svg path { fill: #000; }
+    .view-btn svg rect, .view-btn svg path { fill: #ccc; }
+
+    /* ─── List view rows ─── */
+    .list-view { width: 100%; }
+    .swipe-row-wrap { position: relative; overflow: hidden; }
+    .swipe-delete-bg {
+      position: absolute; inset: 0; background: #c0392b;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 22px; opacity: 0;
+    }
+    .swipe-delete-bg span {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #fff;
+    }
+    .list-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #f6f6f6;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+      background: #fff;
+      z-index: 1;
+    }
+    .list-row:active { opacity: 0.75; }
+    .list-drag-handle {
+      color: #d0d0d0; font-size: 13px; flex-shrink: 0;
+      cursor: grab; padding: 0 6px 0 0; touch-action: none; user-select: none;
+    }
+    .list-row.dragging {
+      opacity: 0; pointer-events: none;
+    }
+    .list-row.drag-over-above {
+      box-shadow: inset 0 2px 0 #000;
+    }
+    .list-row.drag-over-below {
+      box-shadow: inset 0 -2px 0 #000;
+    }
+    .drag-ghost {
+      position: fixed; z-index: 1000; pointer-events: none;
+      background: #fff; box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+      left: 0; width: 100%;
+      transition: transform 0.08s ease;
+    }
+    .list-thumb {
+      width: 48px; height: 48px;
+      flex-shrink: 0; overflow: hidden; background: #fff;
+    }
+    .list-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .list-thumb .ph { font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase; color: #d0d0d0; padding: 4px; text-align: center; line-height: 1.4; }
+    .list-info { flex: 1; min-width: 0; }
+    .list-name {
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000;
+    }
+    .list-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
+    .list-price { font-size: 10px; letter-spacing: 0.06em; color: #000; flex-shrink: 0; }
+    .list-row-purchased .list-thumb img { opacity: 0.4; }
+    .list-row-purchased .list-name { color: #ccc; }
+    .list-row-purchased .list-meta { color: #ddd; }
+    .list-row-purchased .list-price { color: #ddd; }
+
+    /* ─── Change cover panel ─── */
+    .cover-panel {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid #e8e8e8;
+      padding: 20px 20px 36px;
+      z-index: 60;
+    }
+    .cover-panel-label {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 12px;
+    }
+    .cover-panel-preview {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      margin-bottom: 10px;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cover-panel-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ─── Section title row ─── */
+    .section-title-row {
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid #f4f4f4;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ─── Onboarding ─── */
+    .onboarding {
+      position: fixed; inset: 0; background: #fff; z-index: 9999;
+      display: flex; flex-direction: column;
+      padding: env(safe-area-inset-top, 44px) 0 env(safe-area-inset-bottom, 24px);
+      overflow-y: auto;
+    }
+    .ob-hero {
+      padding: 48px 28px 36px;
+      flex: 1;
+      display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .ob-eyebrow {
+      font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: #bbb; margin-bottom: 14px;
+    }
+    .ob-title {
+      font-size: 52px; font-weight: 800; letter-spacing: -0.025em;
+      text-transform: uppercase; line-height: 0.88; color: #000;
+      margin-bottom: 20px;
+    }
+    .ob-tagline {
+      font-size: 11px; letter-spacing: 0.05em; color: #999; line-height: 1.8;
+      text-transform: uppercase;
+    }
+    .ob-steps {
+      border-top: 1px solid #f0f0f0;
+      padding: 0 28px;
+    }
+    .ob-steps-label {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: #bbb; padding: 20px 0 14px;
+    }
+    .ob-step {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 14px 0; border-bottom: 1px solid #f8f8f8;
+    }
+    .ob-step:last-child { border-bottom: none; }
+    .ob-step-num {
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #bbb; padding-top: 2px; width: 20px; flex-shrink: 0;
+    }
+    .ob-step-text {
+      font-size: 12px; letter-spacing: 0.03em; color: #000; line-height: 1.6;
+    }
+    .ob-step-text strong { font-weight: 700; }
+    .ob-step-text span { color: #999; font-size: 11px; }
+    .ob-actions {
+      padding: 24px 28px 8px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .ob-skip {
+      display: block; width: 100%; background: none; border: none;
+      font-family: inherit; font-size: 9px; letter-spacing: 0.15em;
+      text-transform: uppercase; color: #bbb; padding: 12px 0;
+      cursor: pointer; text-align: center; margin-top: 10px;
+    }
+
+    /* ─── Name prompt ─── */
+    .name-prompt {
+      position: fixed; inset: 0; background: #fff; z-index: 9999;
+      display: flex; flex-direction: column; padding: env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+    }
+    .name-prompt-hero { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 48px 28px 36px; }
+    .name-prompt-title {
+      font-size: 48px; font-weight: 800; letter-spacing: -0.025em;
+      text-transform: uppercase; line-height: 0.88; color: #000; margin-bottom: 20px;
+    }
+    .name-prompt-sub { font-size: 11px; letter-spacing: 0.05em; color: #999; line-height: 1.8; text-transform: uppercase; }
+    .name-prompt-body { border-top: 1px solid #f0f0f0; padding: 32px 28px; }
+    .name-prompt-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; margin-bottom: 12px; }
+    .name-prompt-input {
+      width: 100%; border: none; border-bottom: 2px solid #000;
+      font-size: 18px; font-family: inherit; font-weight: 600;
+      padding: 8px 0 10px; outline: none; background: none; color: #000;
+    }
+    .name-prompt-input::placeholder { color: #ccc; font-weight: 400; }
+    .name-prompt-actions { padding: 0 28px 20px; }
+    .name-prompt-cta {
+      display: block; width: 100%; background: #000; color: #fff; border: none;
+      font-family: inherit; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      padding: 16px; cursor: pointer; margin-bottom: 12px;
+    }
+    .name-prompt-skip {
+      display: block; width: 100%; background: none; border: none;
+      font-family: inherit; font-size: 9px; letter-spacing: 0.15em;
+      text-transform: uppercase; color: #bbb; padding: 10px 0;
+      cursor: pointer; text-align: center;
+    }
+
+    /* ─── Empty state ─── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 28px;
+    }
+    .empty-hero {
+      font-size: 54px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      line-height: 0.88;
+      color: #ebebeb;
+    }
+    .empty-cta {
+      margin-top: 32px;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #000;
+      padding-bottom: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      color: #000;
+    }
+
+    /* ─── Item detail ─── */
+    .detail-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #fff;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .detail-image img { width: 100%; height: 100%; object-fit: contain; }
+    .detail-image .ph-lg {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #d0d0d0;
+      padding: 40px;
+      text-align: center;
+    }
+    .detail-body { padding: 18px 20px 48px; }
+    .detail-days { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; margin-bottom: 5px; }
+    .detail-brand { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #999; margin-bottom: 2px; }
+    .detail-name { font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; line-height: 1.3; }
+    .detail-url {
+      font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #bbb; text-decoration: underline; cursor: pointer;
+      display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .detail-section-label {
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #bbb; margin-top: 18px; margin-bottom: 5px;
+    }
+    .detail-note { font-size: 12px; letter-spacing: 0.03em; color: #444; line-height: 1.65; }
+    .detail-price-val { font-size: 13px; letter-spacing: 0.06em; color: #000; }
+    .detail-added { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; }
+    .detail-actions { margin-top: 24px; padding-top: 20px; border-top: 1px solid #f2f2f2; display: flex; flex-direction: column; gap: 10px; }
+    .metric-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid #f4f4f4;
+    }
+    .metric-cell {
+      padding: 14px 16px 16px;
+      border-right: 1px solid #f4f4f4;
+      position: relative;
+    }
+    .metric-cell:nth-child(2n) { border-right: none; }
+    .metric-progress {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: #efefef; overflow: hidden;
+    }
+    .metric-progress-fill { height: 100%; background: var(--accent); }
+    .metric-label {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      color: #000;
+    }
+    .mini-progress {
+      width: 100%;
+      height: 2px;
+      background: #efefef;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    .mini-progress-fill { height: 100%; background: var(--accent); }
+    .detail-progress {
+      width: 100%;
+      height: 4px;
+      background: #efefef;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .detail-progress-fill { height: 100%; background: var(--accent); }
+    .detail-subnote {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-top: 8px;
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 14px 16px;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+      width: 100%;
+    }
+    .btn:active { opacity: 0.7; }
+    .btn-black { background: #000; color: #fff; }
+    .btn-outline { background: none; border: 1px solid #000; color: #000; }
+    .btn-ghost { background: none; border: 1px solid #e0e0e0; color: #888; }
+    .btn-text { background: none; color: #bbb; text-decoration: underline; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 0; cursor: pointer; font-family: inherit; border: none; width: 100%; }
+    .btn-link-cta { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+
+    /* ─── Archive list ─── */
+    .archive-row {
+      display: flex;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f4f4f4;
+      align-items: flex-start;
+    }
+    .archive-thumb {
+      width: 56px; height: 56px;
+      background: #fff;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .archive-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .archive-thumb .ph { font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #ccc; text-align: center; padding: 4px; line-height: 1.4; }
+    .archive-info { flex: 1; min-width: 0; }
+    .archive-reason { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; margin-bottom: 2px; }
+    .archive-name { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+    .archive-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; }
+    .archive-btns { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+    .archive-btn { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; background: none; border: 1px solid #e0e0e0; padding: 5px 9px; cursor: pointer; font-family: inherit; color: #555; }
+    .archive-btn.ghost { color: #ccc; border-color: #f0f0f0; }
+    .archive-empty { padding: 60px 28px; display: flex; flex-direction: column; gap: 6px; }
+    .archive-empty p { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; }
+
+    /* ─── Profile ─── */
+    .profile-body { flex: 1; display: flex; flex-direction: column; padding: 36px 28px; }
+    .profile-hero { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; line-height: 0.9; color: #ebebeb; margin-bottom: 40px; }
+    .profile-stat-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f4f4f4; }
+    .profile-stat-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; }
+    .profile-stat-val { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; font-weight: 600; }
+    .profile-tagline { margin-top: 40px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #ddd; line-height: 1.7; }
+    .profile-substat-row { padding-left: 14px; }
+    .profile-substat-label { color: #c7c7c7; }
+
+    /* ─── Add item — URL step ─── */
+    .url-step { flex: 1; display: flex; flex-direction: column; padding: 32px 24px 48px; }
+    .url-prompt { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; margin-bottom: 20px; }
+    .url-paste-btn {
+      width: 100%; font-family: inherit; font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; background: var(--accent); color: #000;
+      border: none; padding: 16px; cursor: pointer; text-align: center;
+    }
+    .url-paste-btn:active { opacity: 0.8; }
+    .url-input {
+      width: 100%; border: none; border-bottom: 2px solid #000;
+      padding: 10px 0; font-size: 14px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+    }
+    .url-input::placeholder { color: #ddd; }
+    .url-fetch-btn {
+      margin-top: 24px;
+      font-family: inherit; font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; background: #000; color: #fff;
+      border: none; padding: 14px; cursor: pointer; text-align: center;
+    }
+    .url-hint { margin-top: 14px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; line-height: 1.7; }
+    .url-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px 0 0;
+    }
+    .url-divider::before, .url-divider::after {
+      content: ''; flex: 1; height: 1px; background: #ebebeb;
+    }
+    .url-divider span { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; }
+    .url-manual-btn {
+      margin-top: 14px;
+      font-family: inherit; font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; background: none;
+      border: 1px solid #d8d8d8; color: #888;
+      padding: 14px; cursor: pointer; text-align: center; width: 100%;
+    }
+
+    /* ─── Add item — Fetching step ─── */
+    .fetching-step { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 32px 24px; gap: 12px; }
+    .fetching-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; }
+    .fetching-url { font-size: 11px; letter-spacing: 0.04em; color: #ccc; word-break: break-all; }
+    .fetching-dots { display: flex; gap: 5px; margin-top: 4px; }
+    .fetching-dot {
+      width: 6px; height: 6px; background: #000; border-radius: 50%;
+      animation: pulse 1.2s infinite;
+    }
+    .fetching-dot:nth-child(2) { animation-delay: 0.2s; }
+    .fetching-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse { 0%,100%{opacity:0.2} 50%{opacity:1} }
+
+    /* ─── Add item — Form step ─── */
+    .form-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .form-image-area {
+      width: 100%; aspect-ratio: 1/1;
+      background: #fafafa;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; flex-shrink: 0;
+      cursor: pointer;
+    }
+    .form-image-area img { width: 100%; height: 100%; object-fit: contain; }
+    .form-image-area .ph-lg { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #d0d0d0; padding: 40px; text-align: center; }
+    .form-image-btn-row {
+      position: absolute; bottom: 10px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 6px;
+      pointer-events: none;
+    }
+    .form-image-btn-row button { pointer-events: all; }
+    .form-image-change-btn {
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+      background: rgba(255,255,255,0.9); border: 1px solid #e0e0e0;
+      padding: 5px 9px; cursor: pointer; font-family: inherit; color: #555;
+    }
+    .form-removebg-btn {
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+      background: rgba(0,0,0,0.82); border: none;
+      padding: 5px 9px; cursor: pointer; font-family: inherit; color: #fff;
+    }
+    .form-removebg-btn:disabled { opacity: 0.5; cursor: default; }
+    .form-image-url-row {
+      padding: 10px 20px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .form-image-url-input {
+      width: 100%; border: none; border-bottom: 1px solid #ccc;
+      padding: 6px 0; font-size: 12px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+      margin-bottom: 10px;
+    }
+    .form-image-url-input::placeholder { color: #ccc; }
+    .form-image-upload-btn {
+      display: block; width: 100%;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      background: none; border: 1px solid #000;
+      padding: 10px; cursor: pointer; font-family: inherit; color: #000;
+      margin-bottom: 10px; text-align: center;
+    }
+    .form-body { padding: 20px 20px 60px; }
+    .form-group { margin-bottom: 24px; }
+    .form-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #bbb; display: block; margin-bottom: 8px; }
+    .form-input {
+      width: 100%; border: none; border-bottom: 1px solid #d8d8d8;
+      padding: 7px 0; font-size: 13px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+    }
+    .form-input:focus { border-bottom-color: #000; }
+    .form-input::placeholder { color: #ccc; }
+    textarea.form-input { resize: none; min-height: 56px; line-height: 1.6; }
+    .form-input-sm { width: 44%; }
+    .form-select {
+      width: 100%; border: none; border-bottom: 1px solid #d8d8d8;
+      padding: 7px 0; font-size: 13px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+      appearance: none; cursor: pointer;
+    }
+
+    .intent-pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .intent-pill {
+      border: 1px solid #d8d8d8;
+      background: #fff;
+      color: #777;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .intent-pill.active { border-color: var(--accent); background: var(--accent); color: #000; }
+
+    /* ─── Add wishlist ─── */
+    .add-wl-body { flex: 1; padding: 36px 24px 48px; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .add-wl-prompt { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; margin-bottom: 16px; }
+    .add-wl-input {
+      border: none; border-bottom: 2px solid #000;
+      padding: 10px 0; font-size: 22px; font-family: inherit;
+      font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      outline: none; color: #000; background: transparent; width: 100%;
+    }
+    .add-wl-input::placeholder { color: #e8e8e8; }
+
+    /* ─── Quick save ─── */
+    .quick-save-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .quick-save-input {
+      border: none; border-bottom: 1px solid #d8d8d8;
+      padding: 5px 0; font-size: 13px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+      width: 100px;
+    }
+    .quick-save-input:focus { border-bottom-color: #000; }
+    .quick-save-btn {
+      font-family: inherit; font-size: 9px; letter-spacing: 0.18em;
+      text-transform: uppercase; background: var(--accent); color: #000;
+      border: none; padding: 8px 12px; cursor: pointer;
+    }
+    .quick-save-trigger {
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      background: none; border: none; border-bottom: 1px solid #000;
+      padding-bottom: 2px; cursor: pointer; font-family: inherit; color: #000;
+      margin-top: 10px; display: inline-block;
+    }
+
+    /* ─── Currency field ─── */
+    .currency-field {
+      display: inline-flex; align-items: baseline;
+      border-bottom: 1px solid #d8d8d8; width: 44%; gap: 3px;
+    }
+    .currency-field:focus-within { border-bottom-color: #000; }
+    .currency-symbol { font-size: 13px; color: #000; flex-shrink: 0; padding-bottom: 7px; }
+    .currency-input {
+      border: none !important; outline: none; background: transparent;
+      font-size: 13px; font-family: inherit; letter-spacing: 0.03em;
+      color: #000; padding: 7px 0; width: 100%; min-width: 0;
+    }
+
+    /* ─── Wishlist picker (form) ─── */
+    .wl-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+    .wl-picker-pill {
+      border: 1px solid #d8d8d8; border-radius: 999px; background: #fff;
+      color: #888; padding: 6px 14px; font-size: 9px; letter-spacing: 0.14em;
+      text-transform: uppercase; font-family: inherit; cursor: pointer; white-space: nowrap;
+    }
+    .wl-picker-pill.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .wl-picker-add { color: #bbb; font-size: 14px; font-weight: 200; padding: 4px 12px; }
+    .wl-new-wl-input {
+      border: none; border-bottom: 1px solid #000; outline: none;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: inherit; color: #000; background: transparent;
+      padding: 4px 0; min-width: 80px;
+    }
+    .wl-move-list { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
+    .wl-move-option {
+      padding: 14px 0; border-bottom: 1px solid #f4f4f4;
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      cursor: pointer; background: none; border-left: none; border-right: none; border-top: none;
+      font-family: inherit; text-align: left; color: #000;
+    }
+    .wl-move-option:last-child { border-bottom: none; }
+    .wl-name-edit-input {
+      font-size: 15px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+      font-family: inherit; border: none; border-bottom: 1px solid #000;
+      outline: none; background: transparent; color: #000;
+      width: 100%; padding: 0 0 2px; display: block; margin-bottom: 2px;
+    }
+
+    /* ─── Tags ─── */
+    .tag-pill-wrap { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+    .tag-pill {
+      border: 1px solid #000; background: #000; color: #fff;
+      border-radius: 999px; padding: 7px 13px; font-family: inherit;
+      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+      white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .tag-remove { opacity: 0.55; cursor: pointer; font-size: 13px; font-weight: 300; line-height: 1; margin-left: 1px; }
+    .tag-remove:hover { opacity: 1; }
+    .tag-add-trigger {
+      display: inline-flex; align-items: center; border: 1px solid #d0d0d0;
+      background: #fff; color: #aaa; border-radius: 999px; padding: 7px 13px;
+      font-family: inherit; font-size: 14px; font-weight: 200; line-height: 1;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .tag-pill-display {
+      border: 1px solid #e8e8e8; background: #f7f7f7; color: #666;
+      border-radius: 999px; padding: 5px 11px; font-size: 9px;
+      letter-spacing: 0.14em; text-transform: uppercase; display: inline-block;
+    }
+    .tag-inline-input {
+      border: none; outline: none; font-size: 10px; letter-spacing: 0.1em;
+      text-transform: uppercase; font-family: inherit; color: #000; background: transparent;
+      min-width: 80px; flex: 1; border-bottom: 1px solid #000; padding: 2px 0;
+    }
+    .tag-inline-input::placeholder { color: #ccc; text-transform: none; letter-spacing: 0.05em; }
+    .tag-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag-suggestion {
+      border: 1px solid #e0e0e0; background: #fff; color: #888;
+      border-radius: 999px; padding: 6px 12px; font-family: inherit; font-size: 9px;
+      letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; white-space: nowrap;
+    }
+    .tag-suggestion:active { background: #f0f0f0; }
+    .tag-filter-bar {
+      display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px;
+      scrollbar-width: none; flex-shrink: 0; touch-action: pan-x; align-items: center;
+    }
+    .tag-filter-bar::-webkit-scrollbar { display: none; }
+    .tag-filter-pill {
+      flex-shrink: 0; border: 1px solid #d8d8d8; border-radius: 999px;
+      padding: 5px 12px; font-size: 9px; letter-spacing: 0.14em;
+      text-transform: uppercase; font-family: inherit; cursor: pointer;
+      background: #fff; color: #888; white-space: nowrap;
+    }
+    .tag-filter-pill.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+    /* ─── Overlay ─── */
+    .overlay {
+      position: absolute; inset: 0; z-index: 60;
+      background: rgba(255,255,255,0.97);
+      display: flex; flex-direction: column;
+    }
+    .overlay-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 32px 28px 48px; }
+    .overlay-title-sm { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #bbb; margin-bottom: 12px; }
+    .overlay-headline { font-size: 32px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.9; margin-bottom: 32px; }
+    .overlay-btns { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ─── Toast ─── */
+    #toast {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom, 8px) + 72px);
+      left: 20px; right: 20px;
+      background: #000; color: #fff;
+      padding: 11px 16px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      text-align: center; z-index: 999;
+      opacity: 0; transition: opacity 0.22s ease; pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="toast"></div>
+
+  <script>
+  // ═══════════════════════════════════════════
+  // DATA — persisted in localStorage
+  // ═══════════════════════════════════════════
+
+  const DAY = 86400000;
+  const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  // ─── Add-item mode ───────────────────────────────────────────────
+  // 'url-input' → URL text field auto-focused on open; iOS shows a
+  //               native "Paste" suggestion in the QuickType bar —
+  //               no clipboard permission prompt required.
+  const ADD_MODE = 'url-input';
+  // ─────────────────────────────────────────────────────────────────
+
+  let wishlists = [];
+  let items = [];
+  let availableTags = [];
+  let shareData = null; // set when viewing a shared wishlist URL
+
+  function saveData() {
+    try {
+      localStorage.setItem('vitrine_wishlists', JSON.stringify(wishlists));
+      localStorage.setItem('vitrine_items', JSON.stringify(items));
+    } catch(e) {}
+  }
+
+  function loadData() {
+    try {
+      const wl = localStorage.getItem('vitrine_wishlists');
+      const it = localStorage.getItem('vitrine_items');
+      if (wl) wishlists = JSON.parse(wl);
+      if (it) items = JSON.parse(it);
+    } catch(e) {
+      wishlists = [];
+      items = [];
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════
+
+  const s = {
+    screen: 'wishlists',
+    wlSubTab: 'wishlists',  // 'wishlists' | 'items' | 'archive' — sub-tab within the wishlists main tab
+    overlay: null,
+    currentWid: null,
+    currentIid: null,
+    fromScreen: null,
+    fromWid: null,
+    addWid: null,
+    addStep: 'url',
+    addIsEdit: false,
+    wlEditMode: false,
+    wlItemEditMode: false,
+    wlsViewMode: 'grid',   // view mode for the wishlists overview tab
+    wlDetailFilterTags: [], // active tag filters inside a wishlist detail
+    wlViewMode: 'list',    // view mode inside a wishlist detail
+    itemsViewMode: 'grid',
+    itemsFilterTags: [],
+    archiveViewMode: 'grid',
+    addForm: { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid:'', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false },
+    removingBg: false,
+    sharedItemIdx: 0,
+    wlSlideDir: null,   // 'right' | 'left' | null — direction for sub-tab slide animation
+  };
+
+  let longPressTimer = null;
+  let dragSrcIdx = null;
+
+  // ═══════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════
+
+  const pad = n => String(Math.min(Math.max(n,0),999)).padStart(3,'0');
+  const days = ts => Math.max(0, Math.floor((Date.now() - ts) / DAY));
+  const fmt = n => n.toLocaleString('en-US');
+  const money = n => `$${fmt(Math.round((Number(n) || 0) * 100) / 100)}`;
+  const fmtDate = ts => new Date(ts).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const sumPrice = arr => arr.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+  const seriousWatchingItems = (wid=null) => watchingItems(wid).filter(i => !!i.serious);
+  const casualWatchingItems = (wid=null) => watchingItems(wid).filter(i => !i.serious);
+  const totalWatchingValue = (wid=null) => sumPrice(watchingItems(wid));
+  const seriousWatchingValue = (wid=null) => sumPrice(seriousWatchingItems(wid));
+  const casualWatchingValue = (wid=null) => sumPrice(casualWatchingItems(wid));
+  const letGoItems = () => archivedItems().filter(i => i.reason === 'let_go');
+  const letGoValue = () => sumPrice(letGoItems());
+  const savedAmount = item => Math.max(0, Number(item?.saved) || 0);
+  const totalSaved = (wid=null) => watchingItems(wid).reduce((sum, i) => sum + savedAmount(i), 0);
+  const totalLeft = (wid=null) => Math.max(0, totalWatchingValue(wid) - totalSaved(wid));
+  const gapAmount = item => Math.max((Number(item?.price) || 0) - savedAmount(item), 0);
+  const progressPct = item => {
+    const price = Number(item?.price) || 0;
+    if (!price) return 0;
+    return Math.max(0, Math.min(100, Math.round((savedAmount(item) / price) * 100)));
+  };
+
+  const watchingItems = (wid=null) => items
+    .filter(i => i.status === 'watching' && (wid ? i.wid === wid : true))
+    .sort((a,b) => b.addedAt - a.addedAt);
+  const wishlistItems = (wid) => items
+    .filter(i => (i.status === 'watching' || i.status === 'purchased') && i.wid === wid)
+    .sort((a,b) => {
+      if (a.status === 'purchased' && b.status !== 'purchased') return 1;
+      if (b.status === 'purchased' && a.status !== 'purchased') return -1;
+      const ao = a.order ?? a.addedAt;
+      const bo = b.order ?? b.addedAt;
+      return bo - ao;
+    });
+  const archivedItems = () => items
+    .filter(i => i.status === 'archived')
+    .sort((a,b) => (b.archivedAt||0)-(a.archivedAt||0));
+  const getItem = id => items.find(i => i.id === id);
+  const getWl = id => wishlists.find(w => w.id === id);
+  const wlCover = wid => {
+    const it = watchingItems(wid)[0];
+    return it?.img || null;
+  };
+
+  // ═══════════════════════════════════════════
+  // RENDER ENGINE
+  // ═══════════════════════════════════════════
+
+  let toastTimer;
+
+  function render() {
+    document.getElementById('app').innerHTML = buildScreen();
+    if (s.overlay && s.overlay !== 'change-cover') {
+      document.getElementById('app').insertAdjacentHTML('beforeend', buildOverlay());
+    }
+    setTimeout(() => {
+      if (s.screen === 'add-item' && s.addStep === 'url') {
+        document.getElementById('url-field')?.focus();
+      }
+      if (s.screen === 'add-wishlist') {
+        document.getElementById('wl-name-input')?.focus();
+      }
+    }, 60);
+  }
+
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  // ═══════════════════════════════════════════
+  // COMPONENTS
+  // ═══════════════════════════════════════════
+
+  function nav(active) {
+    // active = 'wishlists' | 'stats' | 'profile'
+    const tabs = ['wishlists','stats','profile'];
+    const labels = { wishlists:'Wishlists', stats:'Stats', profile:'Profile' };
+    return `
+      <nav class="bottom-nav">
+        ${tabs.map(t => `
+          <button class="nav-tab ${active===t?'active':''}" onclick="navTab('${t}')">
+            <span>${labels[t]}</span>
+            ${active===t ? '<div class="nav-dot"></div>' : ''}
+          </button>`).join('')}
+      </nav>`;
+  }
+
+  function subTabBar(active) {
+    // active = 'wishlists' | 'items' | 'archive'
+    const tabs = ['wishlists','items','archive'];
+    const labels = { wishlists:'Wishlists', items:'Items', archive:'Archive' };
+    return `
+      <div class="sub-tab-bar">
+        ${tabs.map(t => `
+          <button class="sub-tab ${active===t?'active':''}" onclick="setWlSubTab('${t}')">
+            <span>${labels[t]}</span>
+          </button>`).join('')}
+      </div>`;
+  }
+
+  function fab(action, hasNav=true) {
+    const bottom = hasNav
+      ? 'calc(env(safe-area-inset-bottom, 0px) + 52px)'
+      : 'calc(env(safe-area-inset-bottom, 0px) + 14px)';
+    return `<button class="fab" style="bottom:${bottom}" onclick="${action}" aria-label="Add">
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round">
+        <line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/>
+      </svg>
+    </button>`;
+  }
+
+  function itemCard(item, idx=0) {
+    const d = days(item.addedAt);
+    const purchased = item.status === 'purchased';
+    const imgH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    const deleteBtn = s.wlItemEditMode
+      ? `<div class="item-delete-btn" onclick="removeItem(event,'${item.id}')">×</div>` : '';
+    const dragAttrs = s.wlItemEditMode
+      ? `draggable="true"
+         ondragstart="itemDragStart(event,${idx})"
+         ondragover="itemDragOver(event,${idx})"
+         ondragleave="itemDragLeave(event)"
+         ondrop="itemDrop(event,${idx})"
+         ondragend="itemDragEnd(event)"` : '';
+    const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
+    const lpAttrs = s.wlItemEditMode ? '' :
+      `onpointerdown="itemLongPressStart(event,'${item.id}')"
+       onpointerup="itemLongPressCancel()"
+       onpointermove="itemLongPressCancel()"
+       onpointerleave="itemLongPressCancel()"`;
+    return `
+      <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} ${dragAttrs} ${lpAttrs} style="position:relative">
+        ${deleteBtn}
+        <div class="card-image">${imgH}</div>
+        ${item.price && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
+        <div class="card-meta">
+          <div class="card-prefix"><span class="card-days">${pad(d)}</span></div>
+          ${item.brand ? `<p class="card-days" style="letter-spacing:0.12em">${esc(item.brand.toUpperCase())}</p>` : ''}
+          <p class="card-name">${esc(item.name)}</p>
+          ${purchased ? `<p class="card-purchased-tag">Purchased</p>` : ''}
+          ${item.serious && !purchased ? `<p class="card-purchased-tag">Serious</p>` : ''}
+          ${item.price && !purchased ? `<p class="card-price">${money(item.price)}</p>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function wishlistCollage(wid) {
+    if (getWl(wid)?.coverImg) {
+      return `<img src="${getWl(wid).coverImg}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" />`;
+    }
+    const imgs = watchingItems(wid).filter(i => i.img).slice(0, 4);
+    if (imgs.length === 0) {
+      const wl = getWl(wid);
+      return `<div class="folder-initial">${wl?.name[0]?.toUpperCase() || '?'}</div>`;
+    }
+    const n = imgs.length;
+    return `<div class="wl-collage wl-collage-${n}">
+      ${imgs.map(i => `<img src="${i.img}" alt="" loading="lazy" />`).join('')}
+    </div>`;
+  }
+
+  function wishlistCard(wl, idx) {
+    const count = watchingItems(wl.id).length;
+    const thumbH = wishlistCollage(wl.id);
+
+    if (s.wlEditMode) {
+      return `
+        <div class="card card-editing"
+          draggable="true"
+          ondragstart="wlDragStart(event,${idx})"
+          ondragover="wlDragOver(event,${idx})"
+          ondragleave="wlDragLeave(event)"
+          ondrop="wlDrop(event,${idx})"
+          ondragend="wlDragEnd(event)">
+          <div class="wl-delete-btn" onclick="deleteWishlist('${wl.id}')">−</div>
+          <div class="card-image" style="overflow:hidden">${thumbH}</div>
+          <div class="card-meta">
+            <p class="folder-label">${esc(wl.name.toUpperCase())}</p>
+            <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="card"
+        onclick="openWl('${wl.id}')"
+        onpointerdown="wlLongPressStart()"
+        onpointerup="wlLongPressCancel()"
+        onpointermove="wlLongPressCancel()"
+        onpointerleave="wlLongPressCancel()">
+        <div class="card-image" style="overflow:hidden">${thumbH}</div>
+        <div class="card-meta">
+          <p class="folder-label">${esc(wl.name.toUpperCase())}</p>
+          <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
+        </div>
+      </div>`;
+  }
+
+  function wishlistListRow(wl, idx) {
+    const count = watchingItems(wl.id).length;
+    const totalVal = totalWatchingValue(wl.id);
+    const thumb = wishlistCollage(wl.id);
+    const deleteBtn = s.wlEditMode
+      ? `<div class="list-delete-btn" onclick="deleteWishlist('${wl.id}')">×</div>` : '';
+    const dragAttrs = s.wlEditMode
+      ? `draggable="true"
+         ondragstart="wlDragStart(event,${idx})"
+         ondragover="wlDragOver(event,${idx})"
+         ondragleave="wlDragLeave(event)"
+         ondrop="wlDrop(event,${idx})"
+         ondragend="wlDragEnd(event)"` : '';
+    const clickAttr = s.wlEditMode ? '' : `onclick="openWl('${wl.id}')"`;
+    return `
+      <div class="list-row ${s.wlEditMode ? 'card-editing' : ''}" ${clickAttr} ${dragAttrs} style="position:relative">
+        ${deleteBtn}
+        ${s.wlEditMode ? `<span class="list-drag-handle">⠿</span>` : ''}
+        <div class="list-thumb" style="overflow:hidden">${thumb}</div>
+        <div class="list-info">
+          <p class="list-name">${esc(wl.name.toUpperCase())}</p>
+          <p class="list-meta">${count} ${count===1?'Item':'Items'}${totalVal ? ` · ${money(totalVal)}` : ''}</p>
+        </div>
+      </div>`;
+  }
+
+  // ═══════════════════════════════════════════
+  // SCREEN BUILDERS
+  // ═══════════════════════════════════════════
+
+  function showOnboarding() {
+    document.getElementById('app').innerHTML = `
+      <div class="onboarding" id="onboarding">
+        <div class="ob-hero">
+          <p class="ob-eyebrow">The Wishlist</p>
+          <h1 class="ob-title">Save<br/>what you<br/>want.</h1>
+          <p class="ob-tagline">A personal wishlist built for<br/>intentional shopping.</p>
+        </div>
+        <div class="ob-steps">
+          <p class="ob-steps-label">Add to your iPhone</p>
+          <div class="ob-step">
+            <span class="ob-step-num">01</span>
+            <p class="ob-step-text">Tap the <strong>Share</strong> button
+              <span>— the box with an arrow ↑ in Safari's toolbar</span></p>
+          </div>
+          <div class="ob-step">
+            <span class="ob-step-num">02</span>
+            <p class="ob-step-text">Tap <strong>Add to Home Screen</strong>
+              <span>— scroll down in the share sheet to find it</span></p>
+          </div>
+          <div class="ob-step">
+            <span class="ob-step-num">03</span>
+            <p class="ob-step-text">Tap <strong>Add</strong>
+              <span>— The Wishlist appears on your home screen like a native app</span></p>
+          </div>
+        </div>
+        <div class="ob-actions">
+          <button class="ob-skip" onclick="dismissOnboarding()">Continue in browser →</button>
+        </div>
+      </div>`;
+  }
+
+  function getUserName() {
+    try { return localStorage.getItem('vtr_user_name') || ''; } catch(e) { return ''; }
+  }
+
+  function saveUserName(name) {
+    try { localStorage.setItem('vtr_user_name', name.trim()); } catch(e) {}
+  }
+
+  function showNamePrompt() {
+    document.getElementById('app').innerHTML = `
+      <div class="name-prompt" id="name-prompt">
+        <div class="name-prompt-hero">
+          <p class="ob-eyebrow">The Wishlist</p>
+          <h1 class="name-prompt-title">What's<br/>your<br/>name?</h1>
+          <p class="name-prompt-sub">So your wishlists feel<br/>personal when shared.</p>
+        </div>
+        <div class="name-prompt-body">
+          <p class="name-prompt-label">Your name</p>
+          <input class="name-prompt-input" id="name-prompt-input" type="text"
+            placeholder="First name" autocomplete="given-name" autocorrect="off"
+            onkeydown="if(event.key==='Enter')confirmName()" />
+        </div>
+        <div class="name-prompt-actions">
+          <button class="name-prompt-cta" onclick="confirmName()">Continue</button>
+          <button class="name-prompt-skip" onclick="skipName()">Skip for now</button>
+        </div>
+      </div>`;
+    setTimeout(() => {
+      const el = document.getElementById('name-prompt-input');
+      if (el) el.focus();
+    }, 100);
+  }
+
+  function confirmName() {
+    const el = document.getElementById('name-prompt-input');
+    const name = el ? el.value.trim() : '';
+    if (name) saveUserName(name);
+    render();
+  }
+
+  function skipName() {
+    render();
+  }
+
+  function dismissOnboarding() {
+    try { localStorage.setItem('vtr_ob_dismissed', '1'); } catch(e) {}
+    // After dismissing install instructions, prompt for name if not set
+    if (!getUserName()) {
+      showNamePrompt();
+    } else {
+      render();
+    }
+  }
+
+  function buildScreen() {
+    switch(s.screen) {
+      case 'wishlists':       return screenWlTab();
+      case 'wishlist-detail': return screenWlDetail();
+      case 'items':           return screenWlTab();
+      case 'archive':         return screenWlTab();
+      case 'stats':           return screenStats();
+      case 'profile':         return screenProfile();
+      case 'item-detail':     return screenItemDetail();
+      case 'add-wishlist':    return screenAddWishlist();
+      case 'add-item':        return screenAddItem();
+      case 'shared-wl':       return screenSharedWl();
+      case 'shared-item':     return screenSharedItemDetail();
+      default: return screenWlTab();
+    }
+  }
+
+  // Wraps wishlists/items/archive into a single tabbed view
+  // Uses s.screen as source of truth so direct screen assignments work correctly
+  function screenWlTab() {
+    s.wlSubTab = s.screen; // keep in sync
+    switch(s.screen) {
+      case 'items':   return screenItems();
+      case 'archive': return screenArchive();
+      default:        return screenWishlists();
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  // SHARED WISHLIST VIEW (read-only)
+  // ═══════════════════════════════════════════
+
+  function sharedItemCard(item, idx) {
+    const d = item.addedAt ? Math.floor((Date.now() - new Date(item.addedAt)) / 86400000) : 0;
+    const imgH = item.img
+      ? `<img src="${esc(item.img)}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    return `
+      <div class="card" onclick="openSharedItem(${idx})">
+        <div class="card-image">${imgH}</div>
+        <div class="card-meta">
+          <div class="card-prefix"><span class="card-days">${pad(d)}</span></div>
+          ${item.brand ? `<p class="card-days" style="letter-spacing:0.12em">${esc(item.brand.toUpperCase())}</p>` : ''}
+          <p class="card-name">${esc(item.name)}</p>
+          ${item.price ? `<p class="card-price">${money(item.price)}</p>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function screenSharedWl() {
+    if (!shareData) { s.screen = 'wishlists'; return screenWishlists(); }
+    const { wl, items: sItems, senderName } = shareData;
+    const cover = wl.coverImg && wl.coverImg.startsWith('http') ? wl.coverImg : '';
+    const watchCount = sItems.length;
+    const totalValue = sItems.reduce((sum, i) => sum + (parseFloat(i.price) || 0), 0);
+    const headerTitle = senderName
+      ? `${esc(senderName.toUpperCase())}'S WISHLIST`
+      : 'SHARED WISHLIST';
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left">${headerTitle}</span>
+        <a href="/install.html" style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;text-decoration:none">Get the App</a>
+      </header>
+      <div class="wl-detail-scroll">
+        ${cover ? `<div class="wl-cover-wrap">
+          <img class="wl-cover-img" src="${esc(cover)}" alt="${esc(wl.name)}" />
+          <div class="wl-cover-gradient"></div>
+        </div>` : ''}
+        <div class="wl-content-wrap">
+          <div class="wl-sticky-top">
+            <div class="wl-name-row">
+              <div style="flex:1;min-width:0;margin-right:12px">
+                <span class="wl-name-big">${esc(wl.name.toUpperCase())}</span>
+                <span class="wl-count-sm">${watchCount} Watching</span>
+              </div>
+              <div class="view-toggle">
+                <button class="view-btn ${s.wlViewMode==='grid'?'active':''}" onclick="setWlView('grid')" title="Grid">
+                  <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
+                </button>
+                <button class="view-btn ${s.wlViewMode==='list'?'active':''}" onclick="setWlView('list')" title="List">
+                  <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="metric-strip wl-top-metrics">
+              <div class="metric-cell">
+                <p class="metric-label">Watching</p>
+                <p class="metric-value">${watchCount} ${watchCount===1?'Item':'Items'}</p>
+              </div>
+              <div class="metric-cell">
+                <p class="metric-label">Total Desire Cost</p>
+                <p class="metric-value">${money(totalValue)}</p>
+              </div>
+            </div>
+          </div>
+          ${s.wlViewMode === 'list'
+            ? `<div class="list-view">${sItems.map((item, idx) => sharedItemListRow(item, idx)).join('')}</div>`
+            : `<div class="grid">${sItems.map((item, idx) => sharedItemCard(item, idx)).join('')}</div>`}
+          ${sItems.length === 0 ? `<div style="padding:40px 28px"><p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#ccc">Nothing here yet.</p></div>` : ''}
+        </div>
+      </div>
+      <div class="shared-footer">
+        <p style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:10px">Saved with The Wishlist</p>
+        <a href="/install.html" style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#000;text-decoration:none;border-bottom:1px solid #000;padding-bottom:2px">Get the App →</a>
+      </div>
+      <div class="safe-bottom"></div>`;
+  }
+
+  function sharedItemListRow(item, idx) {
+    const d = item.addedAt ? Math.floor((Date.now() - new Date(item.addedAt)) / 86400000) : 0;
+    return `
+      <div class="list-row" onclick="openSharedItem(${idx})">
+        <div class="list-thumb">
+          ${item.img ? `<img src="${esc(item.img)}" alt="${esc(item.name)}" loading="lazy" />` : `<div class="ph" style="font-size:8px">${esc(item.name)}</div>`}
+        </div>
+        <div class="list-info">
+          <p class="list-name">${esc(item.name)}</p>
+          ${item.brand ? `<p class="list-meta">${esc(item.brand.toUpperCase())}</p>` : ''}
+          <p class="list-meta">${pad(d)} days</p>
+        </div>
+        ${item.price ? `<p class="list-price">${money(item.price)}</p>` : ''}
+      </div>`;
+  }
+
+  function screenSharedItemDetail() {
+    if (!shareData) { s.screen = 'wishlists'; return screenWishlists(); }
+    const item = shareData.items[s.sharedItemIdx];
+    if (!item) { s.screen = 'shared-wl'; return screenSharedWl(); }
+    const { wl } = shareData;
+    const d = item.addedAt ? Math.floor((Date.now() - new Date(item.addedAt)) / 86400000) : 0;
+    const imgH = item.img
+      ? `<img src="${esc(item.img)}" alt="${esc(item.name)}" />`
+      : `<div class="ph-lg">${esc(item.name)}</div>`;
+    const urlH = item.url
+      ? `<a class="detail-url" href="${esc(item.url)}" target="_blank">${item.url.replace(/^https?:\/\//,'')}</a>`
+      : '';
+    const priceH = item.price
+      ? `<p class="detail-section-label">Price</p><p class="detail-price-val">${money(item.price)}</p>`
+      : '';
+    const tagsH = (item.tags||[]).length
+      ? `<p class="detail-section-label">Tags</p>
+         <div class="tag-pill-wrap" style="margin-top:4px">
+           ${item.tags.map(t => `<span class="tag-pill-display">${esc(t)}</span>`).join('')}
+         </div>`
+      : '';
+    const noteH = item.note
+      ? `<p class="detail-section-label">Note</p><p class="detail-note">${esc(item.note)}</p>`
+      : '';
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left" onclick="s.screen='shared-wl';render()">← ${esc(wl.name)}</button>
+        <span></span>
+      </header>
+      <div class="scroll-area">
+        <div class="detail-image">${imgH}</div>
+        <div class="detail-body">
+          <p class="detail-days">${pad(d)} — Watching</p>
+          ${item.brand ? `<p class="detail-brand">${esc(item.brand.toUpperCase())}</p>` : ''}
+          <p class="detail-name">${esc(item.name)}</p>
+          ${urlH}
+          ${priceH}
+          ${tagsH}
+          ${noteH}
+          <div class="detail-actions">
+            ${item.url ? `
+            <a class="btn btn-outline btn-link-cta" href="${esc(item.url)}" target="_blank" rel="noopener">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                <path d="M4.5 1.5H1.5v8h8V6.5"/><path d="M6.5 1.5H9.5v3"/><line x1="9.5" y1="1.5" x2="5" y2="6"/>
+              </svg>
+              Open Link
+            </a>` : ''}
+            <a class="btn btn-black" href="/install.html" style="text-decoration:none;display:flex;align-items:center;justify-content:center">Get The Wishlist</a>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function openSharedItem(idx) {
+    s.sharedItemIdx = idx;
+    s.screen = 'shared-item';
+    render();
+  }
+
+  // ── Share encoding: compact keys + deflate compression ──────────
+  // New format: 'z' + URL-safe base64 of deflate-compressed compact JSON
+  // Legacy format: plain base64 JSON (still decoded for backward compat)
+  async function encodeShare(payload) {
+    const compact = {
+      v: 2,
+      w: { n: payload.wl.name, c: payload.wl.coverImg || '' },
+      ...(payload.senderName ? { s: payload.senderName } : {}),
+      i: payload.items.map(i => ({
+        n: i.name, b: i.brand || '', m: i.img || '',
+        p: i.price || '', u: i.url || '',
+        ...(i.tags?.length ? { t: i.tags } : {}),
+        ...(i.note       ? { o: i.note  } : {}),
+        a: i.addedAt,
+      }))
+    };
+    const json = JSON.stringify(compact);
+    if (typeof CompressionStream !== 'undefined') {
+      try {
+        const cs = new CompressionStream('deflate-raw');
+        const w = cs.writable.getWriter();
+        w.write(new TextEncoder().encode(json));
+        w.close();
+        const r = cs.readable.getReader();
+        const chunks = [];
+        while (true) { const { done, value } = await r.read(); if (done) break; chunks.push(value); }
+        const buf = new Uint8Array(chunks.reduce((s, c) => s + c.length, 0));
+        let off = 0; for (const c of chunks) { buf.set(c, off); off += c.length; }
+        return 'z' + btoa(String.fromCharCode(...buf)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+      } catch {}
+    }
+    return btoa(unescape(encodeURIComponent(json)));
+  }
+
+  function expandShare(obj) {
+    if (!obj) return null;
+    if (obj.w) return {  // v2 compact format
+      wl: { name: obj.w.n || '', coverImg: obj.w.c || '' },
+      senderName: obj.s || '',
+      items: (obj.i || []).map(i => ({
+        name: i.n || '', brand: i.b || '', img: i.m || '',
+        price: i.p || '', url: i.u || '',
+        tags: i.t || [], note: i.o || '', addedAt: i.a
+      }))
+    };
+    return obj; // legacy full-key format
+  }
+
+  async function decodeShare(str) {
+    try {
+      if (str.startsWith('z') && typeof DecompressionStream !== 'undefined') {
+        const b64 = str.slice(1).replace(/-/g,'+').replace(/_/g,'/');
+        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        const ds = new DecompressionStream('deflate-raw');
+        const w = ds.writable.getWriter(); w.write(bytes); w.close();
+        const r = ds.readable.getReader(); const chunks = [];
+        while (true) { const { done, value } = await r.read(); if (done) break; chunks.push(value); }
+        const buf = new Uint8Array(chunks.reduce((s, c) => s + c.length, 0));
+        let off = 0; for (const c of chunks) { buf.set(c, off); off += c.length; }
+        return expandShare(JSON.parse(new TextDecoder().decode(buf)));
+      }
+      return expandShare(JSON.parse(decodeURIComponent(escape(atob(str)))));
+    } catch(e) { return null; }
+  }
+
+  function screenWishlists() {
+    const allWatching = watchingItems();
+    const hasLists = wishlists.length > 0;
+    const uncategorized = allWatching.filter(i => !i.wid);
+    return `
+      <div class="safe-top"></div>
+      ${subTabBar('wishlists')}
+      ${hasLists ? `
+      <div class="metric-strip">
+        <div class="metric-cell">
+          <p class="metric-label">Wishlists</p>
+          <p class="metric-value">${wishlists.length}</p>
+        </div>
+        <div class="metric-cell">
+          <p class="metric-label">Items Watching</p>
+          <p class="metric-value">${allWatching.length}</p>
+        </div>
+      </div>` : ''}
+      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
+        ${hasLists
+          ? `<div class="grid">${wishlists.map((wl, idx) => wishlistCard(wl, idx)).join('')}</div>`
+          : `<div class="empty-state">
+               <p class="empty-hero">nothing<br/>here<br/>yet</p>
+               <button class="empty-cta" onclick="openAddWishlist()">+ Create Your First Wishlist</button>
+             </div>`}
+        ${uncategorized.length ? `
+          <div class="section-title-row" style="border-top:1px solid #f4f4f4">
+            <p class="section-title">Unorganized Items</p>
+          </div>
+          <div style="display:flex;overflow-x:auto;scrollbar-width:none;gap:1px;background:#fff">
+            ${uncategorized.map(item => `<div style="flex:0 0 48vw;max-width:200px">${itemCard(item)}</div>`).join('')}
+          </div>` : ''}
+      </div>
+      ${hasLists ? fab("openAddWishlist()") : ''}
+      ${nav('wishlists')}`;
+  }
+
+  function screenWlDetail() {
+    const wl = getWl(s.currentWid);
+    if (!wl) return screenWishlists();
+    const allWItems = wishlistItems(wl.id);
+    const allTags = [...new Set(allWItems.flatMap(i => i.tags || []))].sort();
+    const activeTags = s.wlDetailFilterTags;
+    const wItems = activeTags.length
+      ? allWItems.filter(i => activeTags.every(t => (i.tags||[]).includes(t)))
+      : allWItems;
+    const watchCount = watchingItems(wl.id).length;
+    const totalValue = totalWatchingValue(wl.id);
+    const wlSaved = totalSaved(wl.id);
+    const cover = wl.coverImg || wlCover(wl.id);
+
+    const coverFileInput = `<input type="file" id="cover-file-input-${wl.id}" accept="image/*"
+      style="display:none" onchange="handleCoverFile(this,'${wl.id}')" />`;
+
+    const coverHtml = cover
+      ? `<div class="wl-cover-wrap">
+           ${coverFileInput}
+           <img class="wl-cover-img" src="${cover}" alt="${esc(wl.name)}" />
+           <div class="wl-cover-gradient"></div>
+           ${s.wlItemEditMode ? `<button class="wl-edit-cover-btn" onclick="document.getElementById('cover-file-input-${wl.id}').click()">Edit Cover</button>` : ''}
+         </div>`
+      : s.wlItemEditMode
+        ? `<div class="wl-cover-wrap" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px">
+             ${coverFileInput}
+             <button class="wl-edit-cover-btn" style="position:static;transform:none" onclick="document.getElementById('cover-file-input-${wl.id}').click()">Add Cover Image</button>
+           </div>`
+        : coverFileInput;
+
+    const coverPanel = s.overlay === 'change-cover' && s.currentWid === wl.id
+      ? buildChangeCoverPanel(wl) : '';
+
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left" onclick="navTo('wishlists')">← Wishlists</button>
+        <div style="display:flex;align-items:center;gap:14px">
+          ${!s.wlItemEditMode ? `
+          <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="shareWishlist('${wl.id}')" title="Share">
+            <svg width="15" height="16" viewBox="0 0 15 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7.5" y1="1" x2="7.5" y2="10"/>
+              <polyline points="4.5,4 7.5,1 10.5,4"/>
+              <path d="M3,6.5H1.5v8h12v-8H12"/>
+            </svg>
+          </button>` : ''}
+          <button class="h-right ${s.wlItemEditMode ? '' : 'h-muted'}" onclick="toggleWlItemEdit()">
+            ${s.wlItemEditMode ? 'Done' : 'Edit'}
+          </button>
+        </div>
+      </header>
+      <div class="wl-detail-scroll">
+        ${coverHtml}
+        <div class="wl-content-wrap">
+          <div class="wl-sticky-top">
+            <div class="wl-name-row">
+              <div style="flex:1;min-width:0;margin-right:12px">
+                ${s.wlItemEditMode
+                  ? `<input class="wl-name-edit-input" id="wl-rename-input"
+                       value="${esc(wl.name)}" maxlength="50"
+                       onblur="renameWishlist('${wl.id}',this.value)"
+                       onkeydown="if(event.key==='Enter'){this.blur()}" />`
+                  : `<span class="wl-name-big">${esc(wl.name.toUpperCase())}</span>`}
+                <span class="wl-count-sm">${watchCount} Watching</span>
+              </div>
+              <div class="view-toggle">
+                <button class="view-btn ${s.wlViewMode==='grid'?'active':''}" onclick="setWlView('grid')" title="Grid">
+                  <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
+                </button>
+                <button class="view-btn ${s.wlViewMode==='list'?'active':''}" onclick="setWlView('list')" title="List">
+                  <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="metric-strip wl-top-metrics">
+              <div class="metric-cell">
+                <p class="metric-label">Watching</p>
+                <p class="metric-value">${watchCount} ${watchCount===1?'Item':'Items'}</p>
+              </div>
+              <div class="metric-cell">
+                <p class="metric-label">Total Desire Cost</p>
+                <p class="metric-value">${money(totalValue)}</p>
+                ${totalValue ? `<div class="metric-progress"><div class="metric-progress-fill" style="width:${Math.min(100,Math.round(wlSaved/totalValue*100))}%"></div></div>` : ''}
+              </div>
+            </div>
+          </div>
+          ${allTags.length ? `
+          <div class="tag-filter-bar" style="padding:10px 16px;border-bottom:1px solid #f4f4f4">
+            ${allTags.map(t => `
+              <button class="tag-filter-pill ${activeTags.includes(t)?'active':''}" onclick="toggleWlDetailFilter('${esc(t)}')">${esc(t)}</button>
+            `).join('')}
+          </div>` : ''}
+          ${s.wlViewMode === 'list'
+            ? `<div class="list-view">${wItems.map((item,idx) => itemListRow(item,idx)).join('')}</div>`
+            : `<div class="grid">${wItems.map((item,idx) => itemCard(item,idx)).join('')}</div>`}
+          ${allWItems.length === 0 ? `
+            <div style="padding:40px 28px">
+              <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#ccc">
+                No items yet — tap + to add one.
+              </p>
+            </div>` : ''}
+          ${allWItems.length > 0 && wItems.length === 0 ? `
+            <div style="padding:40px 28px">
+              <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#ccc">
+                No items match the selected tags.
+              </p>
+            </div>` : ''}
+          ${s.wlItemEditMode ? `
+            <div style="padding:40px 28px 32px;border-top:1px solid #f4f4f4;margin-top:24px">
+              <button onclick="deleteWishlist('${wl.id}')"
+                style="background:none;border:none;font-family:inherit;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;cursor:pointer;padding:0">
+                Delete Wishlist
+              </button>
+            </div>` : ''}
+        </div>
+      </div>
+      ${!s.wlItemEditMode ? fab(`openAddItem('${wl.id}')`, false) : ''}
+      <div class="safe-bottom"></div>
+      ${coverPanel}`;
+  }
+
+  function buildChangeCoverPanel(wl) {
+    const preview = wl.coverImg || '';
+    return `
+      <div class="cover-panel">
+        <p class="cover-panel-label">Cover Image</p>
+        ${preview ? `<div class="cover-panel-preview"><img src="${preview}" alt="" /></div>` : ''}
+        <input type="file" id="cover-file-input" accept="image/*"
+          style="display:none" onchange="handleCoverFile(this,'${wl.id}')" />
+        <button class="btn btn-black" onclick="document.getElementById('cover-file-input').click()">
+          Choose from Photos
+        </button>
+        <div class="url-divider" style="margin:16px 0 12px"><span>or paste a URL</span></div>
+        <input class="form-input" id="cover-url-input" type="text"
+          placeholder="https://..."
+          value="${esc(preview)}" />
+        <button class="btn btn-ghost" style="margin-top:10px" onclick="saveCoverImage('${wl.id}')">Use URL</button>
+        <button class="btn-text" style="margin-top:6px;display:block;width:100%;text-align:center" onclick="closeCoverPanel()">Cancel</button>
+      </div>`;
+  }
+
+  function screenItems() {
+    const all = watchingItems();
+    const totalValue = totalWatchingValue();
+    const itemsSaved = totalSaved();
+    const allTags = [...new Set(all.flatMap(i => i.tags || []))].sort();
+    const active = s.itemsFilterTags;
+    const filtered = active.length ? all.filter(i => active.every(t => (i.tags||[]).includes(t))) : all;
+    return `
+      <div class="safe-top"></div>
+      ${subTabBar('items')}
+      <div class="metric-strip">
+        <div class="metric-cell">
+          <p class="metric-label">Watching</p>
+          <p class="metric-value">${all.length} ${all.length===1?'Item':'Items'}</p>
+        </div>
+        <div class="metric-cell">
+          <p class="metric-label">Total Desire Cost</p>
+          <p class="metric-value">${money(totalValue)}</p>
+          ${totalValue ? `<div class="metric-progress"><div class="metric-progress-fill" style="width:${Math.min(100,Math.round(itemsSaved/totalValue*100))}%"></div></div>` : ''}
+        </div>
+      </div>
+      <div class="filter-control-bar">
+        <div class="filter-pills-scroll">
+          ${allTags.map(t => `
+            <button class="tag-filter-pill ${active.includes(t)?'active':''}" onclick="toggleItemsFilter('${esc(t)}')">${esc(t)}</button>
+          `).join('')}
+        </div>
+        <div class="filter-toggle-end">
+          <div class="view-toggle">
+            <button class="view-btn ${s.itemsViewMode==='grid'?'active':''}" onclick="setItemsView('grid')" title="Grid">
+              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
+            </button>
+            <button class="view-btn ${s.itemsViewMode==='list'?'active':''}" onclick="setItemsView('list')" title="List">
+              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
+        ${all.length === 0 ? `
+          <div class="empty-state" style="padding-top:60px">
+            <p class="empty-hero">nothing<br/>here<br/>yet</p>
+            <button class="empty-cta" onclick="openAddItem(null)">+ Add Your First Item</button>
+          </div>` : s.itemsViewMode === 'list'
+            ? `<div class="list-view">${filtered.map(item => itemListRow(item)).join('')}</div>`
+            : `<div class="grid">${filtered.map(itemCard).join('')}</div>`}
+      </div>
+      ${all.length > 0 ? fab("openAddItem(null)") : ''}
+      ${nav('wishlists')}`;
+  }
+
+  function screenArchive() {
+    const arch = archivedItems();
+    const letGoTotal = letGoValue();
+    return `
+      <div class="safe-top"></div>
+      ${subTabBar('archive')}
+      <div class="metric-strip">
+        <div class="metric-cell">
+          <p class="metric-label">Archived</p>
+          <p class="metric-value">${arch.length} ${arch.length===1?'Item':'Items'}</p>
+        </div>
+        <div class="metric-cell">
+          <p class="metric-label">Let Go Value</p>
+          <p class="metric-value">${money(letGoTotal)}</p>
+        </div>
+      </div>
+      <div class="filter-control-bar">
+        <div class="filter-pills-scroll"></div>
+        <div class="filter-toggle-end">
+          <div class="view-toggle">
+            <button class="view-btn ${s.archiveViewMode==='grid'?'active':''}" onclick="setArchiveView('grid')" title="Grid">
+              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
+            </button>
+            <button class="view-btn ${s.archiveViewMode==='list'?'active':''}" onclick="setArchiveView('list')" title="List">
+              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
+        ${arch.length === 0
+          ? `<div class="empty-state">
+               <p class="empty-hero">nothing<br/>archived<br/>yet</p>
+             </div>`
+          : s.archiveViewMode === 'grid'
+            ? `<div class="grid">${arch.map(archiveGridCard).join('')}</div>`
+            : arch.map(archiveRow).join('')}
+      </div>
+      ${nav('wishlists')}`;
+  }
+
+  function screenStats() {
+    const watching = watchingItems().length;
+    const archived = archivedItems().length;
+    const purchasedCount = items.filter(i => i.status === 'purchased').length;
+    const totalValue = totalWatchingValue();
+    const seriousValue = seriousWatchingValue();
+    const casualValue = casualWatchingValue();
+    const letGoTotal = letGoValue();
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left">Stats</span>
+        <span class="h-right h-muted"></span>
+      </header>
+      <div class="scroll-area">
+        <div class="profile-body">
+          <p class="profile-hero">Your\nDesire\nData</p>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Watching</span>
+            <span class="profile-stat-val">${watching}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Total Desire Cost</span>
+            <span class="profile-stat-val">${money(totalValue)}</span>
+          </div>
+          <div class="profile-stat-row profile-substat-row">
+            <span class="profile-stat-label profile-substat-label">Serious</span>
+            <span class="profile-stat-val">${money(seriousValue)}</span>
+          </div>
+          <div class="profile-stat-row profile-substat-row">
+            <span class="profile-stat-label profile-substat-label">Casual</span>
+            <span class="profile-stat-val">${money(casualValue)}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Wishlists</span>
+            <span class="profile-stat-val">${wishlists.length}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Purchased</span>
+            <span class="profile-stat-val">${purchasedCount}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Archived</span>
+            <span class="profile-stat-val">${archived}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Let Go Value</span>
+            <span class="profile-stat-val">${money(letGoTotal)}</span>
+          </div>
+        </div>
+      </div>
+      ${nav('stats')}`;
+  }
+
+  function screenProfile() {
+    const name = getUserName();
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left">Profile</span>
+        <span class="h-right h-muted"></span>
+      </header>
+      <div class="scroll-area">
+        <div class="profile-body">
+          ${name
+            ? `<p class="profile-hero">Hello,<br/>${esc(name.toUpperCase())}</p>
+               <button onclick="openEditName()" style="display:block;margin-top:16px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;background:none;border:none;font-family:inherit;cursor:pointer;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px">That's not my name</button>`
+            : `<p class="profile-hero">Hello.</p>
+               <button onclick="openEditName()" style="display:block;margin-top:16px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;background:none;border:none;font-family:inherit;cursor:pointer;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px">Add your name</button>`}
+        </div>
+      </div>
+      ${s.overlay === 'edit-name' ? `
+        <div class="overlay" style="display:flex;flex-direction:column;padding:48px 28px 32px">
+          <p style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#bbb;margin-bottom:32px">Your Name</p>
+          <input id="edit-name-input" type="text" value="${esc(name)}"
+            placeholder="First name" autocomplete="given-name" autocorrect="off"
+            style="border:none;border-bottom:2px solid #000;font-size:22px;font-family:inherit;font-weight:600;padding:8px 0 10px;outline:none;background:none;color:#000;width:100%"
+            onkeydown="if(event.key==='Enter')saveEditName()" />
+          <div style="display:flex;gap:12px;margin-top:32px">
+            <button onclick="saveEditName()" style="flex:1;background:#000;color:#fff;border:none;font-family:inherit;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:14px;cursor:pointer">Save</button>
+            <button onclick="s.overlay=null;render()" style="flex:1;background:none;border:1px solid #e0e0e0;font-family:inherit;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:14px;cursor:pointer">Cancel</button>
+          </div>
+        </div>` : ''}
+      ${nav('profile')}`;
+  }
+
+  function openEditName() {
+    s.overlay = 'edit-name';
+    render();
+    setTimeout(() => {
+      const el = document.getElementById('edit-name-input');
+      if (el) { el.focus(); el.select(); }
+    }, 50);
+  }
+
+  function saveEditName() {
+    const el = document.getElementById('edit-name-input');
+    const name = el ? el.value.trim() : '';
+    if (name) saveUserName(name);
+    s.overlay = null;
+    render();
+  }
+
+  function screenItemDetail() {
+    const item = getItem(s.currentIid);
+    if (!item) return screenWishlists();
+    const wl = getWl(item.wid);
+    const d = days(item.addedAt);
+    const purchased = item.status === 'purchased';
+    const fromLabel = s.fromScreen === 'items' ? '← Items'
+      : s.fromScreen === 'archive' ? '← Archive'
+      : s.fromScreen === 'wishlists' ? '← Wishlist'
+      : `← ${wl?.name || 'Back'}`;
+    const backAct = s.fromScreen === 'items' ? "navTo('items')"
+      : s.fromScreen === 'archive' ? "navTo('archive')"
+      : s.fromScreen === 'wishlists' ? "navTo('wishlists')"
+      : `openWl('${item.wid}')`;
+    const imgH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" />`
+      : `<div class="ph-lg">${esc(item.name)}</div>`;
+    const urlH = item.url
+      ? `<a class="detail-url" href="${item.url}" target="_blank">${item.url.replace(/^https?:\/\//,'')}</a>`
+      : '';
+    const noteH = item.note
+      ? `<p class="detail-section-label">Note</p><p class="detail-note">${esc(item.note)}</p>`
+      : '';
+    const priceH = item.price
+      ? `<p class="detail-section-label">Price</p><p class="detail-price-val">${money(item.price)}</p>`
+      : '';
+    const savingsH = item.price
+      ? `<p class="detail-section-label">Savings</p>
+         <div class="metric-strip" style="border-top:1px solid #f4f4f4;border-bottom:none;margin-top:8px">
+           <div class="metric-cell">
+             <p class="metric-label">Saved</p>
+             <p class="metric-value">${money(savedAmount(item))}</p>
+           </div>
+           <div class="metric-cell">
+             <p class="metric-label">Left</p>
+             <p class="metric-value">${money(gapAmount(item))}</p>
+           </div>
+         </div>
+         <div class="detail-progress"><div class="detail-progress-fill" style="width:${progressPct(item)}%"></div></div>
+         <p class="detail-subnote">${progressPct(item)}% of the way there</p>
+         ${s.overlay === 'quick-save' && s.currentIid === item.id
+           ? `<div class="quick-save-row">
+                <input class="quick-save-input" id="quick-save-input" type="number"
+                  placeholder="0.00" min="0" step="any"
+                  onkeydown="if(event.key==='Enter') commitQuickSave('${item.id}')" />
+                <button class="quick-save-btn" onclick="commitQuickSave('${item.id}')">Add</button>
+                <button class="btn-text" style="padding:0;font-size:9px" onclick="closeOverlay()">Cancel</button>
+              </div>`
+           : `<button class="quick-save-trigger" onclick="openQuickSave('${item.id}')">+ Add to Savings</button>`}`
+      : '';
+    const tagsH = item.tags && item.tags.length
+      ? `<p class="detail-section-label">Tags</p>
+         <div class="tag-pill-wrap" style="margin-top:4px">
+           ${item.tags.map(t => `<span class="tag-pill-display">${esc(t)}</span>`).join('')}
+         </div>`
+      : '';
+    const seriousnessH = `<p class="detail-section-label">Intent</p><p class="detail-price-val">${item.serious ? 'Serious' : 'Casual'}</p>`;
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left" onclick="${backAct}">${fromLabel}</button>
+        <button class="h-right h-muted" onclick="openEditItem('${item.id}')">Edit</button>
+      </header>
+      <div class="scroll-area">
+        <div class="detail-image">${imgH}</div>
+        <div class="detail-body">
+          <p class="detail-days">${pad(d)} — ${purchased ? 'Purchased' : 'Watching'}</p>
+          ${item.brand ? `<p class="detail-brand">${esc(item.brand.toUpperCase())}</p>` : ''}
+          <p class="detail-name">${esc(item.name)}</p>
+          ${urlH}
+          ${priceH}
+          ${savingsH}
+          ${tagsH}
+          ${seriousnessH}
+          ${noteH}
+          <p class="detail-section-label">Added</p>
+          <p class="detail-added">${fmtDate(item.addedAt)}</p>
+          <div class="detail-actions">
+            ${item.url ? `
+            <a class="btn btn-outline btn-link-cta" href="${item.url}" target="_blank" rel="noopener">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                <path d="M4.5 1.5H1.5v8h8V6.5"/><path d="M6.5 1.5H9.5v3"/><line x1="9.5" y1="1.5" x2="5" y2="6"/>
+              </svg>
+              Open Link
+            </a>` : ''}
+            ${!item.wid && !purchased && wishlists.length ? `
+              <button class="btn btn-outline" onclick="openMoveToWishlist('${item.id}')">+ Add to a Wishlist</button>` : ''}
+            ${purchased
+              ? `<button class="btn btn-black" onclick="addBackToWishlist('${item.id}')">Add Back to Wishlist</button>`
+              : `<button class="btn btn-black" onclick="markPurchased('${item.id}')">Purchased</button>
+                 <button class="btn btn-text" onclick="archiveItem('${item.id}')">Archive</button>`}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function screenAddWishlist() {
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left h-muted" onclick="cancelAdd()">Cancel</button>
+        <span></span>
+      </header>
+      <div class="add-wl-body">
+        <p class="add-wl-prompt">New Wishlist</p>
+        <input class="add-wl-input" id="wl-name-input" type="text"
+          placeholder="Name it..." maxlength="50"
+          onkeydown="if(event.key==='Enter') saveWishlist()" />
+        <button class="btn btn-black" style="margin-top:36px" onclick="saveWishlist()">Create Wishlist</button>
+      </div>`;
+  }
+
+  function screenAddItem() {
+    switch(s.addStep) {
+      case 'url':      return addItemUrl();
+      case 'fetching': return addItemFetching();
+      case 'form':     return addItemForm();
+      default:         return addItemUrl();
+    }
+  }
+
+  function addItemUrl() {
+    const header = `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left h-muted" onclick="cancelAdd()">Cancel</button>
+        <span></span>
+      </header>`;
+
+    if (ADD_MODE === 'paste') {
+      return header + `
+      <div class="url-step">
+        <p class="url-prompt">Add a product</p>
+        <button class="url-paste-btn" onclick="pasteAndFetch()">
+          Paste Copied Link
+        </button>
+        <div class="url-divider"><span>or</span></div>
+        <button class="url-manual-btn" onclick="addManually()">Add Manually</button>
+      </div>`;
+    }
+
+    // ADD_MODE === 'url-input'
+    return header + `
+      <div class="url-step">
+        <p class="url-prompt">Add a product</p>
+        <input class="url-input" id="url-field" type="url" placeholder="https://..."
+          value="${esc(s.addForm.url)}"
+          onpaste="handleUrlPaste()"
+          onkeydown="if(event.key==='Enter') fetchUrl()" />
+        <button class="url-fetch-btn" onclick="fetchUrl()">Fetch Details →</button>
+        <p class="url-hint">Works with SSENSE, Net-a-Porter, Mr Porter, Mytheresa, and most product pages.</p>
+        <div class="url-divider"><span>or</span></div>
+        <button class="url-manual-btn" onclick="addManually()">Add Manually</button>
+      </div>`;
+  }
+
+  function addItemFetching() {
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left h-muted" onclick="cancelAdd()">Cancel</button>
+        <span></span>
+      </header>
+      <div class="fetching-step">
+        <p class="fetching-label">Fetching product details</p>
+        <p class="fetching-url">${esc(s.addForm.url)}</p>
+        <div class="fetching-dots">
+          <div class="fetching-dot"></div>
+          <div class="fetching-dot"></div>
+          <div class="fetching-dot"></div>
+        </div>
+      </div>`;
+  }
+
+  function addItemForm() {
+    const f = s.addForm;
+    const imgH = f.img
+      ? `<img src="${f.img}" alt="" id="form-img-preview" />`
+      : `<div class="ph-lg" id="form-img-preview">No image found</div>`;
+    const selectedWid = f.wid || s.addWid || '';
+    const imgBtns = f.img ? `
+      <div class="form-image-btn-row">
+        <button class="form-removebg-btn" onclick="event.stopPropagation();removeItemBackground()" ${s.removingBg ? 'disabled' : ''}>
+          ${s.removingBg ? 'Removing...' : 'Remove BG'}
+        </button>
+        <button class="form-image-change-btn" onclick="event.stopPropagation();document.getElementById('item-file-input').click()">Change Image</button>
+      </div>` : '';
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left h-muted" onclick="cancelAdd()">Cancel</button>
+        <button class="h-right" onclick="saveItem()">${s.addIsEdit ? 'Save Changes' : 'Add'}</button>
+      </header>
+      <div class="form-scroll">
+        <div class="form-image-area" onclick="document.getElementById('item-file-input').click()">
+          <input type="file" id="item-file-input" accept="image/*"
+            style="display:none" onchange="handleItemFile(this)" />
+          ${imgH}
+          ${imgBtns}
+        </div>
+        <div class="form-body">
+          <div class="form-group">
+            <label class="form-label">Brand</label>
+            <input class="form-input" id="f-brand" type="text" value="${esc(f.brand || '')}" maxlength="80" placeholder="e.g. Toteme" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input class="form-input" id="f-name" type="text" value="${esc(f.name)}" maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tags</label>
+            ${(()=>{
+              const selected = f.tags || [];
+              const allSuggestions = availableTags.filter(t => !selected.includes(t));
+              const filteredSuggestions = f.showTagInput && f.tagQuery
+                ? allSuggestions.filter(t => t.toLowerCase().includes(f.tagQuery.toLowerCase()))
+                : allSuggestions;
+              return `
+                ${selected.length ? `
+                  <div class="tag-pill-wrap" style="margin-bottom:7px">
+                    ${selected.map(tag => `
+                      <span class="tag-pill">
+                        ${esc(tag)}<span class="tag-remove" onclick="removeTag('${esc(tag)}')">×</span>
+                      </span>`).join('')}
+                  </div>` : ''}
+                <div class="tag-suggestions" id="tag-suggestions">
+                  ${filteredSuggestions.map(t => `
+                    <button type="button" class="tag-suggestion" onclick="addTag('${esc(t)}')">${esc(t)}</button>
+                  `).join('')}
+                  ${f.showTagInput
+                    ? `<input class="tag-inline-input" id="tag-inline-input" type="text"
+                         placeholder="Type a tag..."
+                         value="${esc(f.tagQuery || '')}"
+                         oninput="onTagQuery(this.value)"
+                         onkeydown="if(event.key==='Enter'){event.preventDefault();confirmTagInput()}
+                                    else if(event.key==='Escape'){closeTagInput()}" />`
+                    : `<button type="button" class="tag-add-trigger" onclick="openTagInput()">+</button>`}
+                </div>`;
+            })()}
+          </div>
+          <div style="display:flex;gap:16px">
+            <div class="form-group" style="flex:1">
+              <label class="form-label">Price</label>
+              <div class="currency-field" style="width:100%">
+                <span class="currency-symbol">$</span>
+                <input class="currency-input" id="f-price" type="text" inputmode="numeric"
+                  value="${(Math.round(parseFloat(f.price||0)*100)/100).toFixed(2)}"
+                  data-cents="${Math.round(parseFloat(f.price||0)*100)}"
+                  onkeydown="currencyKeydown(event,'f-price')" readonly onfocus="this.removeAttribute('readonly')" />
+              </div>
+            </div>
+            <div class="form-group" style="flex:1">
+              <label class="form-label">Saved So Far</label>
+              <div class="currency-field" style="width:100%">
+                <span class="currency-symbol">$</span>
+                <input class="currency-input" id="f-saved" type="text" inputmode="numeric"
+                  value="${(Math.round(parseFloat(f.saved||0)*100)/100).toFixed(2)}"
+                  data-cents="${Math.round(parseFloat(f.saved||0)*100)}"
+                  onkeydown="currencyKeydown(event,'f-saved')" readonly onfocus="this.removeAttribute('readonly')" />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Intent</label>
+            <input type="hidden" id="f-serious" value="${f.serious ? 'serious' : 'casual'}" />
+            <div class="intent-pill-row">
+              <button type="button" class="intent-pill ${f.serious ? '' : 'active'}" id="intent-casual" onclick="setAddIntent('casual')">Casual</button>
+              <button type="button" class="intent-pill ${f.serious ? 'active' : ''}" id="intent-serious" onclick="setAddIntent('serious')">Serious</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Note</label>
+            <textarea class="form-input" id="f-note">${esc(f.note)}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Wishlist</label>
+            <input type="hidden" id="f-wid" value="${esc(selectedWid)}" />
+            <div class="wl-picker">
+              ${wishlists.map(w => `
+                <button type="button" class="wl-picker-pill ${selectedWid === w.id ? 'active' : ''}" onclick="setFormWl('${w.id}')">${esc(w.name)}</button>
+              `).join('')}
+              ${f.showNewWl
+                ? `<input class="wl-new-wl-input" id="wl-new-wl-input" type="text"
+                     placeholder="Name..."
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();createFormWl()}"
+                     onblur="createFormWlBlur()" />`
+                : `<button type="button" class="wl-picker-pill wl-picker-add" onclick="openNewWlInput()">+</button>`}
+            </div>
+          </div>
+          <button class="btn btn-black" onclick="saveItem()">
+            ${s.addIsEdit ? 'Save Changes' : 'Save to Wishlist'}
+          </button>
+          ${s.addIsEdit ? `
+          <button onclick="openDeleteOverlay(s.currentIid)" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#bbb;text-decoration:underline;text-underline-offset:3px;padding:8px 0;width:100%;text-align:center;margin-top:4px">
+            Delete
+          </button>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function buildOverlay() {
+    if (s.overlay === 'delete') {
+      const item = getItem(s.currentIid);
+      const words = item ? item.name.split(' ').slice(0,3).join('\n') : 'This Item';
+      return `
+        <div class="overlay">
+          <div class="safe-top"></div>
+          <div class="overlay-body">
+            <p class="overlay-title-sm">This Cannot Be Undone</p>
+            <p class="overlay-headline" style="white-space:pre-line">Delete\n${words}?</p>
+            <div class="overlay-btns">
+              <button class="btn btn-black" onclick="confirmDelete()">Delete Permanently</button>
+              <button class="btn btn-ghost" onclick="closeOverlay()">Cancel</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    if (s.overlay === 'move-wl') {
+      return `
+        <div class="overlay" onclick="if(event.target===this)closeOverlay()">
+          <div class="safe-top"></div>
+          <div class="overlay-body">
+            <p class="overlay-title-sm">Add to Wishlist</p>
+            <div class="wl-move-list">
+              ${wishlists.map(w => `
+                <button class="wl-move-option" onclick="moveItemToWl('${s.currentIid}','${w.id}')">
+                  ${esc(w.name.toUpperCase())}
+                </button>`).join('')}
+            </div>
+            <button class="btn btn-ghost" style="margin-top:16px" onclick="closeOverlay()">Cancel</button>
+          </div>
+        </div>`;
+    }
+    return '';
+  }
+
+  // ═══════════════════════════════════════════
+  // NAVIGATION
+  // ═══════════════════════════════════════════
+
+  function navTo(screen) {
+    s.screen = screen;
+    s.overlay = null;
+    s.wlItemEditMode = false;
+    s.wlEditMode = false;
+    // Keep wlSubTab in sync so the sub-tab indicator stays correct
+    if (screen === 'wishlists' || screen === 'items' || screen === 'archive') {
+      s.wlSubTab = screen;
+      s.currentWid = null;
+      s.wlDetailFilterTags = [];
+    }
+    render();
+  }
+
+  // Bottom nav tab handler — maps the 3 main tabs to screens
+  function navTab(tab) {
+    s.overlay = null;
+    s.wlItemEditMode = false;
+    s.wlEditMode = false;
+    if (tab === 'wishlists') {
+      const SUB_TABS = ['wishlists', 'items', 'archive'];
+      const fromIdx = SUB_TABS.indexOf(s.screen);
+      // If already on a sub-tab that isn't wishlists, slide back to wishlists
+      if (fromIdx > 0) {
+        s.wlSlideDir = 'left';
+      } else if (fromIdx === -1) {
+        // Coming from a non-sub-tab screen (detail, stats, etc.) — no slide
+        s.wlSlideDir = null;
+      }
+      s.screen = 'wishlists';
+      s.wlSubTab = 'wishlists';
+      s.currentWid = null;
+      render();
+      s.wlSlideDir = null;
+    } else if (tab === 'stats') {
+      s.screen = 'stats';
+      render();
+    } else if (tab === 'profile') {
+      s.screen = 'profile';
+      render();
+    }
+  }
+
+  // Switch between sub-tabs (Wishlists / Items / Archive) within the wishlists main tab
+  function setWlSubTab(tab) {
+    const SUB_TABS = ['wishlists', 'items', 'archive'];
+    const fromIdx = SUB_TABS.indexOf(s.screen);
+    const toIdx   = SUB_TABS.indexOf(tab);
+    if (toIdx !== fromIdx) s.wlSlideDir = toIdx > fromIdx ? 'right' : 'left';
+    s.wlSubTab = tab;
+    s.screen = tab;
+    s.overlay = null;
+    s.wlEditMode = false;
+    render();
+    s.wlSlideDir = null;
+  }
+
+  function openWl(wid) {
+    s.currentWid = wid;
+    s.screen = 'wishlist-detail';
+    s.overlay = null;
+    s.wlItemEditMode = false;
+    render();
+  }
+
+  function openItem(iid) {
+    const item = getItem(iid);
+    s.currentIid = iid;
+    s.fromScreen = s.screen === 'wishlist-detail' ? 'wishlist-detail'
+      : s.screen === 'items' ? 'items'
+      : s.screen === 'archive' ? 'archive'
+      : s.screen === 'wishlists' ? 'wishlists'
+      : 'wishlist-detail';
+    s.fromWid = item?.wid || null;
+    s.screen = 'item-detail';
+    s.overlay = null;
+    render();
+  }
+
+  function openAddWishlist() {
+    s.screen = 'add-wishlist';
+    s.overlay = null;
+    render();
+    // Focus input immediately while still in user gesture context — opens keyboard on iOS
+    document.getElementById('wl-name-input')?.focus();
+  }
+
+  function openAddItem(wid) {
+    s.addWid = wid;
+    s.fromScreen = s.screen;
+    s.addStep = 'url';
+    s.addIsEdit = false;
+    s.clipboardChecked = false;
+    s.addForm = { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid: wid || '', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false };
+    s.screen = 'add-item';
+    s.overlay = null;
+    render();
+    // Focus immediately while still in user gesture context — opens keyboard on iOS
+    document.getElementById('url-field')?.focus();
+  }
+
+  async function pasteAndFetch() {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) return;
+      try { new URL(text); } catch { showToast('No link found — copy a product URL first.'); return; }
+      s.addForm.url = text;
+      fetchUrl();
+    } catch {
+      showToast('Tap Paste when prompted.');
+    }
+  }
+
+  function handleUrlPaste() {
+    // Wait one tick for the pasted value to land in the input
+    setTimeout(() => {
+      const url = document.getElementById('url-field')?.value?.trim();
+      if (url) { s.addForm.url = url; fetchUrl(); }
+    }, 50);
+  }
+
+  function openEditItem(iid) {
+    const item = getItem(iid || s.currentIid);
+    if (!item) return;
+    s.currentIid = item.id;
+    s.addIsEdit = true;
+    s.addStep = 'form';
+    s.addForm = {
+      url: item.url || '',
+      name: item.name,
+      brand: item.brand || '',
+      tags: item.tags || [],
+      img: item.img || '',
+      price: item.price != null ? String(item.price) : '',
+      saved: item.saved != null ? String(item.saved) : '',
+      note: item.note || '',
+      wid: item.wid || '',
+      serious: !!item.serious,
+      showImgEdit: false,
+      showTagInput: false,
+      tagQuery: '',
+      showNewWl: false,
+    };
+    s.screen = 'add-item';
+    s.overlay = null;
+    render();
+  }
+
+  function cancelAdd() {
+    s.overlay = null;
+    if (s.addIsEdit) {
+      s.screen = 'item-detail';
+    } else if (s.addWid) {
+      s.screen = 'wishlist-detail';
+      s.currentWid = s.addWid;
+    } else {
+      s.screen = s.fromScreen === 'items' ? 'items' : 'wishlists';
+    }
+    render();
+  }
+
+  function closeOverlay() {
+    s.overlay = null;
+    render();
+  }
+
+  function openQuickSave(id) {
+    s.currentIid = id;
+    s.overlay = 'quick-save';
+    render();
+    setTimeout(() => document.getElementById('quick-save-input')?.focus(), 60);
+  }
+
+  function commitQuickSave(id) {
+    const val = document.getElementById('quick-save-input')?.value;
+    const amount = parseFloat(val);
+    if (isNaN(amount) || amount < 0) return;
+    items = items.map(i => i.id === id ? { ...i, saved: savedAmount(i) + amount } : i);
+    saveData();
+    s.overlay = null;
+    render();
+
+  }
+
+  // ═══════════════════════════════════════════
+  // ACTIONS
+  // ═══════════════════════════════════════════
+
+  // Detect Cloudflare/CDN challenge pages, error pages, bot-protection walls, etc.
+  function isBlockedPage(html, title) {
+    const t = (title || '').toLowerCase().trim();
+    const JUNK = [
+      'just a moment', 'checking your browser', 'please wait',
+      'access denied', '403 forbidden', '401 unauthorized',
+      'please enable javascript', 'please enable cookies',
+      'are you a robot', 'robot or human', 'ddos protection',
+      'attention required', 'security check', 'one moment please',
+      'enable javascript and cookies', 'verify you are human',
+      'sorry, you have been blocked', 'captcha',
+      // CloudFront / CDN error pages
+      'request could not be satisfied', 'error occurred when we tried',
+      '404 not found', '500 internal server', 'service unavailable',
+      'bad gateway', 'gateway timeout',
+    ];
+    if (JUNK.some(j => t.includes(j))) return true;
+    // Title starts with "ERROR" or "error" with no product-like content
+    if (/^error[:\s]/i.test(t)) return true;
+    if (!t) return true; // no title at all = not a product page
+    // Cloudflare JS challenge HTML markers
+    if (html.includes('cf-browser-verification') ||
+        html.includes('_cf_chl_opt') ||
+        html.includes('cdn-cgi/challenge-platform') ||
+        html.includes('jschl_answer') ||
+        html.includes('cf_chl_2') ||
+        html.includes('__cf_chl_rt_tk')) return true;
+    return false;
+  }
+
+  // Strip UTM/ad tracking params that bloat URLs and can trigger bot detection
+  function cleanUrl(urlStr) {
+    try {
+      const u = new URL(urlStr);
+      const TRACKING = [
+        'utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id',
+        'gclid','gclsrc','gbraid','wbraid','fbclid','msclkid','ttclid','twclid',
+        'gad_source','gad_campaignid','campaignid','adgroupid','adpos','creative',
+        'device','matchtype','network','targetid','pla_sku','pcat','storeid',
+        'a','ref','referrer','source','mc_cid','mc_eid','_ga','_gl',
+      ];
+      TRACKING.forEach(p => u.searchParams.delete(p));
+      return u.toString();
+    } catch { return urlStr; }
+  }
+
+  // Extract product name/brand from URL slug when all proxies fail
+  function parseUrlFallback(urlStr) {
+    try {
+      const u = new URL(urlStr);
+      const host = u.hostname.replace(/^www\./, '');
+      const parts = u.pathname.split('/').filter(Boolean).map(p => p.split('?')[0]);
+
+      function slugToTitle(s) {
+        return s.replace(/-\d{5,}$/, '').split('-').filter(Boolean)
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').trim();
+      }
+
+      let brand = '', name = '';
+
+      // Net-a-Porter: /en-us/shop/product/{brand}/{cat}/{subcat}/{product-slug}/{id}
+      if (host.includes('net-a-porter.com') || host.includes('mrporter.com')) {
+        const idx = parts.indexOf('product');
+        if (idx >= 0) {
+          brand = slugToTitle(parts[idx + 1] || '');
+          name  = slugToTitle(parts[idx + 4] || parts[idx + 3] || '');
+        }
+      }
+      // SSENSE: /en-us/{brand}/{product-slug}/p{id}
+      else if (host.includes('ssense.com')) {
+        const nonLocale = parts.filter(p => !/^[a-z]{2}-[a-z]{2}$/.test(p));
+        brand = slugToTitle(nonLocale[0] || '');
+        name  = slugToTitle((nonLocale[1] || '').replace(/-p\d+$/, ''));
+      }
+      // Mytheresa: /us-en/p/{product-slug}-{sku}.html
+      else if (host.includes('mytheresa.com')) {
+        const pIdx = parts.indexOf('p');
+        if (pIdx >= 0) name = slugToTitle(parts[pIdx + 1]?.replace(/\.html$/, '').replace(/-[a-z0-9]{4,10}$/, '') || '');
+      }
+      // CB2: /{product-slug}/s{sku}
+      else if (host.includes('cb2.com')) {
+        brand = 'CB2';
+        name  = slugToTitle((parts[0] || '').replace(/-s\d+$/, ''));
+      }
+      // Crate & Barrel: /p/{product-slug}/{sku} or /{product-slug}/r{sku}
+      else if (host.includes('crateandbarrel.com')) {
+        brand = 'Crate & Barrel';
+        const pIdx = parts.indexOf('p');
+        name = slugToTitle(pIdx >= 0 ? (parts[pIdx + 1] || '') : (parts[0] || '').replace(/-r\d+$/, ''));
+      }
+      // Farfetch: /shopping/{product-slug}-item-{id}.aspx
+      else if (host.includes('farfetch.com')) {
+        const seg = parts.find(p => p.includes('-item-')) || parts[parts.length - 1] || '';
+        name = slugToTitle(seg.replace(/-item-\d+\.aspx$/, '').replace(/\.aspx$/, ''));
+      }
+      // Browns Fashion: /en-us/{brand}/{product-slug}
+      else if (host.includes('brownsfashion.com')) {
+        const nonLocale = parts.filter(p => !/^[a-z]{2}(-[a-z]{2})?$/.test(p));
+        brand = slugToTitle(nonLocale[0] || '');
+        name  = slugToTitle(nonLocale[1] || '');
+      }
+      // Matches / MatchesFashion: /{brand}/{product-slug}
+      else if (host.includes('matchesfashion.com')) {
+        brand = slugToTitle(parts[0] || '');
+        name  = slugToTitle(parts[1] || '');
+      }
+      // Generic: longest hyphenated path segment = product name
+      else {
+        const candidates = parts
+          .filter(p => p.includes('-') && p.length > 10)
+          .sort((a, b) => b.split('-').length - a.split('-').length);
+        name = candidates.length ? slugToTitle(candidates[0]) : '';
+      }
+
+      return (name || brand) ? { name, brand } : null;
+    } catch { return null; }
+  }
+
+  function cleanTitle(t) {
+    t = (t || '').trim();
+    // Strip up to two trailing "| Site Name" or "– Brand" suffixes
+    t = t.replace(/\s*[\|\u2014\u2013\-][^\|\u2014\u2013\-]{2,60}$/, '').trim();
+    t = t.replace(/\s*[\|\u2014\u2013\-][^\|\u2014\u2013\-]{2,60}$/, '').trim();
+    return t;
+  }
+
+  function parseOgFromHtml(html, baseUrl) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const og = p => doc.querySelector(`meta[property="${p}"]`)?.content?.trim() || '';
+    const mt = n => doc.querySelector(`meta[name="${n}"]`)?.content?.trim() || '';
+    const rawTitle = og('og:title') || mt('twitter:title') || doc.title || '';
+    if (isBlockedPage(html, rawTitle)) throw new Error('blocked');
+    const title = cleanTitle(rawTitle);
+
+    // ── Image ─────────────────────────────────────────────────────────
+    let image = og('og:image:secure_url') || og('product:image') || og('og:image') || mt('twitter:image') || '';
+    if (image && !image.startsWith('http')) {
+      try { image = new URL(image, baseUrl).href; } catch {}
+    }
+    // Fallback: <link rel="preload" as="image"> (common in Next.js/Nuxt apps)
+    if (!image) {
+      const preload = doc.querySelector('link[rel="preload"][as="image"][href]');
+      if (preload) image = preload.getAttribute('href') || '';
+    }
+    // Fallback: lazy-loaded data-src images (pick first large one)
+    if (!image) {
+      for (const img of doc.querySelectorAll('img[data-src],img[data-lazy-src],img[data-original]')) {
+        const src = img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || img.getAttribute('data-original') || '';
+        if (src.startsWith('http') && !/placeholder|spinner|blank|gif/i.test(src)) { image = src; break; }
+      }
+    }
+    // Fallback: srcset — pick highest declared width
+    if (!image) {
+      for (const img of doc.querySelectorAll('img[srcset]')) {
+        const best = (img.getAttribute('srcset') || '').split(',')
+          .map(s => s.trim().split(/\s+/))
+          .filter(p => p[0]?.startsWith('http'))
+          .sort((a, b) => (parseInt(b[1]) || 0) - (parseInt(a[1]) || 0))[0];
+        if (best?.[0]) { image = best[0]; break; }
+      }
+    }
+    if (image && !image.startsWith('http')) {
+      try { image = new URL(image, baseUrl).href; } catch {}
+    }
+
+    // ── Brand ─────────────────────────────────────────────────────────
+    let brand = og('product:brand') || og('og:brand') || mt('twitter:data1') || '';
+    // JSON-LD brand
+    if (!brand) {
+      for (const el of doc.querySelectorAll('script[type="application/ld+json"]')) {
+        try {
+          const digBrand = o => {
+            if (!o || typeof o !== 'object') return '';
+            if (typeof o.brand === 'string') return o.brand;
+            if (o.brand?.name) return o.brand.name;
+            if (o['@graph']) return digBrand(o['@graph']);
+            if (Array.isArray(o)) { for (const x of o) { const r = digBrand(x); if (r) return r; } }
+            return '';
+          };
+          brand = digBrand(JSON.parse(el.textContent));
+          if (brand) break;
+        } catch {}
+      }
+    }
+    // __NEXT_DATA__ brand (SSENSE: designerName; Farfetch: brand.name)
+    if (!brand) {
+      const nd = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+      if (nd) {
+        try {
+          const findBrand = (o, d = 0) => {
+            if (d > 10 || !o || typeof o !== 'object') return '';
+            for (const k of ['designerName','brandName','brand','makerName','manufacturer']) {
+              const v = o[k];
+              if (typeof v === 'string' && v.length > 1 && v.length < 60) return v;
+              if (v?.name && typeof v.name === 'string') return v.name;
+            }
+            for (const v of Object.values(o)) {
+              if (v && typeof v === 'object' && !Array.isArray(v)) { const r = findBrand(v, d+1); if (r) return r; }
+            }
+            return '';
+          };
+          brand = findBrand(JSON.parse(nd));
+        } catch {}
+      }
+    }
+
+    // ── Price ─────────────────────────────────────────────────────────
+    let price = og('product:price:amount') || og('og:price:amount') || '';
+
+    // JSON-LD structured data
+    if (!price) {
+      for (const el of doc.querySelectorAll('script[type="application/ld+json"]')) {
+        try {
+          const dig = o => {
+            if (!o || typeof o !== 'object') return '';
+            if (o.price != null) return String(o.price);
+            if (o.lowPrice != null) return String(o.lowPrice);
+            if (o.offers)  return dig(o.offers);
+            if (o['@graph']) return dig(o['@graph']);
+            if (Array.isArray(o)) { for (const x of o) { const r = dig(x); if (r) return r; } }
+            return '';
+          };
+          price = dig(JSON.parse(el.textContent));
+          if (price) break;
+        } catch {}
+      }
+    }
+
+    // __NEXT_DATA__ (Next.js SSR — covers SSENSE, Farfetch, Matches, Browns, etc.)
+    if (!price) {
+      const nd = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+      if (nd) {
+        try {
+          const findPrice = (o, d = 0) => {
+            if (d > 12 || !o || typeof o !== 'object') return '';
+            for (const k of ['price','salePrice','currentPrice','priceValue','amount','retailPrice','formattedPrice']) {
+              const v = o[k];
+              if (v != null) {
+                const s = String(v).replace(/[^0-9.]/g, '');
+                if (/^\d+\.?\d*$/.test(s) && parseFloat(s) > 0) return s;
+              }
+            }
+            for (const v of Object.values(o)) {
+              if (v && typeof v === 'object' && !Array.isArray(v)) { const r = findPrice(v, d+1); if (r) return r; }
+            }
+            for (const v of Object.values(o)) {
+              if (Array.isArray(v)) { for (const x of v) { const r = findPrice(x, d+1); if (r) return r; } }
+            }
+            return '';
+          };
+          price = findPrice(JSON.parse(nd));
+        } catch {}
+      }
+    }
+
+    // __NUXT__ / Nuxt SSR
+    if (!price) {
+      const nuxt = html.match(/window\.__NUXT__\s*=\s*(\{[\s\S]*?\});\s*<\/script>/)?.[1];
+      if (nuxt) {
+        try {
+          const m = nuxt.match(/"price"\s*:\s*([\d.]+)/);
+          if (m) price = m[1];
+        } catch {}
+      }
+    }
+
+    // DOM price selectors (fallback for non-SSR pages)
+    if (!price) {
+      const selectors = [
+        '[itemprop="price"]','[data-price]','[class*="sale-price" i]',
+        '[class*="current-price" i]','[class*="product-price" i]','[class*="price__amount" i]',
+        '[class*="price" i]',
+      ];
+      for (const sel of selectors) {
+        for (const el of doc.querySelectorAll(sel)) {
+          const txt = (el.getAttribute('data-price') || el.getAttribute('content') || el.textContent || '').trim();
+          const m = txt.match(/[\$\€\£\¥]\s*(\d[\d,]*\.?\d{0,2})/);
+          if (m) { price = m[1].replace(/,/g, ''); break; }
+        }
+        if (price) break;
+      }
+    }
+
+    if (!title && !image) throw new Error('empty');
+    return { title, image, price: price.replace(/[^0-9.]/g, ''), brand: brand.trim() };
+  }
+
+  async function fetchUrl() {
+    const urlEl = document.getElementById('url-field');
+    const rawUrl = urlEl ? urlEl.value.trim() : s.addForm.url;
+    if (!rawUrl) { urlEl?.focus(); return; }
+    try { new URL(rawUrl); } catch { showToast('Enter a valid URL first.'); return; }
+    const url = cleanUrl(rawUrl);
+
+    s.addForm.url = url;
+    s.addStep = 'fetching';
+    render();
+
+    // Analytics: log the domain (never the full URL)
+    try {
+      const domain = new URL(url).hostname.replace(/^www\./, '');
+      if (typeof gtag === 'function') gtag('event', 'url_lookup', { domain });
+    } catch {};
+
+    const abort = new AbortController();
+    const masterTimer = setTimeout(() => abort.abort(), 14000);
+
+    try {
+      // Microlink: renders JS, handles Cloudflare/SSENSE/etc.
+      const mlPromise = fetch(
+        `https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false&audio=false&video=false&iframe=false`,
+        { signal: abort.signal }
+      ).then(async r => {
+        const ml = await r.json();
+        if (ml.status !== 'success') throw new Error('ml-fail');
+        const mlTitle = ml.data.title || '';
+        if (isBlockedPage('', mlTitle)) throw new Error('blocked');
+        return { source: 'ml', data: ml.data };
+      });
+
+      // HTML proxies run in parallel — first unblocked result wins
+      const proxyFetch = (fetchPromise) => fetchPromise.then(res => {
+        const parsed = parseOgFromHtml(res.html, url); // throws on blocked pages
+        return { source: 'html', parsed };
+      });
+
+      const htmlProxies = [
+        proxyFetch(
+          fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: abort.signal })
+            .then(r => r.json()).then(j => ({ html: j.contents || '' }))
+        ),
+        proxyFetch(
+          fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, { signal: abort.signal })
+            .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
+            .then(h => ({ html: h }))
+        ),
+        proxyFetch(
+          fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, { signal: abort.signal })
+            .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
+            .then(h => ({ html: h }))
+        ),
+        proxyFetch(
+          fetch(`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`, { signal: abort.signal })
+            .then(r => r.text()).then(h => ({ html: h }))
+        ),
+      ];
+
+      const result = await Promise.any([mlPromise, Promise.any(htmlProxies)]);
+      clearTimeout(masterTimer);
+
+      if (result.source === 'ml') {
+        const ml = result.data;
+        // Try to extract brand from URL — more reliable than parsing from Microlink title
+        const urlMeta = parseUrlFallback(url);
+        let cleanedTitle = cleanTitle(ml.title || '');
+        let brand = urlMeta?.brand || '';
+        // If brand found from URL, strip it from the front of the title to get clean product name
+        if (brand) {
+          const brandLower = brand.toLowerCase();
+          const titleLower = cleanedTitle.toLowerCase();
+          if (titleLower.startsWith(brandLower)) {
+            cleanedTitle = cleanedTitle.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
+          }
+        }
+        s.addForm.name  = cleanedTitle;
+        s.addForm.brand = brand || s.addForm.brand || '';
+        s.addForm.img   = ml.image?.url || ml.screenshot?.url || '';
+        s.addForm.price = '';
+        s.addStep = 'form';
+        render();
+        // Backfill price from ALL proxies in parallel — first one that returns a price wins
+        (async () => {
+          try {
+            const enc = encodeURIComponent(url);
+            const tryProxy = (promise) => promise.then(({ html }) => {
+              const { price } = parseOgFromHtml(html, url);
+              if (!price) throw new Error('no price');
+              return price;
+            });
+            const price = await Promise.any([
+              tryProxy(fetch(`https://api.allorigins.win/get?url=${enc}`).then(r => r.json()).then(j => ({ html: j.contents || '' }))),
+              tryProxy(fetch(`https://corsproxy.io/?${enc}`).then(r => { if (!r.ok) throw new Error('err'); return r.text(); }).then(h => ({ html: h }))),
+              tryProxy(fetch(`https://api.codetabs.com/v1/proxy?quest=${enc}`).then(r => { if (!r.ok) throw new Error('err'); return r.text(); }).then(h => ({ html: h }))),
+              tryProxy(fetch(`https://thingproxy.freeboard.io/fetch/${enc}`).then(r => r.text()).then(h => ({ html: h }))),
+            ]);
+            if (price) {
+              s.addForm.price = price;
+              const el = document.getElementById('f-price');
+              if (el) el.value = price;
+            }
+          } catch {}
+        })();
+      } else {
+        const { parsed } = result;
+        // Supplement with URL-based brand extraction if HTML parse didn't find one
+        const urlMeta = parseUrlFallback(url);
+        const brand = parsed.brand || urlMeta?.brand || '';
+        let name = parsed.title;
+        if (brand) {
+          const brandLower = brand.toLowerCase();
+          const nameLower = name.toLowerCase();
+          if (nameLower.startsWith(brandLower)) {
+            name = name.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
+          }
+        }
+        s.addForm.name  = name;
+        s.addForm.brand = brand || s.addForm.brand || '';
+        s.addForm.img   = parsed.image;
+        s.addForm.price = parsed.price;
+        s.addStep = 'form';
+        render();
+      }
+    } catch {
+      clearTimeout(masterTimer);
+      const fallback = parseUrlFallback(url);
+      s.addForm.name  = fallback?.name  || '';
+      s.addForm.brand = fallback?.brand || '';
+      s.addForm.img   = '';
+      s.addForm.price = '';
+      s.addStep = 'form';
+      render();
+      showToast(fallback?.name
+        ? 'Site blocked auto-fetch — check name and add image.'
+        : "Couldn't fetch — fill in manually.");
+    }
+  }
+
+  function toggleImgEdit() {
+    s.addForm.showImgEdit = !s.addForm.showImgEdit;
+    render();
+  }
+
+  function liveUpdateImg(url) {
+    const el = document.getElementById('form-img-preview');
+    if (!el) return;
+    if (url) {
+      if (el.tagName === 'IMG') {
+        el.src = url;
+      } else {
+        el.insertAdjacentHTML('beforebegin', `<img src="${url}" alt="" id="form-img-preview" />`);
+        el.remove();
+      }
+    }
+    s.addForm.img = url;
+  }
+
+  function saveWishlist() {
+    const nameEl = document.getElementById('wl-name-input');
+    const name = nameEl ? nameEl.value.trim() : '';
+    if (!name) { nameEl?.focus(); return; }
+    const newWl = { id: 'w' + genId(), name };
+    wishlists.push(newWl);
+    saveData();
+    s.currentWid = newWl.id;
+    s.screen = 'wishlist-detail';
+    render();
+
+  }
+
+  function setAddIntent(value) {
+    const input = document.getElementById('f-serious');
+    if (input) input.value = value;
+    document.getElementById('intent-casual')?.classList.toggle('active', value === 'casual');
+    document.getElementById('intent-serious')?.classList.toggle('active', value === 'serious');
+  }
+
+  function saveItem() {
+    const name = document.getElementById('f-name')?.value.trim();
+    if (!name) { document.getElementById('f-name')?.focus(); return; }
+    const brand = document.getElementById('f-brand')?.value.trim();
+    const tags = s.addForm.tags || [];
+    const priceEl = document.getElementById('f-price');
+    const savedEl = document.getElementById('f-saved');
+    const price = priceEl?.dataset.cents ? String(parseInt(priceEl.dataset.cents,10) / 100) : priceEl?.value;
+    const saved = savedEl?.dataset.cents ? String(parseInt(savedEl.dataset.cents,10) / 100) : savedEl?.value;
+    const note = document.getElementById('f-note')?.value.trim();
+    const wid = document.getElementById('f-wid')?.value;
+    const serious = document.getElementById('f-serious')?.value === 'serious';
+    const img = s.addForm.img || null;
+
+    if (s.addIsEdit) {
+      items = items.map(i => i.id === s.currentIid ? {
+        ...i,
+        name,
+        brand: brand || null,
+        tags,
+        price: price ? parseFloat(price) : null,
+        saved: saved ? parseFloat(saved) : 0,
+        note,
+        wid: wid || null,
+        serious,
+        img: img || i.img,
+      } : i);
+      saveData();
+      s.screen = 'item-detail';
+      render();
+
+    } else {
+      const newItem = {
+        id: 'i' + genId(), wid: wid || null,
+        name, brand: brand || null, tags, url: s.addForm.url, img,
+        note,
+        price: price ? parseFloat(price) : null,
+        saved: saved ? parseFloat(saved) : 0,
+        serious,
+        addedAt: Date.now(), status: 'watching', reason: null,
+      };
+      items = [newItem, ...items];
+      saveData();
+      if (s.addWid) {
+        s.currentWid = s.addWid;
+        s.screen = 'wishlist-detail';
+      } else {
+        s.screen = 'items';
+      }
+      render();
+
+    }
+  }
+
+  function markPurchased(id) {
+    items = items.map(i => i.id === id ? { ...i, status:'purchased', reason:null } : i);
+    saveData();
+    s.screen = 'wishlist-detail';
+    s.currentWid = s.fromWid || s.currentWid;
+    render();
+
+  }
+
+  function addBackToWishlist(id) {
+    items = items.map(i => i.id === id ? { ...i, status:'watching', reason:null } : i);
+    saveData();
+    s.screen = 'wishlist-detail';
+    s.currentWid = s.fromWid || s.currentWid;
+    render();
+
+  }
+
+  function archiveItem(id) {
+    items = items.map(i => i.id === id ? {
+      ...i, status:'archived', reason:'let_go', archivedAt: Date.now(),
+    } : i);
+    saveData();
+    s.screen = s.fromScreen === 'items' ? 'items' : 'wishlist-detail';
+    if (s.fromWid) s.currentWid = s.fromWid;
+    render();
+
+  }
+
+  function openDeleteOverlay(id) {
+    s.currentIid = id;
+    s.overlay = 'delete';
+    render();
+  }
+
+  function confirmDelete() {
+    const id = s.currentIid;
+    const item = getItem(id);
+    items = items.filter(i => i.id !== id);
+    saveData();
+    s.overlay = null;
+    // If deleting from edit mode, go back to where we came from
+    if (s.addIsEdit) {
+      s.addIsEdit = false;
+      s.screen = s.fromScreen === 'items' ? 'items'
+        : item?.wid ? 'wishlist-detail'
+        : 'wishlists';
+      if (item?.wid) s.currentWid = item.wid;
+    } else {
+      s.screen = s.fromScreen === 'items' ? 'items'
+        : s.fromScreen === 'archive' ? 'archive'
+        : 'wishlist-detail';
+      if (s.fromWid) s.currentWid = s.fromWid;
+    }
+    render();
+
+  }
+
+  function deleteItem(id) {
+    s.currentIid = id;
+    s.fromScreen = 'archive';
+    s.overlay = 'delete';
+    render();
+  }
+
+  function restoreItem(id) {
+    items = items.map(i => i.id === id ? {
+      ...i, status:'watching', reason:null, archivedAt:undefined,
+    } : i);
+    saveData();
+    render();
+
+  }
+
+  // ═══════════════════════════════════════════
+  // WISHLIST EDIT MODE + DRAG
+  // ═══════════════════════════════════════════
+
+  function toggleWlEdit() {
+    s.wlEditMode = !s.wlEditMode;
+    render();
+  }
+
+  function toggleWlItemEdit() {
+    s.wlItemEditMode = !s.wlItemEditMode;
+    render();
+    if (s.wlItemEditMode) {
+      setTimeout(() => document.getElementById('wl-rename-input')?.select(), 80);
+    }
+  }
+
+  function removeItem(e, id) {
+    if (e) e.stopPropagation();
+    items = items.filter(i => i.id !== id);
+    saveData();
+    render();
+  }
+
+  function deleteWishlist(id) {
+    items = items.filter(i => i.wid !== id);
+    wishlists = wishlists.filter(w => w.id !== id);
+    s.wlEditMode = false;
+    s.wlItemEditMode = false;
+    s.currentWid = null;
+    s.screen = 'wishlists';
+    s.wlSubTab = 'wishlists';
+    saveData();
+    render();
+  }
+
+  function wlLongPressStart() {
+    longPressTimer = setTimeout(() => {
+      if (!s.wlEditMode) { s.wlEditMode = true; render(); }
+    }, 550);
+  }
+
+  function wlLongPressCancel() { clearTimeout(longPressTimer); }
+
+  function wlDragStart(e, idx) {
+    dragSrcIdx = idx;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(idx));
+    setTimeout(() => { if (e.target) e.target.style.opacity = '0.35'; }, 0);
+  }
+  function wlDragOver(e, idx) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('card-drag-over');
+  }
+  function wlDragLeave(e) { e.currentTarget.classList.remove('card-drag-over'); }
+  function wlDrop(e, idx) {
+    e.preventDefault(); e.stopPropagation();
+    e.currentTarget.classList.remove('card-drag-over');
+    if (dragSrcIdx === null || dragSrcIdx === idx) { dragSrcIdx = null; return; }
+    const moved = wishlists.splice(dragSrcIdx, 1)[0];
+    wishlists.splice(idx, 0, moved);
+    dragSrcIdx = null;
+    saveData();
+    render();
+  }
+  function wlDragEnd(e) {
+    e.target.style.opacity = '';
+    document.querySelectorAll('.card-drag-over').forEach(el => el.classList.remove('card-drag-over'));
+    dragSrcIdx = null;
+  }
+
+  // ── Swipe-to-delete ─────────────────────────────────────────────────
+  function swipeRowStart(e, itemId) {
+    // Don't intercept taps on the drag handle
+    if (e.target.closest('.list-drag-handle')) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    const wrap = e.currentTarget;
+    const inner = wrap.querySelector('.list-row');
+    const bg    = wrap.querySelector('.swipe-delete-bg');
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const THRESHOLD = 80;
+    let decided = false, isSwipe = false, dx = 0;
+
+    function onMove(ev) {
+      const x = ev.clientX - startX;
+      const y = ev.clientY - startY;
+      if (!decided) {
+        if (Math.abs(x) < 5 && Math.abs(y) < 5) return;
+        if (Math.abs(y) >= Math.abs(x)) { cleanup(); return; } // vertical — let scroll handle it
+        decided = true; isSwipe = true;
+      }
+      if (!isSwipe) return;
+      ev.preventDefault();
+      dx = Math.min(0, x);
+      inner.style.transform = `translateX(${dx}px)`;
+      bg.style.opacity = Math.min(1, Math.abs(dx) / THRESHOLD);
+    }
+
+    function onUp() {
+      cleanup();
+      if (!isSwipe || dx === 0) return;
+      if (dx <= -THRESHOLD) {
+        // Commit — animate row out then delete
+        inner.style.transition = 'transform 0.2s ease-in';
+        inner.style.transform = 'translateX(-110vw)';
+        const h = wrap.offsetHeight;
+        wrap.style.overflow = 'hidden';
+        wrap.style.maxHeight = h + 'px';
+        requestAnimationFrame(() => {
+          wrap.style.transition = 'max-height 0.22s ease 0.12s, opacity 0.18s ease 0.12s';
+          wrap.style.maxHeight = '0';
+          wrap.style.opacity = '0';
+        });
+        setTimeout(() => removeItem(null, itemId), 350);
+      } else {
+        // Snap back
+        inner.style.transition = 'transform 0.35s cubic-bezier(0.16,1,0.3,1)';
+        inner.style.transform = '';
+        bg.style.transition = 'opacity 0.25s ease';
+        bg.style.opacity = '0';
+        setTimeout(() => { inner.style.transition = ''; bg.style.transition = ''; }, 350);
+      }
+    }
+
+    function cleanup() {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+    }
+
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+  }
+
+  // ── Pointer-based list drag (smooth, animated) ──────────────────────
+  let _listDrag = null; // active drag state
+
+  function listDragStart(e, fromIdx) {
+    // Only drag within wishlist detail list view
+    if (s.screen !== 'wishlist-detail') return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const rows = [...document.querySelectorAll('.list-view .list-row')];
+    const srcRow = rows[fromIdx];
+    if (!srcRow) return;
+
+    const rect = srcRow.getBoundingClientRect();
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const offsetY = clientY - rect.top;
+
+    // Build ghost clone
+    const ghost = srcRow.cloneNode(true);
+    ghost.className = 'drag-ghost';
+    ghost.style.top = rect.top + 'px';
+    ghost.style.height = rect.height + 'px';
+    ghost.style.opacity = '0';
+    document.body.appendChild(ghost);
+    // Animate ghost in
+    requestAnimationFrame(() => {
+      ghost.style.transition = 'opacity 0.12s ease, top 0.14s cubic-bezier(0.16,1,0.3,1)';
+      ghost.style.opacity = '1';
+    });
+
+    srcRow.classList.add('dragging');
+
+    _listDrag = { fromIdx, curIdx: fromIdx, offsetY, ghost, rows, rowHeights: rows.map(r => r.getBoundingClientRect().height) };
+
+    document.addEventListener('pointermove', _listDragMove, { passive: false });
+    document.addEventListener('pointerup', _listDragEnd);
+    document.addEventListener('pointercancel', _listDragEnd);
+  }
+
+  function _listDragMove(e) {
+    if (!_listDrag) return;
+    e.preventDefault();
+    const { offsetY, ghost, rows, rowHeights, fromIdx } = _listDrag;
+    const clientY = e.clientY;
+    const ghostTop = clientY - offsetY;
+    ghost.style.transition = 'opacity 0.12s ease';
+    ghost.style.top = ghostTop + 'px';
+
+    // Determine which row we're over
+    let newIdx = fromIdx;
+    for (let i = 0; i < rows.length; i++) {
+      if (i === fromIdx) continue;
+      const r = rows[i].getBoundingClientRect();
+      const mid = r.top + r.height / 2;
+      if (clientY < mid) { newIdx = i; break; }
+      newIdx = i;
+    }
+    // Clamp
+    newIdx = Math.max(0, Math.min(rows.length - 1, newIdx));
+
+    // Update row indicators
+    rows.forEach((r, i) => {
+      r.classList.remove('drag-over-above', 'drag-over-below');
+      if (i !== fromIdx && i === newIdx) {
+        r.classList.add(newIdx < fromIdx ? 'drag-over-above' : 'drag-over-below');
+      }
+    });
+
+    _listDrag.curIdx = newIdx;
+  }
+
+  function _listDragEnd(e) {
+    if (!_listDrag) return;
+    document.removeEventListener('pointermove', _listDragMove);
+    document.removeEventListener('pointerup', _listDragEnd);
+    document.removeEventListener('pointercancel', _listDragEnd);
+
+    const { fromIdx, curIdx, ghost, rows } = _listDrag;
+    _listDrag = null;
+
+    // Animate ghost out
+    ghost.style.transition = 'opacity 0.14s ease';
+    ghost.style.opacity = '0';
+    setTimeout(() => ghost.remove(), 150);
+
+    rows.forEach(r => r.classList.remove('dragging', 'drag-over-above', 'drag-over-below'));
+
+    if (fromIdx === curIdx) return;
+
+    // Commit reorder
+    const wid = s.currentWid;
+    const wlList = wishlistItems(wid);
+    const moved = wlList.splice(fromIdx, 1)[0];
+    wlList.splice(curIdx, 0, moved);
+    const base = Date.now();
+    wlList.forEach((itm, i) => {
+      items = items.map(x => x.id === itm.id ? { ...x, order: base - i * 1000 } : x);
+    });
+    saveData();
+    render();
+  }
+
+  // ═══════════════════════════════════════════
+  // COVER IMAGE
+  // ═══════════════════════════════════════════
+
+  function openChangeCover(wid) {
+    s.currentWid = wid;
+    s.overlay = 'change-cover';
+    render();
+  }
+
+  function closeCoverPanel() {
+    s.overlay = null;
+    render();
+  }
+
+  function saveCoverImage(wid) {
+    const val = document.getElementById('cover-url-input')?.value.trim();
+    if (!val) return;
+    wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: val } : w);
+    saveData();
+    s.overlay = null;
+    render();
+
+  }
+
+  function handleCoverFile(input, wid) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: e.target.result } : w);
+      saveData();
+      s.overlay = null;
+      render();
+  
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ═══════════════════════════════════════════
+  // ITEM IMAGE + FORM
+  // ═══════════════════════════════════════════
+
+  function handleItemFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      s.addForm.img = e.target.result;
+      render();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function removeItemBackground() {
+    const src = s.addForm.img;
+    if (!src || s.removingBg) return;
+
+    s.removingBg = true;
+    render();
+    // Yield so the browser paints "Removing..." before the heavy canvas work
+    await new Promise(r => setTimeout(r, 0));
+
+    try {
+      // For external URLs, try fetching via CORS so we get pixel access
+      let imgSrc = src;
+      if (!src.startsWith('data:')) {
+        try {
+          const res = await fetch(src, { mode: 'cors' });
+          if (!res.ok) throw new Error('fetch failed');
+          const blob = await res.blob();
+          imgSrc = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          s.removingBg = false;
+          render();
+          showToast('Upload the image first, then remove the background.');
+          return;
+        }
+      }
+
+      // Draw image to canvas
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = reject;
+        i.src = imgSrc;
+      });
+
+      const W = img.naturalWidth, H = img.naturalHeight;
+      const canvas = document.createElement('canvas');
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      const imageData = ctx.getImageData(0, 0, W, H);
+      const d = imageData.data;
+
+      // Sample the 4 corners to estimate background color
+      function px(x, y) { const i = (y*W+x)*4; return [d[i], d[i+1], d[i+2]]; }
+      const corners = [px(0,0), px(W-1,0), px(0,H-1), px(W-1,H-1)];
+      const bg = corners.reduce((a,c) => [a[0]+c[0],a[1]+c[1],a[2]+c[2]], [0,0,0])
+                        .map(v => Math.round(v/4));
+
+      // BFS flood-fill from all edges — pixels within color threshold become transparent
+      const THRESH = 38;
+      function dist(i) {
+        const dr=d[i]-bg[0], dg=d[i+1]-bg[1], db=d[i+2]-bg[2];
+        return Math.sqrt(dr*dr+dg*dg+db*db);
+      }
+
+      const visited = new Uint8Array(W*H);
+      // Pre-allocate queue as flat [x0,y0, x1,y1, ...] pairs
+      const queue = new Int32Array(W*H*2);
+      let head=0, tail=0;
+
+      function enq(x,y) {
+        const idx=y*W+x;
+        if (!visited[idx]) { visited[idx]=1; queue[tail++]=x; queue[tail++]=y; }
+      }
+      for (let x=0; x<W; x++) { enq(x,0); enq(x,H-1); }
+      for (let y=1; y<H-1; y++) { enq(0,y); enq(W-1,y); }
+
+      while (head < tail) {
+        const x=queue[head++], y=queue[head++];
+        const pi=(y*W+x)*4;
+        if (dist(pi) <= THRESH) {
+          d[pi+3]=0;
+          if (x>0)   enq(x-1,y);
+          if (x<W-1) enq(x+1,y);
+          if (y>0)   enq(x,y-1);
+          if (y<H-1) enq(x,y+1);
+        }
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+      s.addForm.img = canvas.toDataURL('image/png');
+      s.removingBg = false;
+      render();
+    } catch(err) {
+      console.error('[Remove BG]', err);
+      s.removingBg = false;
+      render();
+      showToast('Could not remove background.');
+    }
+  }
+
+  function addManually() {
+    s.addForm = {
+      url: '', name: '', brand: '', tags: [], img: '', price: '', saved: '', note: '',
+      wid: s.addWid || wishlists[0]?.id || '',
+      serious: false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false,
+    };
+    s.addStep = 'form';
+    render();
+  }
+
+  // ═══════════════════════════════════════════
+  // LIST + ARCHIVE RENDERERS
+  // ═══════════════════════════════════════════
+
+  function itemListRow(item, idx=0) {
+    const d = days(item.addedAt);
+    const purchased = item.status === 'purchased';
+    const thumbH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
+    return `
+      <div class="swipe-row-wrap" onpointerdown="swipeRowStart(event,'${item.id}')">
+        <div class="swipe-delete-bg"><span>Delete</span></div>
+        <div class="list-row ${purchased ? 'list-row-purchased' : ''}" data-idx="${idx}" ${clickAttr}>
+          ${s.wlItemEditMode ? `<span class="list-drag-handle" onpointerdown="event.stopPropagation();listDragStart(event,${idx})">⠿</span>` : ''}
+          <div class="list-thumb">${thumbH}</div>
+          <div class="list-info">
+            <p class="list-name">${esc(item.name)}</p>
+            <p class="list-meta">${pad(d)} · ${purchased ? 'Purchased' : item.serious ? 'Serious' : 'Watching'}</p>
+            ${item.price && savedAmount(item) && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
+          </div>
+          ${item.price ? `<span class="list-price">${money(item.price)}</span>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function archiveRow(item) {
+    const d = days(item.addedAt);
+    const reason = item.reason === 'got_it' ? 'Purchased' : 'Archived';
+    const thumbH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    return `
+      <div class="archive-row">
+        <div class="archive-thumb">${thumbH}</div>
+        <div class="archive-info">
+          <p class="archive-reason">${reason}</p>
+          <p class="archive-name">${esc(item.name)}</p>
+          <p class="archive-meta">Watched ${d} days</p>
+        </div>
+        <div class="archive-btns">
+          <button class="archive-btn" onclick="restoreItem('${item.id}')">Restore</button>
+          <button class="archive-btn ghost" onclick="deleteItem('${item.id}')">Delete</button>
+        </div>
+      </div>`;
+  }
+
+  function archiveGridCard(item) {
+    const d = days(item.addedAt);
+    const reason = item.reason === 'got_it' ? 'Purchased' : 'Archived';
+    const imgH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    return `
+      <div class="card card-purchased" style="position:relative">
+        <div class="card-image">${imgH}</div>
+        <div class="card-meta">
+          <div class="card-prefix"><span class="card-days">${reason}</span></div>
+          <p class="card-name">${esc(item.name)}</p>
+          <p class="card-price">Watched ${d} days</p>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button class="archive-btn" style="flex:1" onclick="restoreItem('${item.id}')">Restore</button>
+            <button class="archive-btn ghost" style="flex:1" onclick="deleteItem('${item.id}')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ═══════════════════════════════════════════
+  // VIEW MODES + FILTER
+  // ═══════════════════════════════════════════
+
+  function setWlsView(mode) { s.wlsViewMode = mode; render(); }
+  function setWlView(mode) { s.wlViewMode = mode; render(); }
+  function setItemsView(mode) { s.itemsViewMode = mode; render(); }
+  function setArchiveView(mode) { s.archiveViewMode = mode; render(); }
+  function openAddWishlistItem(wid) { openAddItem(wid); }
+
+  function toggleItemsFilter(tag) {
+    const idx = s.itemsFilterTags.indexOf(tag);
+    if (idx === -1) s.itemsFilterTags = [...s.itemsFilterTags, tag];
+    else s.itemsFilterTags = s.itemsFilterTags.filter(t => t !== tag);
+    render();
+  }
+
+  function toggleWlDetailFilter(tag) {
+    const idx = s.wlDetailFilterTags.indexOf(tag);
+    if (idx === -1) s.wlDetailFilterTags = [...s.wlDetailFilterTags, tag];
+    else s.wlDetailFilterTags = s.wlDetailFilterTags.filter(t => t !== tag);
+    render();
+  }
+
+  // ═══════════════════════════════════════════
+  // TAGS
+  // ═══════════════════════════════════════════
+
+  // Sync DOM field values back to s.addForm before any re-render
+  function syncFormFields() {
+    const g = id => document.getElementById(id)?.value ?? null;
+    if (g('f-name') !== null)  s.addForm.name  = g('f-name');
+    if (g('f-brand') !== null) s.addForm.brand = g('f-brand');
+    if (g('f-price') !== null) s.addForm.price = g('f-price');
+    if (g('f-saved') !== null) s.addForm.saved = g('f-saved');
+    if (g('f-note') !== null)  s.addForm.note  = g('f-note');
+    if (g('f-wid') !== null)   s.addForm.wid   = g('f-wid');
+  }
+
+  function openTagInput() {
+    syncFormFields();
+    s.addForm.showTagInput = true;
+    s.addForm.tagQuery = '';
+    render();
+    setTimeout(() => document.getElementById('tag-inline-input')?.focus(), 60);
+  }
+
+  function closeTagInput() {
+    syncFormFields();
+    s.addForm.showTagInput = false;
+    s.addForm.tagQuery = '';
+    render();
+  }
+
+  function onTagQuery(val) {
+    s.addForm.tagQuery = val;
+    const el = document.getElementById('tag-suggestions');
+    const input = document.getElementById('tag-inline-input');
+    if (!el || !input) return;
+    const selected = s.addForm.tags || [];
+    const q = val.toLowerCase();
+    const matches = availableTags.filter(t =>
+      !selected.includes(t) && (!q || t.toLowerCase().includes(q))
+    );
+    [...el.querySelectorAll('.tag-suggestion')].forEach(b => b.remove());
+    matches.reverse().forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tag-suggestion';
+      btn.textContent = t;
+      btn.onclick = () => addTag(t);
+      el.prepend(btn);
+    });
+  }
+
+  function addTag(tag) {
+    syncFormFields();
+    const normalized = tag.trim();
+    if (!normalized) return;
+    const title = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+    if (!availableTags.includes(title)) availableTags = [...availableTags, title];
+    if (!(s.addForm.tags || []).includes(title)) {
+      s.addForm.tags = [...(s.addForm.tags || []), title];
+    }
+    s.addForm.showTagInput = false;
+    s.addForm.tagQuery = '';
+    render();
+  }
+
+  function confirmTagInput() {
+    const val = document.getElementById('tag-inline-input')?.value.trim();
+    if (val) { addTag(val); } else { closeTagInput(); }
+  }
+
+  function removeTag(tag) {
+    syncFormFields();
+    s.addForm.tags = (s.addForm.tags || []).filter(t => t !== tag);
+    render();
+  }
+
+  // ═══════════════════════════════════════════
+  // CURRENCY INPUT
+  // ═══════════════════════════════════════════
+
+  function currencyKeydown(e, fieldId) {
+    const passthrough = ['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Escape'];
+    if (passthrough.includes(e.key)) return;
+    e.preventDefault();
+    const field = e.target;
+    let cents = parseInt(field.dataset.cents || '0', 10);
+    if (e.key >= '0' && e.key <= '9') {
+      cents = Math.min(cents * 10 + parseInt(e.key, 10), 9999999);
+    } else if (e.key === 'Backspace') {
+      cents = Math.floor(cents / 10);
+    } else {
+      return;
+    }
+    field.dataset.cents = cents;
+    field.value = (cents / 100).toFixed(2);
+  }
+
+  // ═══════════════════════════════════════════
+  // WISHLIST PICKER (FORM)
+  // ═══════════════════════════════════════════
+
+  function setFormWl(wid) {
+    s.addForm.wid = wid;
+    s.addForm.showNewWl = false;
+    render();
+  }
+
+  function openNewWlInput() {
+    s.addForm.showNewWl = true;
+    render();
+    setTimeout(() => document.getElementById('wl-new-wl-input')?.focus(), 60);
+  }
+
+  function createFormWl() {
+    const el = document.getElementById('wl-new-wl-input');
+    const name = el?.value.trim();
+    s.addForm.showNewWl = false;
+    if (name) {
+      const newWl = { id: 'w' + genId(), name };
+      wishlists.push(newWl);
+      saveData();
+      s.addForm.wid = newWl.id;
+    }
+    render();
+  }
+
+  function createFormWlBlur() {
+    setTimeout(() => {
+      if (s.addForm.showNewWl) createFormWl();
+    }, 150);
+  }
+
+  // ═══════════════════════════════════════════
+  // MOVE ITEM TO WISHLIST
+  // ═══════════════════════════════════════════
+
+  function openMoveToWishlist(id) {
+    s.currentIid = id;
+    s.overlay = 'move-wl';
+    render();
+  }
+
+  function moveItemToWl(itemId, wid) {
+    items = items.map(i => i.id === itemId ? { ...i, wid } : i);
+    saveData();
+    s.overlay = null;
+    render();
+
+  }
+
+  // ═══════════════════════════════════════════
+  // RENAME WISHLIST
+  // ═══════════════════════════════════════════
+
+  function renameWishlist(wid, newName) {
+    const name = newName.trim();
+    if (!name) return;
+    wishlists = wishlists.map(w => w.id === wid ? { ...w, name } : w);
+    saveData();
+  }
+
+  // ═══════════════════════════════════════════
+  // ITEM LONG PRESS
+  // ═══════════════════════════════════════════
+
+  function itemLongPressStart(e, id) {
+    longPressTimer = setTimeout(() => {
+      if (!s.wlItemEditMode) {
+        s.wlItemEditMode = true;
+        render();
+
+      }
+    }, 500);
+  }
+
+  function itemLongPressCancel() {
+    clearTimeout(longPressTimer);
+  }
+
+  // ═══════════════════════════════════════════
+  // SHARE WISHLIST
+  // ═══════════════════════════════════════════
+
+  // Upload a data URL image to an anonymous host, return the HTTP URL or null
+  async function uploadDataUrl(dataUrl) {
+    if (!dataUrl || !dataUrl.startsWith('data:')) return null;
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+      // Primary: catbox.moe anonymous upload
+      const form = new FormData();
+      form.append('reqtype', 'fileupload');
+      form.append('fileToUpload', blob, `img.${ext}`);
+      const r = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: form });
+      const url = (await r.text()).trim();
+      if (url.startsWith('https://')) return url;
+    } catch {}
+    try {
+      // Fallback: 0x0.st
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const form = new FormData();
+      form.append('file', blob, 'img.jpg');
+      const r = await fetch('https://0x0.st', { method: 'POST', body: form });
+      const url = (await r.text()).trim();
+      if (url.startsWith('http')) return url;
+    } catch {}
+    return null;
+  }
+
+  async function shareWishlist(wid) {
+    const wl = getWl(wid);
+    if (!wl) return;
+    const wItems = watchingItems(wid);
+
+    // Resolve any data URL images to hosted HTTP URLs so they render for recipients
+    const resolveImg = async (img) => {
+      if (!img) return '';
+      if (img.startsWith('http')) return img;
+      if (img.startsWith('data:')) {
+        const hosted = await uploadDataUrl(img);
+        if (hosted) {
+          // Persist the hosted URL back so future shares are instant
+          return hosted;
+        }
+      }
+      return '';
+    };
+
+    const hasDataUrls = wl.coverImg?.startsWith('data:') || wItems.some(i => i.img?.startsWith('data:'));
+    if (hasDataUrls) showToast('Preparing images…');
+
+    const [coverImgResolved, ...itemImgsResolved] = await Promise.all([
+      resolveImg(wl.coverImg),
+      ...wItems.map(i => resolveImg(i.img))
+    ]);
+
+    // Persist hosted URLs back to items so future shares don't re-upload
+    let changed = false;
+    wItems.forEach((item, idx) => {
+      const hosted = itemImgsResolved[idx];
+      if (hosted && hosted.startsWith('http') && item.img !== hosted) {
+        items = items.map(x => x.id === item.id ? { ...x, img: hosted } : x);
+        changed = true;
+      }
+    });
+    if (coverImgResolved?.startsWith('http') && wl.coverImg !== coverImgResolved) {
+      wishlists = wishlists.map(w => w.id === wl.id ? { ...w, coverImg: coverImgResolved } : w);
+      changed = true;
+    }
+    if (changed) saveData();
+
+    const payload = {
+      v: 1,
+      senderName: getUserName(),
+      wl: { name: wl.name, coverImg: coverImgResolved },
+      items: wItems.map((i, idx) => ({
+        name: i.name,
+        brand: i.brand || '',
+        img: itemImgsResolved[idx],
+        price: i.price || '',
+        url: i.url || '',
+        tags: i.tags || [],
+        note: i.note || '',
+        addedAt: i.addedAt
+      }))
+    };
+
+    const encoded = await encodeShare(payload);
+    const shareUrl = `${location.origin}/#share=${encoded}`;
+    const senderName = getUserName();
+    const shareTitle = senderName ? `${senderName}'s Wishlist` : wl.name;
+
+    if (navigator.share) {
+      try {
+        // Try to attach cover image so messaging apps show it as a thumbnail
+        let shareFiles = [];
+        const coverForFile = coverImgResolved || '';
+        if (coverForFile && navigator.canShare) {
+          try {
+            const resp = await fetch(coverForFile, { mode: 'cors' });
+            const blob = await resp.blob();
+            const ext = blob.type.includes('png') ? 'png' : 'jpg';
+            const file = new File([blob], `wishlist-cover.${ext}`, { type: blob.type });
+            if (navigator.canShare({ files: [file] })) shareFiles = [file];
+          } catch {}
+        }
+        await navigator.share({
+          title: shareTitle,
+          text: `${shareTitle} — check it out`,
+          url: shareUrl,
+          ...(shareFiles.length ? { files: shareFiles } : {})
+        });
+        if (typeof gtag === 'function') gtag('event', 'share_wishlist', { method: 'native_share', item_count: wItems.length });
+      } catch (e) {
+        if (e.name !== 'AbortError') showToast('Could not share.');
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast('Link copied.');
+        if (typeof gtag === 'function') gtag('event', 'share_wishlist', { method: 'clipboard', item_count: wItems.length });
+      } catch {
+        showToast('Could not copy link.');
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  // INIT
+  // ═══════════════════════════════════════════
+
+  loadData();
+
+  // ─── Async init: decode shared URL (may require decompression), then render ──
+  (async () => {
+    const hash = location.hash;
+    if (hash.startsWith('#share=')) {
+      const decoded = await decodeShare(hash.slice(7));
+      if (decoded?.wl && Array.isArray(decoded.items)) {
+        shareData = decoded;
+        s.screen = 'shared-wl';
+      }
+    }
+
+    // ─── Onboarding ────────────────────────────────────────────────
+    // Show install prompt when opened in Safari (not yet installed as PWA),
+    // unless the user already dismissed it or is viewing a shared wishlist.
+    const isInstalled = window.navigator.standalone === true
+      || window.matchMedia('(display-mode: standalone)').matches;
+    const obDismissed = (() => { try { return !!localStorage.getItem('vtr_ob_dismissed'); } catch(e) { return false; } })();
+
+    // ─── Analytics: install tracking ───────────────────────────────
+    // Android/Chrome: fires when user taps "Add to Home Screen"
+    window.addEventListener('appinstalled', () => {
+      if (typeof gtag === 'function') gtag('event', 'pwa_install', { method: 'android' });
+    });
+    // iOS: no appinstalled event — detect first standalone launch instead
+    if (isInstalled) {
+      const firstStandalone = !localStorage.getItem('vtr_standalone_seen');
+      if (firstStandalone) {
+        localStorage.setItem('vtr_standalone_seen', '1');
+        if (typeof gtag === 'function') gtag('event', 'pwa_install', { method: 'ios_standalone' });
+      }
+    }
+
+    if (shareData) {
+      // Viewing a shared wishlist — skip onboarding and name prompt
+      render();
+    } else if (!isInstalled && !obDismissed) {
+      // Not installed yet — show install instructions first
+      showOnboarding();
+    } else if (!getUserName()) {
+      // Installed (or browser user) but no name set yet — prompt for name
+      showNamePrompt();
+    } else {
+      render();
+    }
+
+    // ─── Register service worker — auto-reload when a new version activates
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+      // When a new SW takes control (skipWaiting fired), reload to get fresh code
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    }
+  })();
+
+  // ─── Swipe back gesture (left-edge → right) with live drag ──────
+  (function initSwipeBack() {
+    const EDGE = 30;   // px from left edge to begin tracking
+    const MIN_X = 72;  // px horizontal travel to trigger
+    let startX = 0, startY = 0, tracking = false, dragging = false;
+
+    const SWIPEABLE = new Set(['wishlist-detail','item-detail','shared-item','add-item','add-wishlist']);
+
+    function swipeBack() {
+      switch (s.screen) {
+        case 'wishlist-detail':
+          navTo('wishlists');
+          break;
+        case 'item-detail': {
+          const item = getItem(s.currentIid);
+          if (s.fromScreen === 'items') navTo('items');
+          else if (s.fromScreen === 'archive') navTo('archive');
+          else if (s.fromScreen === 'wishlists') navTo('wishlists');
+          else if (item?.wid) openWl(item.wid);
+          else navTo('wishlists');
+          break;
+        }
+        case 'shared-item':
+          s.screen = 'shared-wl'; render();
+          break;
+        case 'add-item':
+        case 'add-wishlist':
+          cancelAdd();
+          break;
+      }
+    }
+
+    function getPageEl() { return document.getElementById('app'); }
+
+    function applyDrag(dx) {
+      const el = getPageEl();
+      if (!el) return;
+      const clamped = Math.max(0, dx);
+      el.style.transform = `translateX(${clamped}px)`;
+      el.style.transition = 'none';
+      el.style.boxShadow = `-8px 0 24px rgba(0,0,0,${0.08 * Math.min(clamped / 200, 1)})`;
+    }
+
+    function resetDrag(commit) {
+      const el = getPageEl();
+      if (!el) return;
+      if (commit) {
+        el.style.transition = 'transform 0.22s ease-out';
+        el.style.transform = `translateX(${window.innerWidth}px)`;
+        setTimeout(() => {
+          el.style.transform = '';
+          el.style.transition = '';
+          el.style.boxShadow = '';
+          swipeBack();
+        }, 220);
+      } else {
+        el.style.transition = 'transform 0.2s ease-out';
+        el.style.transform = 'translateX(0)';
+        el.style.boxShadow = '';
+        setTimeout(() => {
+          el.style.transition = '';
+        }, 200);
+      }
+    }
+
+    const el = document.getElementById('app');
+    el.addEventListener('touchstart', e => {
+      if (!SWIPEABLE.has(s.screen)) return;
+      const t = e.touches[0];
+      if (t.clientX <= EDGE) {
+        startX = t.clientX; startY = t.clientY; tracking = true; dragging = false;
+      } else { tracking = false; }
+    }, { passive: true });
+
+    el.addEventListener('touchmove', e => {
+      if (!tracking) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = Math.abs(t.clientY - startY);
+      if (!dragging) {
+        // Confirm horizontal intent before starting drag
+        if (dx > 8 && dy < dx * 0.65) { dragging = true; }
+        else if (dy > 10) { tracking = false; return; }
+      }
+      if (dragging) applyDrag(dx);
+    }, { passive: true });
+
+    el.addEventListener('touchend', e => {
+      if (!tracking) return;
+      tracking = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = Math.abs(t.clientY - startY);
+      if (dragging) {
+        dragging = false;
+        resetDrag(dx >= MIN_X && dy < dx * 0.65);
+      }
+    }, { passive: true });
+
+    el.addEventListener('touchcancel', () => {
+      if (!tracking) return;
+      tracking = false;
+      if (dragging) { dragging = false; resetDrag(false); }
+    }, { passive: true });
+  })();
+
+  // ─── Sub-tab horizontal swipe (Wishlists ↔ Items ↔ Archive) ─────
+  // Detects a horizontal drag anywhere on the main app when in the wishlists tab
+  // and switches between sub-tabs with a smooth slide animation.
+  (function initSubTabSwipe() {
+    const SUB_TABS = ['wishlists', 'items', 'archive'];
+    const MIN_X = 48;   // minimum horizontal travel to trigger
+    let startX = 0, startY = 0, tracking = false, dragging = false;
+
+    function isSubTabScreen() {
+      return SUB_TABS.includes(s.screen);
+    }
+
+    document.getElementById('app').addEventListener('touchstart', e => {
+      if (!isSubTabScreen()) return;
+      // Don't interfere with the swipe-back gesture (left edge)
+      const t = e.touches[0];
+      if (t.clientX <= 30) return;
+      startX = t.clientX; startY = t.clientY; tracking = true; dragging = false;
+    }, { passive: true });
+
+    document.getElementById('app').addEventListener('touchmove', e => {
+      if (!tracking || !isSubTabScreen()) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = Math.abs(t.clientY - startY);
+      if (!dragging) {
+        if (Math.abs(dx) > 8 && dy < Math.abs(dx) * 0.6) { dragging = true; }
+        else if (dy > 10) { tracking = false; return; }
+      }
+    }, { passive: true });
+
+    document.getElementById('app').addEventListener('touchend', e => {
+      if (!tracking || !isSubTabScreen()) return;
+      tracking = false;
+      if (!dragging) return;
+      dragging = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = Math.abs(t.clientY - startY);
+      if (Math.abs(dx) < MIN_X || dy > Math.abs(dx) * 0.6) return;
+      const cur = SUB_TABS.indexOf(s.screen);
+      if (dx < 0 && cur < SUB_TABS.length - 1) {
+        setWlSubTab(SUB_TABS[cur + 1]);  // swipe left → next tab
+      } else if (dx > 0 && cur > 0) {
+        setWlSubTab(SUB_TABS[cur - 1]);  // swipe right → prev tab
+      }
+    }, { passive: true });
+
+    document.getElementById('app').addEventListener('touchcancel', () => {
+      tracking = false; dragging = false;
+    }, { passive: true });
+  })();
+
+  // ─── Web Share Target ────────────────────────────────────────────
+  // When the user taps "Share → The Wishlist" in their browser, the OS
+  // opens the app at /?url=<product-url> (per manifest share_target).
+  // Detect it, clean the URL from history, and immediately fetch.
+  (function handleShareTarget() {
+    const p = new URLSearchParams(location.search);
+    let sharedUrl = p.get('url') || '';
+    if (!sharedUrl) {
+      const text = p.get('text') || '';
+      const m = text.match(/https?:\/\/\S+/);
+      if (m) sharedUrl = m[0];
+    }
+    if (!sharedUrl) return;
+    try { new URL(sharedUrl); } catch { return; }
+    history.replaceState({}, '', '/');
+    s.screen = 'add-item';
+    s.addStep = 'url';
+    s.addForm = { ...s.addForm, url: sharedUrl, name: p.get('title') || '' };
+    fetchUrl(); // transitions to fetching → form automatically
+  })();
+  </script>
+</body>
+</html>

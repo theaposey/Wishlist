@@ -1,0 +1,2826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Wishlist — Prototype</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      background: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px 60px;
+      gap: 12px;
+    }
+    .page-label {
+      color: #bbb;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    /* ─── Phone shell ─── */
+    #phone {
+      width: 390px;
+      height: 844px;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+      border-radius: 48px;
+      box-shadow: 0 0 0 1px #e0e0e0, 0 24px 60px rgba(0,0,0,0.10);
+      flex-shrink: 0;
+      transform-origin: top center;
+    }
+
+    /* ─── App root ─── */
+    #app {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+
+    /* ─── Safe areas ─── */
+    .safe-top { height: 52px; flex-shrink: 0; }
+    .safe-bottom { height: 8px; flex-shrink: 0; }
+
+    /* ─── Header ─── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      flex-shrink: 0;
+      min-height: 44px;
+    }
+    .h-left, .h-right {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+      font-family: inherit;
+      cursor: pointer;
+      color: #000;
+      padding: 4px 0;
+      line-height: 1;
+    }
+    .h-right { text-align: right; }
+    .h-muted { color: #bbb !important; }
+
+    /* ─── Bottom nav ─── */
+    .bottom-nav {
+      display: flex;
+      border-top: 1px solid #f0f0f0;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0 6px;
+      gap: 4px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+    .nav-tab span {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #ccc;
+    }
+    .nav-tab.active span { color: #000; }
+    .nav-dot { width: 4px; height: 4px; background: #000; border-radius: 50%; }
+
+    /* ─── Scroll areas ─── */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ─── Grid ─── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      background: #fff;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .card {
+      min-width: 0;
+      overflow: hidden;
+    }
+    .card {
+      background: #fff;
+      cursor: pointer;
+    }
+    .card:active { opacity: 0.8; }
+    .card-image {
+      aspect-ratio: 1 / 1;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .card-image img { width: 100%; height: 100%; object-fit: contain; }
+    .card-image .ph {
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #d0d0d0;
+      padding: 12px;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .card-meta { padding: 8px 10px 10px; }
+    .card-prefix {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 3px;
+    }
+    .card-days { font-size: 10px; letter-spacing: 0.1em; color: #ccc; }
+    .card-name {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #000;
+    }
+    .card-price {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    /* ─── Add card ("+") ─── */
+    .card-add { background: #fff; }
+    .card-add:active { background: #f5f5f5; }
+    .card-add .card-image {
+      background: #fff;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .add-plus {
+      font-size: 28px;
+      color: #ccc;
+      font-weight: 200;
+      line-height: 1;
+    }
+    .add-label {
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #ccc;
+    }
+
+    /* ─── Wishlist folder cards ─── */
+    .folder-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; }
+    .folder-count { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
+    .folder-initial {
+      font-size: 32px;
+      font-weight: 700;
+      color: #e8e8e8;
+      letter-spacing: -0.02em;
+    }
+
+    /* ─── Wishlist collage thumbnail ─── */
+    .wl-collage {
+      width: 100%; aspect-ratio: 1;
+      display: grid; background: #f5f5f5;
+      overflow: hidden; gap: 1px;
+    }
+    .wl-collage img { width: 100%; height: 100%; object-fit: contain; background: #fff; display: block; }
+    .wl-collage-1 { grid-template-columns: 1fr; }
+    .wl-collage-2 { grid-template-columns: 1fr 1fr; }
+    .wl-collage-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+    .wl-collage-3 img:first-child { grid-row: 1 / 3; }
+    .wl-collage-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+    /* ─── Wishlist edit mode ─── */
+    .card-editing {
+      position: relative;
+      cursor: grab;
+      user-select: none;
+    }
+    .card-editing:active { cursor: grabbing; opacity: 0.55; }
+    .card-drag-over { outline: 2px solid #000; outline-offset: -2px; }
+    .wl-delete-btn {
+      position: absolute;
+      top: 0; right: 0;
+      z-index: 10;
+      width: 24px; height: 24px;
+      background: #305cde;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 300; line-height: 1;
+      cursor: pointer;
+    }
+
+    /* ─── Purchased / faded item treatment ─── */
+    .card-purchased .card-image img {
+      opacity: 0.42;
+    }
+    .card-purchased .card-image .ph { color: #ddd; }
+    .card-purchased .card-name { color: #ccc; }
+    .card-purchased .card-days { color: #e0e0e0; }
+    .card-purchased .card-price { color: #ddd; }
+    .card-purchased-tag {
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    /* ─── Item delete button (edit mode within wishlist) ─── */
+    .item-delete-btn {
+      position: absolute;
+      top: 0; right: 0;
+      z-index: 10;
+      width: 22px; height: 22px;
+      background: #305cde;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 400; line-height: 1;
+      cursor: pointer;
+    }
+
+    /* ─── Wishlist detail cover ─── */
+    .wl-detail-scroll {
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      height: 100%;
+      background: #fff;
+    }
+    .wl-cover-wrap {
+      width: 100%;
+      height: 230px;
+      position: sticky;
+      top: 0;
+      overflow: hidden;
+      background: #ebebeb;
+      flex-shrink: 0;
+      z-index: 0;
+    }
+    .wl-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .wl-cover-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, transparent 40%, rgba(0,0,0,0.28) 100%);
+      pointer-events: none;
+    }
+    .wl-edit-cover-btn {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.85);
+      border: none;
+      padding: 7px 14px;
+      cursor: pointer;
+      font-family: inherit;
+      color: #000;
+    }
+    .wl-cover-empty-label {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #ccc;
+    }
+    .wl-content-wrap {
+      position: relative;
+      z-index: 2;
+      background: #fff;
+      margin-top: -1px;
+    }
+    .wl-sticky-top {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(8px);
+    }
+    .wl-name-row {
+      padding: 12px 20px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 12;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+    }
+    .wl-top-metrics {
+      border-bottom: 1px solid #f4f4f4;
+      background: #fff;
+    }
+    .wl-name-edit-input {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: inherit;
+      border: none;
+      border-bottom: 1px solid #305cde;
+      outline: none;
+      background: transparent;
+      color: #000;
+      width: 100%;
+      padding: 0 0 2px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .wl-name-big {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: block;
+    }
+    .wl-count-sm {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #bbb;
+      display: block;
+      margin-top: 2px;
+    }
+    .view-toggle { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
+    .view-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 6px; color: #ccc; display: flex; align-items: center;
+    }
+    .view-btn.active svg rect, .view-btn.active svg path { fill: #000; }
+    .view-btn svg rect, .view-btn svg path { fill: #ccc; }
+
+    /* ─── List view rows ─── */
+    .list-view { width: 100%; }
+    .list-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #f6f6f6;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+    }
+    .list-row:active { opacity: 0.75; }
+    .list-drag-handle {
+      color: #ccc; font-size: 13px; flex-shrink: 0;
+      cursor: grab; padding: 0 4px 0 0;
+    }
+    .list-thumb {
+      width: 48px; height: 48px;
+      flex-shrink: 0; overflow: hidden; background: #fff;
+    }
+    .list-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .list-thumb .ph { font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase; color: #d0d0d0; padding: 4px; text-align: center; line-height: 1.4; }
+    .list-info { flex: 1; min-width: 0; }
+    .list-name {
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000;
+    }
+    .list-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
+    .list-price { font-size: 10px; letter-spacing: 0.06em; color: #000; flex-shrink: 0; }
+    .list-delete-btn {
+      width: 20px; height: 20px; background: #000; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; cursor: pointer; flex-shrink: 0;
+    }
+    .list-row-purchased .list-thumb img { opacity: 0.4; }
+    .list-row-purchased .list-name { color: #ccc; }
+    .list-row-purchased .list-meta { color: #ddd; }
+    .list-row-purchased .list-price { color: #ddd; }
+
+    /* ─── Change cover overlay panel ─── */
+    .cover-panel {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid #e8e8e8;
+      padding: 20px 20px 36px;
+      z-index: 60;
+    }
+    .cover-panel-label {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 12px;
+    }
+    .cover-panel-preview {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      margin-bottom: 10px;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cover-panel-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ─── Section title row ─── */
+    .section-title-row {
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid #f4f4f4;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ─── Empty state ─── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 28px;
+    }
+    .empty-hero {
+      font-size: 54px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      line-height: 0.88;
+      color: #ebebeb;
+    }
+    .empty-cta {
+      margin-top: 32px;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #000;
+      padding-bottom: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      color: #000;
+    }
+
+    /* ─── Item detail ─── */
+    .detail-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #fff;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .detail-image img { width: 100%; height: 100%; object-fit: contain; }
+    .detail-image .ph-lg {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #d0d0d0;
+      padding: 40px;
+      text-align: center;
+    }
+    .detail-body { padding: 18px 20px 48px; }
+    .detail-days { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; margin-bottom: 5px; }
+    .detail-brand { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #999; margin-bottom: 2px; }
+    .detail-name { font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; line-height: 1.3; }
+    .quick-save-row {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px;
+    }
+    .quick-save-input {
+      border: none; border-bottom: 1px solid #d8d8d8;
+      padding: 5px 0; font-size: 13px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+      width: 100px;
+    }
+    .quick-save-input:focus { border-bottom-color: #000; }
+    .quick-save-btn {
+      font-family: inherit; font-size: 9px; letter-spacing: 0.18em;
+      text-transform: uppercase; background: #000; color: #fff;
+      border: none; padding: 8px 12px; cursor: pointer;
+    }
+    .quick-save-trigger {
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      background: none; border: none; border-bottom: 1px solid #000;
+      padding-bottom: 2px; cursor: pointer; font-family: inherit; color: #000;
+      margin-top: 10px; display: inline-block;
+    }
+    .detail-url {
+      font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #bbb; text-decoration: underline; cursor: pointer;
+      display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .detail-section-label {
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #bbb; margin-top: 18px; margin-bottom: 5px;
+    }
+    .detail-note { font-size: 12px; letter-spacing: 0.03em; color: #444; line-height: 1.65; }
+    .detail-price-val { font-size: 13px; letter-spacing: 0.06em; color: #000; }
+    .detail-added { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; }
+    .detail-actions { margin-top: 24px; padding-top: 20px; border-top: 1px solid #f2f2f2; display: flex; flex-direction: column; gap: 10px; }
+    .metric-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid #f4f4f4;
+    }
+    .metric-cell {
+      padding: 14px 16px 16px;
+      border-right: 1px solid #f4f4f4;
+      position: relative;
+    }
+    .metric-cell:nth-child(2n) { border-right: none; }
+    .metric-progress {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: #efefef; overflow: hidden;
+    }
+    .metric-progress-fill { height: 100%; background: #000; }
+    .metric-label {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      color: #000;
+    }
+    .mini-progress {
+      width: 100%;
+      height: 2px;
+      background: #efefef;
+      margin-top: 0;
+      overflow: hidden;
+    }
+    .mini-progress-fill {
+      height: 100%;
+      background: #000;
+    }
+    .detail-progress {
+      width: 100%;
+      height: 4px;
+      background: #efefef;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .detail-progress-fill {
+      height: 100%;
+      background: #000;
+    }
+    .detail-subnote {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-top: 8px;
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 14px 16px;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+      width: 100%;
+    }
+    .btn:active { opacity: 0.7; }
+    .btn-black { background: #000; color: #fff; }
+    .btn-outline { background: none; border: 1px solid #000; color: #000; }
+    .btn-ghost { background: none; border: 1px solid #e0e0e0; color: #888; }
+    .btn-text { background: none; color: #bbb; text-decoration: underline; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 0; cursor: pointer; font-family: inherit; border: none; width: 100%; }
+    .btn-link-cta { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+
+    /* ─── Archive list ─── */
+    .archive-row {
+      display: flex;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f4f4f4;
+      align-items: flex-start;
+    }
+    .archive-thumb {
+      width: 56px; height: 56px;
+      background: #fff;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .archive-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .archive-thumb .ph { font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #ccc; text-align: center; padding: 4px; line-height: 1.4; }
+    .archive-info { flex: 1; min-width: 0; }
+    .archive-reason { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; margin-bottom: 2px; }
+    .archive-name { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+    .archive-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; }
+    .archive-btns { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+    .archive-btn { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; background: none; border: 1px solid #e0e0e0; padding: 5px 9px; cursor: pointer; font-family: inherit; color: #555; }
+    .archive-btn.ghost { color: #ccc; border-color: #f0f0f0; }
+    .archive-empty { padding: 60px 28px; display: flex; flex-direction: column; gap: 6px; }
+    .archive-empty p { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; }
+
+    /* ─── Profile ─── */
+    .profile-body { flex: 1; display: flex; flex-direction: column; padding: 36px 28px; }
+    .profile-hero { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; line-height: 0.9; color: #ebebeb; margin-bottom: 40px; }
+    .profile-stat-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f4f4f4; }
+    .profile-stat-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; }
+    .profile-stat-val { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; font-weight: 600; }
+    .profile-tagline { margin-top: 40px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #ddd; line-height: 1.7; }
+    .profile-substat-row { padding-left: 14px; }
+    .profile-substat-label { color: #c7c7c7; }
+
+    /* ─── Add item — URL step ─── */
+    .url-step { flex: 1; display: flex; flex-direction: column; padding: 32px 24px 48px; }
+    .url-prompt { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; margin-bottom: 14px; }
+    .url-input {
+      width: 100%; border: none; border-bottom: 2px solid #000;
+      padding: 10px 0; font-size: 14px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+    }
+    .url-input::placeholder { color: #ddd; }
+    .url-fetch-btn {
+      margin-top: 24px;
+      font-family: inherit; font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; background: #000; color: #fff;
+      border: none; padding: 14px; cursor: pointer; text-align: center;
+    }
+    .url-hint { margin-top: 14px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; line-height: 1.7; }
+    .url-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px 0 0;
+    }
+    .url-divider::before, .url-divider::after {
+      content: ''; flex: 1; height: 1px; background: #ebebeb;
+    }
+    .url-divider span {
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc;
+    }
+    .url-manual-btn {
+      margin-top: 14px;
+      font-family: inherit; font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; background: none;
+      border: 1px solid #d8d8d8; color: #888;
+      padding: 14px; cursor: pointer; text-align: center; width: 100%;
+    }
+
+    /* ─── Add item — Fetching step ─── */
+    .fetching-step { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 32px 24px; gap: 12px; }
+    .fetching-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; }
+    .fetching-url { font-size: 11px; letter-spacing: 0.04em; color: #ccc; word-break: break-all; }
+    .fetching-dots { display: flex; gap: 5px; margin-top: 4px; }
+    .fetching-dot {
+      width: 6px; height: 6px; background: #000; border-radius: 50%;
+      animation: pulse 1.2s infinite;
+    }
+    .fetching-dot:nth-child(2) { animation-delay: 0.2s; }
+    .fetching-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse { 0%,100%{opacity:0.2} 50%{opacity:1} }
+
+    /* ─── Add item — Form step ─── */
+    .form-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .form-image-area {
+      width: 100%; aspect-ratio: 1/1;
+      background: #fafafa;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; flex-shrink: 0;
+      cursor: pointer;
+    }
+    .form-image-area img { width: 100%; height: 100%; object-fit: contain; }
+    .form-image-area .ph-lg { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #d0d0d0; padding: 40px; text-align: center; }
+    .form-image-change-btn {
+      position: absolute; bottom: 10px; right: 12px;
+      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+      background: rgba(255,255,255,0.9); border: 1px solid #e0e0e0;
+      padding: 5px 9px; cursor: pointer; font-family: inherit; color: #555;
+    }
+    .form-image-url-row {
+      padding: 10px 20px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .form-image-url-input {
+      width: 100%; border: none; border-bottom: 1px solid #ccc;
+      padding: 6px 0; font-size: 12px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+      margin-bottom: 10px;
+    }
+    .form-image-url-input::placeholder { color: #ccc; }
+    .form-image-upload-btn {
+      display: block; width: 100%;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      background: none; border: 1px solid #000;
+      padding: 10px; cursor: pointer; font-family: inherit; color: #000;
+      margin-bottom: 10px; text-align: center;
+    }
+    .form-body { padding: 20px 20px 60px; }
+    .form-group { margin-bottom: 24px; }
+    .form-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #bbb; display: block; margin-bottom: 8px; }
+    .form-input {
+      width: 100%; border: none; border-bottom: 1px solid #d8d8d8;
+      padding: 7px 0; font-size: 13px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+    }
+    .form-input:focus { border-bottom-color: #000; }
+    .form-input::placeholder { color: #ccc; }
+    textarea.form-input { resize: none; min-height: 56px; line-height: 1.6; }
+    .form-input-sm { width: 44%; }
+    .currency-field {
+      display: inline-flex;
+      align-items: baseline;
+      border-bottom: 1px solid #d8d8d8;
+      width: 44%;
+      gap: 3px;
+    }
+    .currency-field:focus-within { border-bottom-color: #000; }
+    .currency-symbol {
+      font-size: 13px; color: #000; flex-shrink: 0; padding-bottom: 7px;
+    }
+    .currency-input {
+      border: none !important; outline: none; background: transparent;
+      font-size: 13px; font-family: inherit; letter-spacing: 0.03em;
+      color: #000; padding: 7px 0; width: 100%; min-width: 0;
+    }
+    .form-select {
+      width: 100%; border: none; border-bottom: 1px solid #d8d8d8;
+      padding: 7px 0; font-size: 13px; font-family: inherit;
+      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
+      appearance: none; cursor: pointer;
+    }
+    .wl-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+    .wl-picker-pill {
+      border: 1px solid #d8d8d8; border-radius: 999px; background: #fff;
+      color: #888; padding: 6px 14px; font-size: 9px; letter-spacing: 0.14em;
+      text-transform: uppercase; font-family: inherit; cursor: pointer; white-space: nowrap;
+    }
+    .wl-picker-pill.active { background: #000; color: #fff; border-color: #000; }
+    .wl-picker-add { color: #bbb; font-size: 14px; font-weight: 200; padding: 4px 12px; }
+    .wl-new-wl-input {
+      border: none; border-bottom: 1px solid #000; outline: none;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: inherit; color: #000; background: transparent;
+      padding: 4px 0; min-width: 80px;
+    }
+    .wl-move-list { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
+    .wl-move-option {
+      padding: 14px 0; border-bottom: 1px solid #f4f4f4;
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      cursor: pointer; background: none; border-left: none; border-right: none; border-top: none;
+      font-family: inherit; text-align: left; color: #000;
+    }
+    .wl-move-option:last-child { border-bottom: none; }
+
+    .intent-pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .intent-pill {
+      border: 1px solid #d8d8d8;
+      background: #fff;
+      color: #777;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .intent-pill.active {
+      border-color: #000;
+      background: #000;
+      color: #fff;
+    }
+
+    /* ─── Tag pills ─── */
+    .tag-pill-wrap { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+    .tag-pill {
+      border: 1px solid #000;
+      background: #000;
+      color: #fff;
+      border-radius: 999px;
+      padding: 7px 13px;
+      font-family: inherit;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .tag-remove {
+      opacity: 0.55; cursor: pointer; font-size: 13px; font-weight: 300;
+      line-height: 1; margin-left: 1px;
+    }
+    .tag-remove:hover { opacity: 1; }
+    .tag-add-trigger {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #d0d0d0;
+      background: #fff;
+      color: #aaa;
+      border-radius: 999px;
+      padding: 7px 13px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 200;
+      line-height: 1;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .tag-pill-display {
+      border: 1px solid #e8e8e8;
+      background: #f7f7f7;
+      color: #666;
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      display: inline-block;
+    }
+    .tag-inline-input {
+      border: none; outline: none;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: inherit; color: #000; background: transparent;
+      min-width: 80px; flex: 1;
+      border-bottom: 1px solid #000; padding: 2px 0;
+    }
+    .tag-inline-input::placeholder { color: #ccc; text-transform: none; letter-spacing: 0.05em; }
+    .tag-suggestions {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+    }
+    .tag-filter-bar {
+      display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px;
+      border-bottom: 1px solid #f4f4f4; scrollbar-width: none;
+    }
+    .tag-filter-bar::-webkit-scrollbar { display: none; }
+    .unorg-row::-webkit-scrollbar { display: none; }
+    .tag-filter-pill {
+      flex-shrink: 0; border: 1px solid #d8d8d8; border-radius: 999px;
+      padding: 5px 12px; font-size: 9px; letter-spacing: 0.14em;
+      text-transform: uppercase; font-family: inherit; cursor: pointer;
+      background: #fff; color: #888; white-space: nowrap;
+    }
+    .tag-filter-pill.active {
+      background: #000; color: #fff; border-color: #000;
+    }
+    .tag-suggestion {
+      border: 1px solid #e0e0e0; background: #fff; color: #888;
+      border-radius: 999px; padding: 6px 12px;
+      font-family: inherit; font-size: 9px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      cursor: pointer; white-space: nowrap;
+    }
+    .tag-suggestion:active { background: #f0f0f0; }
+
+    /* ─── Add wishlist ─── */
+    .add-wl-body { flex: 1; padding: 36px 24px 48px; display: flex; flex-direction: column; }
+    .add-wl-prompt { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; margin-bottom: 16px; }
+    .add-wl-input {
+      border: none; border-bottom: 2px solid #000;
+      padding: 10px 0; font-size: 22px; font-family: inherit;
+      font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      outline: none; color: #000; background: transparent; width: 100%;
+    }
+    .add-wl-input::placeholder { color: #e8e8e8; }
+
+    /* ─── Overlay ─── */
+    .overlay {
+      position: absolute; inset: 0; z-index: 60;
+      background: rgba(255,255,255,0.97);
+      display: flex; flex-direction: column;
+    }
+    .overlay-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 32px 28px 48px; }
+    .overlay-title-sm { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #bbb; margin-bottom: 12px; }
+    .overlay-headline { font-size: 32px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.9; margin-bottom: 32px; }
+    .overlay-btns { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ─── Toast ─── */
+    #toast {
+      position: absolute; bottom: 96px; left: 20px; right: 20px;
+      background: #000; color: #fff;
+      padding: 11px 16px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      text-align: center; z-index: 100;
+      opacity: 0; transition: opacity 0.22s ease; pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <p class="page-label">The Wishlist — Prototype &nbsp;·&nbsp; Clickable</p>
+  <div id="phone"><div id="app"></div><div id="toast"></div></div>
+
+  <script>
+  // ═══════════════════════════════════════════
+  // DATA
+  // ═══════════════════════════════════════════
+
+  const NOW = Date.now();
+  const DAY = 86400000;
+  let uid = 100;
+  const genId = () => String(++uid);
+
+  let wishlists = [];
+  let items = [];
+  let availableTags = []; // grows as user adds tags; persists across items in session
+
+  // Simulated fetch products (rotate by URL hash)
+  const MOCK = [
+    { name:'Toteme Double-Breasted Wool Coat', img:'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80', price:1390 },
+    { name:'The Row Margaux Leather Tote', img:'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80', price:3990 },
+    { name:'Acne Studios Mohair Crewneck', img:'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&q=80', price:450 },
+    { name:'Bottega Veneta Intrecciato Clutch', img:'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80', price:1850 },
+    { name:'Jacquemus Le Chiquito Noeud', img:'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80', price:620 },
+    { name:'Loewe Puzzle Bag Small', img:'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80', price:2750 },
+  ];
+
+  // ═══════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════
+
+  const s = {
+    screen: 'wishlists',   // wishlists | wishlist-detail | items | archive | profile | item-detail | add-wishlist | add-item
+    overlay: null,         // null | 'delete'
+    currentWid: null,      // active wishlist id (wishlist-detail)
+    currentIid: null,      // active item id (item-detail)
+    fromScreen: null,      // for back nav
+    fromWid: null,
+    addWid: null,          // which wishlist to add into
+    addStep: 'url',        // url | fetching | form
+    addIsEdit: false,
+    wlEditMode: false,     // wishlist edit mode
+    wlItemEditMode: false, // item edit mode within a wishlist
+    wlViewMode: 'grid',   // 'grid' | 'list'
+    itemsViewMode: 'grid',
+    itemsFilterTags: [],
+    archiveViewMode: 'grid',
+    addForm: { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid:'', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false },
+  };
+
+  let longPressTimer = null;
+  let dragSrcIdx = null;
+  let itemDragSrcIdx = null;
+
+  // ═══════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════
+
+  const pad = n => String(Math.min(Math.max(n,0),999)).padStart(3,'0');
+  const days = ts => Math.max(0, Math.floor((NOW - ts) / DAY));
+  const fmt = n => n.toLocaleString('en-US');
+  const money = n => `$${fmt(Math.round((Number(n) || 0) * 100) / 100)}`;
+  const fmtDate = ts => new Date(ts).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const sumPrice = arr => arr.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+  const seriousWatchingItems = (wid=null) => watchingItems(wid).filter(i => !!i.serious);
+  const casualWatchingItems = (wid=null) => watchingItems(wid).filter(i => !i.serious);
+  const totalWatchingValue = (wid=null) => sumPrice(watchingItems(wid));
+  const seriousWatchingValue = (wid=null) => sumPrice(seriousWatchingItems(wid));
+  const casualWatchingValue = (wid=null) => sumPrice(casualWatchingItems(wid));
+  const letGoItems = () => archivedItems().filter(i => i.reason === 'let_go');
+  const letGoValue = () => sumPrice(letGoItems());
+  const totalSaved = (wid=null) => watchingItems(wid).reduce((sum, i) => sum + savedAmount(i), 0);
+  const totalLeft = (wid=null) => Math.max(0, totalWatchingValue(wid) - totalSaved(wid));
+  const savedAmount = item => Math.max(0, Number(item?.saved) || 0);
+  const gapAmount = item => Math.max((Number(item?.price) || 0) - savedAmount(item), 0);
+  const progressPct = item => {
+    const price = Number(item?.price) || 0;
+    if (!price) return 0;
+    return Math.max(0, Math.min(100, Math.round((savedAmount(item) / price) * 100)));
+  };
+
+  const watchingItems = (wid=null) => items
+    .filter(i => i.status === 'watching' && (wid ? i.wid === wid : true))
+    .sort((a,b) => b.addedAt - a.addedAt);
+  // All items in a wishlist (watching + purchased) — for wishlist detail view
+  const wishlistItems = (wid) => items
+    .filter(i => (i.status === 'watching' || i.status === 'purchased') && i.wid === wid)
+    .sort((a,b) => {
+      if (a.status === 'purchased' && b.status !== 'purchased') return 1;
+      if (b.status === 'purchased' && a.status !== 'purchased') return -1;
+      const ao = a.order ?? a.addedAt;
+      const bo = b.order ?? b.addedAt;
+      return bo - ao;
+    });
+  const archivedItems = () => items
+    .filter(i => i.status === 'archived')
+    .sort((a,b) => (b.archivedAt||0)-(a.archivedAt||0));
+  const getItem = id => items.find(i => i.id === id);
+  const getWl = id => wishlists.find(w => w.id === id);
+  const wlCover = wid => {
+    const it = watchingItems(wid)[0];
+    return it?.img || null;
+  };
+
+  // ═══════════════════════════════════════════
+  // RENDER ENGINE
+  // ═══════════════════════════════════════════
+
+  let toastTimer;
+
+  function render() {
+    document.getElementById('app').innerHTML = buildScreen();
+    if (s.overlay && s.overlay !== 'change-cover') document.getElementById('app').insertAdjacentHTML('beforeend', buildOverlay());
+    // Auto-focus
+    setTimeout(() => {
+      if (s.screen === 'add-item' && s.addStep === 'url') {
+        document.getElementById('url-field')?.focus();
+      }
+      if (s.screen === 'add-wishlist') {
+        document.getElementById('wl-name-input')?.focus();
+      }
+    }, 60);
+  }
+
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  // ═══════════════════════════════════════════
+  // COMPONENTS
+  // ═══════════════════════════════════════════
+
+  function nav(active) {
+    const tabs = ['wishlists','items','archive','profile'];
+    const labels = { wishlists:'Wishlists', items:'Items', archive:'Archive', profile:'Profile' };
+    return `
+      <nav class="bottom-nav">
+        ${tabs.map(t => `
+          <button class="nav-tab ${active===t?'active':''}" onclick="navTo('${t}')">
+            <span>${labels[t]}</span>
+            ${active===t ? '<div class="nav-dot"></div>' : ''}
+          </button>`).join('')}
+      </nav>
+      <div class="safe-bottom"></div>`;
+  }
+
+  function addCard(action, label='') {
+    return `
+      <div class="card card-add" onclick="${action}">
+        <div class="card-image">
+          <span class="add-plus">+</span>
+          ${label ? `<span class="add-label">${label}</span>` : ''}
+        </div>
+        <div class="card-meta">
+          <p class="card-name" style="color:#ccc">&nbsp;</p>
+        </div>
+      </div>`;
+  }
+
+  function itemCard(item, idx=0) {
+    const d = days(item.addedAt);
+    const purchased = item.status === 'purchased';
+    const imgH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    const deleteBtn = s.wlItemEditMode
+      ? `<div class="item-delete-btn" onclick="removeItem(event,'${item.id}')">−</div>` : '';
+    const dragAttrs = s.wlItemEditMode
+      ? `draggable="true"
+         ondragstart="itemDragStart(event,${idx})"
+         ondragover="itemDragOver(event,${idx})"
+         ondragleave="itemDragLeave(event)"
+         ondrop="itemDrop(event,${idx})"
+         ondragend="itemDragEnd(event)"` : '';
+    const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
+    const lpAttrs = s.wlItemEditMode ? '' :
+      `onpointerdown="itemLongPressStart(event,'${item.id}')"
+       onpointerup="itemLongPressCancel()"
+       onpointermove="itemLongPressCancel()"
+       onpointerleave="itemLongPressCancel()"`;
+    return `
+      <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} ${dragAttrs} ${lpAttrs} style="position:relative">
+        ${deleteBtn}
+        <div class="card-image">${imgH}</div>
+        ${item.price && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
+        <div class="card-meta">
+          <div class="card-prefix"><span class="card-days">${pad(d)}</span></div>
+          ${item.brand ? `<p class="card-days" style="letter-spacing:0.12em">${esc(item.brand.toUpperCase())}</p>` : ''}
+          <p class="card-name">${esc(item.name)}</p>
+          ${purchased ? `<p class="card-purchased-tag">Purchased</p>` : ''}
+          ${item.serious && !purchased ? `<p class="card-purchased-tag">Serious</p>` : ''}
+          ${item.price && !purchased ? `<p class="card-price">${money(item.price)}</p>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function wishlistCollage(wid) {
+    if (getWl(wid)?.coverImg) {
+      return `<img src="${getWl(wid).coverImg}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" />`;
+    }
+    const imgs = watchingItems(wid).filter(i => i.img).slice(0, 4);
+    if (imgs.length === 0) {
+      const wl = getWl(wid);
+      return `<div class="folder-initial">${wl?.name[0]?.toUpperCase() || '?'}</div>`;
+    }
+    const n = imgs.length;
+    return `<div class="wl-collage wl-collage-${n}">
+      ${imgs.map(i => `<img src="${i.img}" alt="" loading="lazy" />`).join('')}
+    </div>`;
+  }
+
+  function wishlistCard(wl, idx) {
+    const count = watchingItems(wl.id).length;
+    const thumbH = wishlistCollage(wl.id);
+
+    if (s.wlEditMode) {
+      return `
+        <div class="card card-editing"
+          draggable="true"
+          ondragstart="wlDragStart(event,${idx})"
+          ondragover="wlDragOver(event,${idx})"
+          ondragleave="wlDragLeave(event)"
+          ondrop="wlDrop(event,${idx})"
+          ondragend="wlDragEnd(event)">
+          <div class="wl-delete-btn" onclick="deleteWishlist('${wl.id}')">−</div>
+          <div class="card-image" style="overflow:hidden">${thumbH}</div>
+          <div class="card-meta">
+            <p class="folder-label">${esc(wl.name.toUpperCase())}</p>
+            <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="card"
+        onclick="openWl('${wl.id}')"
+        onpointerdown="wlLongPressStart()"
+        onpointerup="wlLongPressCancel()"
+        onpointermove="wlLongPressCancel()"
+        onpointerleave="wlLongPressCancel()">
+        <div class="card-image" style="overflow:hidden">${thumbH}</div>
+        <div class="card-meta">
+          <p class="folder-label">${esc(wl.name.toUpperCase())}</p>
+          <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
+        </div>
+      </div>`;
+  }
+
+  // ═══════════════════════════════════════════
+  // SCREEN BUILDERS
+  // ═══════════════════════════════════════════
+
+  function buildScreen() {
+    switch(s.screen) {
+      case 'wishlists':       return screenWishlists();
+      case 'wishlist-detail': return screenWlDetail();
+      case 'items':           return screenItems();
+      case 'archive':         return screenArchive();
+      case 'profile':         return screenProfile();
+      case 'item-detail':     return screenItemDetail();
+      case 'add-wishlist':    return screenAddWishlist();
+      case 'add-item':        return screenAddItem();
+      default: return screenWishlists();
+    }
+  }
+
+  function screenWishlists() {
+    const hasLists = wishlists.length > 0;
+    const uncategorized = watchingItems().filter(i => !i.wid);
+    const allWatching = watchingItems();
+    const wlTotalValue = totalWatchingValue();
+    const wlTotalSaved = totalSaved();
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left">WISHLISTS</span>
+        ${hasLists
+          ? `<button class="h-right ${s.wlEditMode ? '' : 'h-muted'}" onclick="toggleWlEdit()">
+               ${s.wlEditMode ? 'Done' : 'Edit'}
+             </button>`
+          : `<span class="h-right"></span>`}
+      </header>
+      ${allWatching.length ? `
+      <div class="metric-strip">
+        <div class="metric-cell">
+          <p class="metric-label">Watching</p>
+          <p class="metric-value">${allWatching.length} ${allWatching.length===1?'Item':'Items'}</p>
+        </div>
+        <div class="metric-cell">
+          <p class="metric-label">Total Desire Cost</p>
+          <p class="metric-value">${money(wlTotalValue)}</p>
+          ${wlTotalValue ? `<div class="metric-progress"><div class="metric-progress-fill" style="width:${Math.min(100,Math.round(wlTotalSaved/wlTotalValue*100))}%"></div></div>` : ''}
+        </div>
+      </div>` : ''}
+      <div class="scroll-area">
+        ${hasLists ? `
+          <div class="grid">
+            ${s.wlEditMode ? '' : addCard("openAddWishlist()")}
+            ${wishlists.map((wl, idx) => wishlistCard(wl, idx)).join('')}
+          </div>` : `
+          <div class="empty-state">
+            <p class="empty-hero">nothing<br/>here<br/>yet</p>
+            <button class="empty-cta" onclick="openAddWishlist()">+ Create Your First Wishlist</button>
+          </div>`}
+        ${uncategorized.length ? `
+          <div class="section-title-row" style="border-top:1px solid #f4f4f4">
+            <p class="section-title">Unorganized Items</p>
+          </div>
+          <div style="display:flex;overflow-x:auto;scrollbar-width:none;gap:1px;background:#fff" class="unorg-row">
+            ${uncategorized.map(item => `<div style="flex:0 0 48vw;max-width:200px">${itemCard(item)}</div>`).join('')}
+          </div>` : ''}
+      </div>
+      ${nav('wishlists')}`;
+  }
+
+  function screenWlDetail() {
+    const wl = getWl(s.currentWid);
+    if (!wl) return screenWishlists();
+    const wItems = wishlistItems(wl.id);
+    const watchCount = watchingItems(wl.id).length;
+    const totalValue = totalWatchingValue(wl.id);
+    const wlSaved = totalSaved(wl.id);
+    const cover = wl.coverImg || wlCover(wl.id);
+
+    const coverFileInput = `<input type="file" id="cover-file-input-${wl.id}" accept="image/*"
+      style="display:none" onchange="handleCoverFile(this,'${wl.id}')" />`;
+
+    const coverHtml = cover
+      ? `<div class="wl-cover-wrap">
+           ${coverFileInput}
+           <img class="wl-cover-img" src="${cover}" alt="${esc(wl.name)}" />
+           <div class="wl-cover-gradient"></div>
+           ${s.wlItemEditMode ? `<button class="wl-edit-cover-btn" onclick="document.getElementById('cover-file-input-${wl.id}').click()">Edit Cover</button>` : ''}
+         </div>`
+      : s.wlItemEditMode
+        ? `<div class="wl-cover-wrap" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px">
+             ${coverFileInput}
+             <button class="wl-edit-cover-btn" style="position:static;transform:none" onclick="document.getElementById('cover-file-input-${wl.id}').click()">Add Cover Image</button>
+           </div>`
+        : coverFileInput;
+
+    const coverPanel = '';
+
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left" onclick="navTo('wishlists')">← Wishlists</button>
+        <div style="display:flex;align-items:center;gap:14px">
+          ${!s.wlItemEditMode ? `
+          <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="shareWishlist('${wl.id}')" title="Share">
+            <svg width="15" height="16" viewBox="0 0 15 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7.5" y1="1" x2="7.5" y2="10"/>
+              <polyline points="4.5,4 7.5,1 10.5,4"/>
+              <path d="M3,6.5H1.5v8h12v-8H12"/>
+            </svg>
+          </button>` : ''}
+          <button class="h-right ${s.wlItemEditMode ? '' : 'h-muted'}" onclick="toggleWlItemEdit()">
+            ${s.wlItemEditMode ? 'Done' : 'Edit'}
+          </button>
+        </div>
+      </header>
+      <div class="wl-detail-scroll">
+        ${coverHtml}
+        <div class="wl-content-wrap">
+          <div class="wl-sticky-top">
+            <div class="wl-name-row">
+              <div style="flex:1;min-width:0;margin-right:12px">
+                ${s.wlItemEditMode
+                  ? `<input class="wl-name-edit-input" id="wl-rename-input"
+                       value="${esc(wl.name)}" maxlength="50"
+                       onblur="renameWishlist('${wl.id}',this.value)"
+                       onkeydown="if(event.key==='Enter'){this.blur()}" />`
+                  : `<span class="wl-name-big">${esc(wl.name.toUpperCase())}</span>`}
+                <span class="wl-count-sm">${watchCount} Watching</span>
+              </div>
+              <div class="view-toggle">
+                <button class="view-btn ${s.wlViewMode==='grid'?'active':''}" onclick="setWlView('grid')" title="Grid">
+                  <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
+                </button>
+                <button class="view-btn ${s.wlViewMode==='list'?'active':''}" onclick="setWlView('list')" title="List">
+                  <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="metric-strip wl-top-metrics">
+              <div class="metric-cell">
+                <p class="metric-label">Watching</p>
+                <p class="metric-value">${watchCount} ${watchCount===1?'Item':'Items'}</p>
+              </div>
+              <div class="metric-cell">
+                <p class="metric-label">Total Desire Cost</p>
+                <p class="metric-value">${money(totalValue)}</p>
+                ${totalValue ? `<div class="metric-progress"><div class="metric-progress-fill" style="width:${Math.min(100,Math.round(wlSaved/totalValue*100))}%"></div></div>` : ''}
+              </div>
+            </div>
+          </div>
+          ${s.wlViewMode === 'list'
+            ? `<div class="list-view">
+                 ${s.wlItemEditMode ? '' : `<div class="list-row" onclick="openAddWishlistItem('${wl.id}')">
+                   <div class="list-thumb" style="background:#fafafa;display:flex;align-items:center;justify-content:center"><span style="font-size:18px;color:#ccc;font-weight:200">+</span></div>
+                   <div class="list-info"><p class="list-name" style="color:#ccc">Add Item</p></div>
+                 </div>`}
+                 ${wItems.map((item,idx) => itemListRow(item,idx)).join('')}
+               </div>`
+            : `<div class="grid">
+                 ${s.wlItemEditMode ? '' : addCard(`openAddItem('${wl.id}')`)}
+                 ${wItems.map((item,idx) => itemCard(item,idx)).join('')}
+               </div>`}
+          ${wItems.length === 0 ? `
+            <div style="padding:40px 28px">
+              <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#ccc">
+                No items yet — tap + to add one.
+              </p>
+            </div>` : ''}
+        </div>
+      </div>
+      <div class="safe-bottom"></div>
+      ${coverPanel}`;
+  }
+
+
+  function buildChangeCoverPanel(wl) {
+    const preview = wl.coverImg || '';
+    return `
+      <div class="cover-panel">
+        <p class="cover-panel-label">Cover Image</p>
+        ${preview ? `<div class="cover-panel-preview"><img src="${preview}" alt="" /></div>` : ''}
+
+        <input type="file" id="cover-file-input" accept="image/*"
+          style="display:none" onchange="handleCoverFile(this,'${wl.id}')" />
+        <button class="btn btn-black" onclick="document.getElementById('cover-file-input').click()">
+          Choose from Photos
+        </button>
+
+        <div class="url-divider" style="margin:16px 0 12px"><span>or paste a URL</span></div>
+
+        <input class="form-input" id="cover-url-input" type="text"
+          placeholder="https://..."
+          value="${esc(preview)}" />
+        <button class="btn btn-ghost" style="margin-top:10px" onclick="saveCoverImage('${wl.id}')">Use URL</button>
+        <button class="btn-text" style="margin-top:6px;display:block;width:100%;text-align:center" onclick="closeCoverPanel()">Cancel</button>
+      </div>`;
+  }
+
+  function screenItems() {
+    const all = watchingItems();
+    const totalValue = totalWatchingValue();
+    const itemsSaved = totalSaved();
+    const allTags = [...new Set(all.flatMap(i => i.tags || []))].sort();
+    const active = s.itemsFilterTags;
+    const filtered = active.length ? all.filter(i => active.every(t => (i.tags||[]).includes(t))) : all;
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left">All Items</span>
+        <div class="view-toggle">
+          <button class="view-btn ${s.itemsViewMode==='grid'?'active':''}" onclick="setItemsView('grid')" title="Grid">
+            <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
+          </button>
+          <button class="view-btn ${s.itemsViewMode==='list'?'active':''}" onclick="setItemsView('list')" title="List">
+            <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
+          </button>
+        </div>
+      </header>
+      <div class="metric-strip">
+        <div class="metric-cell">
+          <p class="metric-label">Watching</p>
+          <p class="metric-value">${all.length} ${all.length===1?'Item':'Items'}</p>
+        </div>
+        <div class="metric-cell">
+          <p class="metric-label">Total Desire Cost</p>
+          <p class="metric-value">${money(totalValue)}</p>
+          ${totalValue ? `<div class="metric-progress"><div class="metric-progress-fill" style="width:${Math.min(100,Math.round(itemsSaved/totalValue*100))}%"></div></div>` : ''}
+        </div>
+      </div>
+      ${allTags.length ? `
+      <div class="tag-filter-bar">
+        ${allTags.map(t => `
+          <button class="tag-filter-pill ${active.includes(t)?'active':''}" onclick="toggleItemsFilter('${esc(t)}')">${esc(t)}</button>
+        `).join('')}
+      </div>` : ''}
+      <div class="scroll-area">
+        ${all.length === 0 ? `
+          <div class="empty-state" style="padding-top:60px">
+            <p class="empty-hero" style="font-size:42px">Nothing<br/>Here<br/>Yet.</p>
+            <button class="empty-cta" onclick="openAddItem(null)">+ Add Your First Item</button>
+          </div>` : s.itemsViewMode === 'list'
+            ? `<div class="list-view">
+                 <div class="list-row" onclick="openAddItem(null)">
+                   <div class="list-thumb" style="background:#fafafa;display:flex;align-items:center;justify-content:center"><span style="font-size:18px;color:#ccc;font-weight:200">+</span></div>
+                   <div class="list-info"><p class="list-name" style="color:#ccc">Add Item</p></div>
+                 </div>
+                 ${filtered.map(item => itemListRow(item)).join('')}
+               </div>`
+            : `<div class="grid">${addCard(`openAddItem(null)`)}${filtered.map(itemCard).join('')}</div>`}
+      </div>
+      ${nav('items')}`;
+  }
+
+  function screenArchive() {
+    const arch = archivedItems();
+    const letGoTotal = letGoValue();
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left">Archive</span>
+        <div class="view-toggle">
+          <button class="view-btn ${s.archiveViewMode==='grid'?'active':''}" onclick="setArchiveView('grid')" title="Grid">
+            <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
+          </button>
+          <button class="view-btn ${s.archiveViewMode==='list'?'active':''}" onclick="setArchiveView('list')" title="List">
+            <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
+          </button>
+        </div>
+      </header>
+      <div class="metric-strip">
+        <div class="metric-cell">
+          <p class="metric-label">Archived</p>
+          <p class="metric-value">${arch.length} ${arch.length===1?'Item':'Items'}</p>
+        </div>
+        <div class="metric-cell">
+          <p class="metric-label">Let Go Value</p>
+          <p class="metric-value">${money(letGoTotal)}</p>
+        </div>
+      </div>
+      <div class="scroll-area">
+        ${arch.length === 0
+          ? `<div class="archive-empty">
+               <p>Nothing archived yet.</p>
+               <p style="margin-top:4px;color:#ddd">Let go of something first.</p>
+             </div>`
+          : s.archiveViewMode === 'grid'
+            ? `<div class="grid">${arch.map(archiveGridCard).join('')}</div>`
+            : arch.map(archiveRow).join('')}
+      </div>
+      ${nav('archive')}`;
+  }
+
+  function screenProfile() {
+    const watching = watchingItems().length;
+    const archived = archivedItems().length;
+    const purchasedCount = items.filter(i => i.status === 'purchased').length;
+    const totalValue = totalWatchingValue();
+    const seriousValue = seriousWatchingValue();
+    const casualValue = casualWatchingValue();
+    const letGoTotal = letGoValue();
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left">Profile</span>
+        <span class="h-right h-muted"></span>
+      </header>
+      <div class="scroll-area">
+        <div class="profile-body">
+          <p class="profile-hero">Stats</p>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Watching</span>
+            <span class="profile-stat-val">${watching}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Total Watching</span>
+            <span class="profile-stat-val">${money(totalValue)}</span>
+          </div>
+          <div class="profile-stat-row profile-substat-row">
+            <span class="profile-stat-label profile-substat-label">Serious</span>
+            <span class="profile-stat-val">${money(seriousValue)}</span>
+          </div>
+          <div class="profile-stat-row profile-substat-row">
+            <span class="profile-stat-label profile-substat-label">Casual</span>
+            <span class="profile-stat-val">${money(casualValue)}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Wishlists</span>
+            <span class="profile-stat-val">${wishlists.length}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Purchased</span>
+            <span class="profile-stat-val">${purchasedCount}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Archived</span>
+            <span class="profile-stat-val">${archived}</span>
+          </div>
+          <div class="profile-stat-row">
+            <span class="profile-stat-label">Let Go Value</span>
+            <span class="profile-stat-val">${money(letGoTotal)}</span>
+          </div>
+          <p class="profile-tagline">
+            
+          </p>
+        </div>
+      </div>
+      ${nav('profile')}`;
+  }
+
+  function screenItemDetail() {
+    const item = getItem(s.currentIid);
+    if (!item) return screenWishlists();
+    const wl = getWl(item.wid);
+    const d = days(item.addedAt);
+    const purchased = item.status === 'purchased';
+    const fromLabel = s.fromScreen === 'items' ? '← Items'
+      : s.fromScreen === 'archive' ? '← Archive'
+      : s.fromScreen === 'wishlists' ? '← Wishlists'
+      : `← ${wl?.name || 'Back'}`;
+    const backAct = s.fromScreen === 'items' ? "navTo('items')"
+      : s.fromScreen === 'archive' ? "navTo('archive')"
+      : s.fromScreen === 'wishlists' ? "navTo('wishlists')"
+      : `openWl('${item.wid}')`;
+    const imgH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" />`
+      : `<div class="ph-lg">${esc(item.name)}</div>`;
+    const urlH = '';
+    const noteH = item.note
+      ? `<p class="detail-section-label">Note</p><p class="detail-note">${esc(item.note)}</p>`
+      : '';
+    const priceH = item.price
+      ? `<p class="detail-section-label">Price</p><p class="detail-price-val">${money(item.price)}</p>`
+      : '';
+    const savingsH = item.price
+      ? `<p class="detail-section-label">Savings</p>
+         <div class="metric-strip" style="border-top:1px solid #f4f4f4;border-bottom:none;margin-top:8px">
+           <div class="metric-cell">
+             <p class="metric-label">Saved</p>
+             <p class="metric-value">${money(savedAmount(item))}</p>
+           </div>
+           <div class="metric-cell">
+             <p class="metric-label">Left</p>
+             <p class="metric-value">${money(gapAmount(item))}</p>
+           </div>
+         </div>
+         <div class="detail-progress"><div class="detail-progress-fill" style="width:${progressPct(item)}%"></div></div>
+         <p class="detail-subnote">${progressPct(item)}% of the way there</p>
+         ${s.overlay === 'quick-save' && s.currentIid === item.id
+           ? `<div class="quick-save-row">
+                <input class="quick-save-input" id="quick-save-input" type="number"
+                  placeholder="0.00" min="0" step="any"
+                  onkeydown="if(event.key==='Enter') commitQuickSave('${item.id}')" />
+                <button class="quick-save-btn" onclick="commitQuickSave('${item.id}')">Add</button>
+                <button class="btn-text" style="padding:0;font-size:9px" onclick="closeOverlay()">Cancel</button>
+              </div>`
+           : `<button class="quick-save-trigger" onclick="openQuickSave('${item.id}')">+ Add to Savings</button>`}`
+      : '';
+    const tagsH = item.tags && item.tags.length
+      ? `<p class="detail-section-label">Tags</p>
+         <div class="tag-pill-wrap" style="margin-top:4px">
+           ${item.tags.map(t => `<span class="tag-pill-display">${esc(t)}</span>`).join('')}
+         </div>`
+      : '';
+    const seriousnessH = `<p class="detail-section-label">Intent</p><p class="detail-price-val">${item.serious ? 'Serious' : 'Casual'}</p>`;
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left" onclick="${backAct}">${fromLabel}</button>
+        <button class="h-right h-muted" onclick="openEditItem('${item.id}')">Edit</button>
+      </header>
+      <div class="scroll-area">
+        <div class="detail-image">${imgH}</div>
+        <div class="detail-body">
+          <p class="detail-days">${pad(d)} — ${purchased ? 'Purchased' : 'Watching'}</p>
+          ${item.brand ? `<p class="detail-brand">${esc(item.brand.toUpperCase())}</p>` : ''}
+          <p class="detail-name">${esc(item.name)}</p>
+          ${urlH}
+          ${priceH}
+          ${savingsH}
+          ${tagsH}
+          ${seriousnessH}
+          ${noteH}
+          <p class="detail-section-label">Added</p>
+          <p class="detail-added">${fmtDate(item.addedAt)}</p>
+          <div class="detail-actions">
+            ${item.url ? `
+            <a class="btn btn-outline btn-link-cta" href="${item.url}" target="_blank" rel="noopener">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                <path d="M4.5 1.5H1.5v8h8V6.5"/><path d="M6.5 1.5H9.5v3"/><line x1="9.5" y1="1.5" x2="5" y2="6"/>
+              </svg>
+              Open Link
+            </a>` : ''}
+            ${!item.wid && !purchased && wishlists.length ? `
+              <button class="btn btn-outline" onclick="openMoveToWishlist('${item.id}')">+ Add to a Wishlist</button>` : ''}
+            ${purchased
+              ? `<button class="btn btn-black" onclick="addBackToWishlist('${item.id}')">Add Back to Wishlist</button>`
+              : `<button class="btn btn-black" onclick="markPurchased('${item.id}')">Purchased</button>
+                 <button class="btn btn-text" onclick="archiveItem('${item.id}')">Archive</button>`}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function screenAddWishlist() {
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left"></span>
+        <button class="h-right h-muted" onclick="cancelAdd()">Cancel</button>
+      </header>
+      <div class="add-wl-body">
+        <p class="add-wl-prompt">New Wishlist</p>
+        <input class="add-wl-input" id="wl-name-input" type="text"
+          placeholder="Name it..." maxlength="50"
+          onkeydown="if(event.key==='Enter') saveWishlist()" />
+        <button class="btn btn-black" style="margin-top:36px" onclick="saveWishlist()">Create Wishlist</button>
+      </div>`;
+  }
+
+  function screenAddItem() {
+    switch(s.addStep) {
+      case 'url':      return addItemUrl();
+      case 'fetching': return addItemFetching();
+      case 'form':     return addItemForm();
+      default:         return addItemUrl();
+    }
+  }
+
+  function addItemUrl() {
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left"></span>
+        <button class="h-right h-muted" onclick="cancelAdd()">Cancel</button>
+      </header>
+      <div class="url-step">
+        <p class="url-prompt">Paste a product link</p>
+        <input class="url-input" id="url-field" type="url" placeholder="https://..."
+          value="${esc(s.addForm.url)}"
+          onkeydown="if(event.key==='Enter') fetchUrl()" />
+        <button class="url-fetch-btn" onclick="fetchUrl()">Fetch Details →</button>
+        <p class="url-hint">Works with SSENSE, Net-a-Porter, Mr Porter, Mytheresa, and most product pages. You can always edit the details after.</p>
+        <div class="url-divider">
+          <span>or</span>
+        </div>
+        <button class="url-manual-btn" onclick="addManually()">Add Manually</button>
+      </div>`;
+  }
+
+  function addItemFetching() {
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left"></span>
+        <button class="h-right h-muted" onclick="cancelAdd()">Cancel</button>
+      </header>
+      <div class="fetching-step">
+        <p class="fetching-label">Fetching product details</p>
+        <p class="fetching-url">${esc(s.addForm.url)}</p>
+        <div class="fetching-dots">
+          <div class="fetching-dot"></div>
+          <div class="fetching-dot"></div>
+          <div class="fetching-dot"></div>
+        </div>
+      </div>`;
+  }
+
+  function addItemForm() {
+    const f = s.addForm;
+    const imgH = f.img
+      ? `<img src="${f.img}" alt="" id="form-img-preview" />`
+      : `<div class="ph-lg" id="form-img-preview">No image found</div>`;
+    const selectedWid = f.wid || s.addWid || '';
+    const changeImgBtn = f.img
+      ? `<button class="form-image-change-btn" onclick="event.stopPropagation();document.getElementById('item-file-input').click()">Change Image</button>`
+      : '';
+    const titleRow = s.addIsEdit
+      ? `<button class="h-left" onclick="cancelAdd()">← Back</button>`
+      : `<span class="h-left"></span>`;
+    return `
+      <div class="safe-top"></div>
+      <header>
+        ${titleRow}
+        <button class="h-right h-muted" onclick="cancelAdd()">Cancel</button>
+      </header>
+      <div class="form-scroll">
+        <div class="form-image-area" onclick="document.getElementById('item-file-input').click()">
+          <input type="file" id="item-file-input" accept="image/*"
+            style="display:none" onchange="handleItemFile(this)" />
+          ${imgH}
+          ${changeImgBtn}
+        </div>
+        <div class="form-body">
+          <div class="form-group">
+            <label class="form-label">Brand</label>
+            <input class="form-input" id="f-brand" type="text" value="${esc(f.brand || '')}" maxlength="80" placeholder="e.g. Toteme" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input class="form-input" id="f-name" type="text" value="${esc(f.name)}" maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tags</label>
+            ${(()=>{
+              const selected = f.tags || [];
+              const allSuggestions = availableTags.filter(t => !selected.includes(t));
+              const filteredSuggestions = f.showTagInput && f.tagQuery
+                ? allSuggestions.filter(t => t.toLowerCase().includes(f.tagQuery.toLowerCase()))
+                : allSuggestions;
+              return `
+                ${selected.length ? `
+                  <div class="tag-pill-wrap" style="margin-bottom:7px">
+                    ${selected.map(tag => `
+                      <span class="tag-pill">
+                        ${esc(tag)}<span class="tag-remove" onclick="removeTag('${esc(tag)}')">×</span>
+                      </span>`).join('')}
+                  </div>` : ''}
+                <div class="tag-suggestions" id="tag-suggestions">
+                  ${filteredSuggestions.map(t => `
+                    <button type="button" class="tag-suggestion" onclick="addTag('${esc(t)}')">${esc(t)}</button>
+                  `).join('')}
+                  ${f.showTagInput
+                    ? `<input class="tag-inline-input" id="tag-inline-input" type="text"
+                         placeholder="Type a tag..."
+                         value="${esc(f.tagQuery || '')}"
+                         oninput="onTagQuery(this.value)"
+                         onkeydown="if(event.key==='Enter'){event.preventDefault();confirmTagInput()}
+                                    else if(event.key==='Escape'){closeTagInput()}" />`
+                    : `<button type="button" class="tag-add-trigger" onclick="openTagInput()">+</button>`}
+                </div>`;
+            })()}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price</label>
+            <div class="currency-field">
+              <span class="currency-symbol">$</span>
+              <input class="currency-input" id="f-price" type="text" inputmode="numeric"
+                value="${(Math.round(parseFloat(f.price||0)*100)/100).toFixed(2)}"
+                data-cents="${Math.round(parseFloat(f.price||0)*100)}"
+                onkeydown="currencyKeydown(event,'f-price')" readonly onfocus="this.removeAttribute('readonly')" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Saved So Far</label>
+            <div class="currency-field">
+              <span class="currency-symbol">$</span>
+              <input class="currency-input" id="f-saved" type="text" inputmode="numeric"
+                value="${(Math.round(parseFloat(f.saved||0)*100)/100).toFixed(2)}"
+                data-cents="${Math.round(parseFloat(f.saved||0)*100)}"
+                onkeydown="currencyKeydown(event,'f-saved')" readonly onfocus="this.removeAttribute('readonly')" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Intent</label>
+            <input type="hidden" id="f-serious" value="${f.serious ? 'serious' : 'casual'}" />
+            <div class="intent-pill-row">
+              <button type="button" class="intent-pill ${f.serious ? '' : 'active'}" id="intent-casual" onclick="setAddIntent('casual')">Casual</button>
+              <button type="button" class="intent-pill ${f.serious ? 'active' : ''}" id="intent-serious" onclick="setAddIntent('serious')">Serious</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Note</label>
+            <textarea class="form-input" id="f-note">${esc(f.note)}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Wishlist</label>
+            <input type="hidden" id="f-wid" value="${esc(selectedWid)}" />
+            <div class="wl-picker">
+              ${wishlists.map(w => `
+                <button type="button" class="wl-picker-pill ${selectedWid === w.id ? 'active' : ''}" onclick="setFormWl('${w.id}')">${esc(w.name)}</button>
+              `).join('')}
+              ${f.showNewWl
+                ? `<input class="wl-new-wl-input" id="wl-new-wl-input" type="text"
+                     placeholder="Name..."
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();createFormWl()}"
+                     onblur="createFormWlBlur()" />`
+                : `<button type="button" class="wl-picker-pill wl-picker-add" onclick="openNewWlInput()">+</button>`}
+            </div>
+          </div>
+          <button class="btn btn-black" onclick="saveItem()">
+            ${s.addIsEdit ? 'Save Changes' : 'Save to Wishlist'}
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function buildOverlay() {
+    if (s.overlay === 'delete') {
+      const item = getItem(s.currentIid);
+      const words = item ? item.name.split(' ').slice(0,3).join('\n') : 'This Item';
+      return `
+        <div class="overlay">
+          <div class="safe-top"></div>
+          <div class="overlay-body">
+            <p class="overlay-title-sm">This Cannot Be Undone</p>
+            <p class="overlay-headline" style="white-space:pre-line">Delete\n${words}?</p>
+            <div class="overlay-btns">
+              <button class="btn btn-black" onclick="confirmDelete()">Delete Permanently</button>
+              <button class="btn btn-ghost" onclick="closeOverlay()">Cancel</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    if (s.overlay === 'move-wl') {
+      return `
+        <div class="overlay" onclick="if(event.target===this)closeOverlay()">
+          <div class="safe-top"></div>
+          <div class="overlay-body">
+            <p class="overlay-title-sm">Add to Wishlist</p>
+            <div class="wl-move-list">
+              ${wishlists.map(w => `
+                <button class="wl-move-option" onclick="moveItemToWl('${s.currentIid}','${w.id}')">
+                  ${esc(w.name.toUpperCase())}
+                </button>`).join('')}
+            </div>
+            <button class="btn btn-ghost" style="margin-top:16px" onclick="closeOverlay()">Cancel</button>
+          </div>
+        </div>`;
+    }
+    return '';
+  }
+
+  // ═══════════════════════════════════════════
+  // NAVIGATION
+  // ═══════════════════════════════════════════
+
+  function navTo(screen) {
+    s.screen = screen;
+    s.overlay = null;
+    s.wlItemEditMode = false;
+    s.wlEditMode = false;
+    if (screen === 'wishlists') { s.currentWid = null; }
+    render();
+  }
+
+  function openWl(wid) {
+    s.currentWid = wid;
+    s.screen = 'wishlist-detail';
+    s.overlay = null;
+    s.wlItemEditMode = false;
+    render();
+  }
+
+  function openItem(iid) {
+    const item = getItem(iid);
+    s.currentIid = iid;
+    s.fromScreen = s.screen === 'wishlist-detail' ? 'wishlist-detail'
+      : s.screen === 'items' ? 'items'
+      : s.screen === 'archive' ? 'archive'
+      : s.screen === 'wishlists' ? 'wishlists'
+      : 'wishlist-detail';
+    s.fromWid = item?.wid || null;
+    s.screen = 'item-detail';
+    s.overlay = null;
+    render();
+  }
+
+  function openAddWishlist() {
+    s.screen = 'add-wishlist';
+    s.overlay = null;
+    render();
+  }
+
+  function openAddItem(wid) {
+    s.addWid = wid;
+    s.fromScreen = s.screen;
+    s.addStep = 'url';
+    s.addIsEdit = false;
+    s.addForm = { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid: wid || '', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '' };
+    s.screen = 'add-item';
+    s.overlay = null;
+    render();
+  }
+
+  function openEditItem(iid) {
+    const item = getItem(iid || s.currentIid);
+    if (!item) return;
+    s.currentIid = item.id;
+    s.addIsEdit = true;
+    s.addStep = 'form';
+    s.addForm = {
+      url: item.url || '',
+      name: item.name,
+      brand: item.brand || '',
+      tags: item.tags || [],
+      showTagInput: false, tagQuery: '',
+      img: item.img || '',
+      price: item.price != null ? String(item.price) : '',
+      saved: item.saved != null ? String(item.saved) : '',
+      note: item.note || '',
+      wid: item.wid,
+      serious: !!item.serious,
+      showImgEdit: false,
+    };
+    s.screen = 'add-item';
+    s.overlay = null;
+    render();
+  }
+
+  function cancelAdd() {
+    s.overlay = null;
+    if (s.addIsEdit) {
+      s.screen = 'item-detail';
+    } else if (s.addWid) {
+      s.screen = 'wishlist-detail';
+      s.currentWid = s.addWid;
+    } else {
+      s.screen = s.fromScreen === 'items' ? 'items' : 'wishlists';
+    }
+    render();
+  }
+
+  function closeOverlay() {
+    s.overlay = null;
+    render();
+  }
+
+  function openQuickSave(id) {
+    s.currentIid = id;
+    s.overlay = 'quick-save';
+    render();
+    setTimeout(() => document.getElementById('quick-save-input')?.focus(), 60);
+  }
+
+  function commitQuickSave(id) {
+    const val = document.getElementById('quick-save-input')?.value;
+    const amount = parseFloat(val);
+    if (isNaN(amount) || amount < 0) return;
+    items = items.map(i => i.id === id ? { ...i, saved: savedAmount(i) + amount } : i);
+    s.overlay = null;
+    render();
+    showToast('Savings updated.');
+  }
+
+  // ═══════════════════════════════════════════
+  // ACTIONS
+  // ═══════════════════════════════════════════
+
+  function parseOgFromHtml(html, baseUrl) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const og = p => doc.querySelector(`meta[property="${p}"]`)?.content?.trim() || '';
+    const mt = n => doc.querySelector(`meta[name="${n}"]`)?.content?.trim() || '';
+    const title = og('og:title') || mt('twitter:title') || doc.title || '';
+    let image = og('og:image:secure_url') || og('og:image') || mt('twitter:image') || '';
+    if (image && !image.startsWith('http')) {
+      try { image = new URL(image, baseUrl).href; } catch {}
+    }
+    let price = og('product:price:amount') || og('og:price:amount') ||
+                mt('product:price:amount') || mt('twitter:data1') || '';
+    // Strip twitter:data1 if it doesn't look like a price
+    if (price && !/[\d]/.test(price)) price = '';
+    if (!price) {
+      for (const el of doc.querySelectorAll('script[type="application/ld+json"]')) {
+        try {
+          const dig = o => {
+            if (!o || typeof o !== 'object') return '';
+            if (o.price != null) return String(o.price);
+            if (o.offers) return dig(o.offers);
+            if (Array.isArray(o)) { for (const x of o) { const p = dig(x); if (p) return p; } }
+            if (o['@graph']) return dig(o['@graph']);
+            return '';
+          };
+          price = dig(JSON.parse(el.textContent));
+          if (price) break;
+        } catch {}
+      }
+    }
+    // itemprop="price" — content attr first, then text
+    if (!price) {
+      const el = doc.querySelector('[itemprop="price"]');
+      if (el) price = el.getAttribute('content') || el.textContent || '';
+    }
+    // data-price / data-product-price attributes
+    if (!price) {
+      const el = doc.querySelector('[data-price],[data-product-price]');
+      if (el) price = el.getAttribute('data-price') || el.getAttribute('data-product-price') || '';
+    }
+    // Common price class/selector patterns — take first numeric match
+    if (!price) {
+      const priceSelectors = [
+        '.price__current', '.price-item--sale', '.price-item--regular',
+        '[class*="ProductPrice"]', '[class*="product-price"]', '[class*="current-price"]',
+        '[class*="sale-price"]', '[class*="PriceValue"]', '.price',
+      ];
+      for (const sel of priceSelectors) {
+        const el = doc.querySelector(sel);
+        if (el) {
+          const m = el.textContent.replace(/\s+/g,' ').trim().match(/\$?\s*([\d,]+\.?\d*)/);
+          if (m) { price = m[1].replace(/,/g,''); break; }
+        }
+      }
+    }
+    return {
+      title: title.trim(),
+      image,
+      price: price.replace(/[^0-9.]/g, ''),
+    };
+  }
+
+  async function fetchUrl() {
+    const urlEl = document.getElementById('url-field');
+    const url = urlEl ? urlEl.value.trim() : s.addForm.url;
+    if (!url) { urlEl?.focus(); return; }
+    try { new URL(url); } catch { showToast('Enter a valid URL first.'); return; }
+
+    s.addForm.url = url;
+    s.addStep = 'fetching';
+    render();
+
+    // ── Strategy 1: Microlink (headless browser, handles Cloudflare / SSENSE / etc.) ──
+    try {
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), 12000);
+      const res = await fetch(
+        `https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false&audio=false&video=false&iframe=false&meta=true`,
+        { signal: ctl.signal }
+      );
+      clearTimeout(t);
+      const ml = await res.json();
+
+      if (ml.status === 'success') {
+        s.addForm.name  = ml.data.title || '';
+        s.addForm.img   = ml.data.image?.url || ml.data.screenshot?.url || '';
+        // Microlink sometimes surfaces price in meta or description — try to extract
+        const mlPrice = ml.data.price
+          || (ml.data.description || '').match(/\$\s*([\d,]+\.?\d*)/)?.[1]?.replace(/,/g,'')
+          || '';
+        s.addForm.price = mlPrice;
+        s.addStep = 'form';
+        render();
+        // Silently backfill price via HTML proxy if Microlink didn't get it
+        if (!mlPrice) (async () => {
+          try {
+            const pr = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+            const pj = await pr.json();
+            const { price } = parseOgFromHtml(pj.contents || '', url);
+            if (price) {
+              s.addForm.price = price;
+              const el = document.getElementById('f-price');
+              if (el) {
+                const cents = Math.round(parseFloat(price) * 100);
+                el.dataset.cents = cents;
+                el.value = (cents / 100).toFixed(2);
+              }
+            }
+          } catch {}
+        })();
+        return;
+      }
+    } catch {}
+
+    // ── Strategy 2: allorigins HTML proxy ──
+    try {
+      const ctl2 = new AbortController();
+      const t2 = setTimeout(() => ctl2.abort(), 9000);
+      const res2 = await fetch(
+        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        { signal: ctl2.signal }
+      );
+      clearTimeout(t2);
+      const j2 = await res2.json();
+      const parsed = parseOgFromHtml(j2.contents || '', url);
+
+      if (parsed.title || parsed.image) {
+        s.addForm.name  = parsed.title;
+        s.addForm.img   = parsed.image;
+        s.addForm.price = parsed.price;
+        s.addStep = 'form';
+        render();
+        return;
+      }
+    } catch {}
+
+    // ── Strategy 3: corsproxy.io ──
+    try {
+      const ctl3 = new AbortController();
+      const t3 = setTimeout(() => ctl3.abort(), 9000);
+      const res3 = await fetch(
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        { signal: ctl3.signal }
+      );
+      clearTimeout(t3);
+      const html3 = await res3.text();
+      const parsed3 = parseOgFromHtml(html3, url);
+
+      if (parsed3.title || parsed3.image) {
+        s.addForm.name  = parsed3.title;
+        s.addForm.img   = parsed3.image;
+        s.addForm.price = parsed3.price;
+        s.addStep = 'form';
+        render();
+        return;
+      }
+    } catch {}
+
+    // ── All failed — drop to empty form ──
+    s.addForm.name  = '';
+    s.addForm.img   = '';
+    s.addForm.price = '';
+    s.addStep = 'form';
+    render();
+    showToast("Couldn't fetch — fill in the details manually.");
+  }
+
+
+  function liveUpdateImg(url) {
+    // Update the preview img src directly without full re-render
+    const el = document.getElementById('form-img-preview');
+    if (!el) return;
+    if (url) {
+      if (el.tagName === 'IMG') {
+        el.src = url;
+      } else {
+        el.insertAdjacentHTML('beforebegin', `<img src="${url}" alt="" id="form-img-preview" />`);
+        el.remove();
+      }
+    }
+    s.addForm.img = url;
+  }
+
+  function saveWishlist() {
+    const nameEl = document.getElementById('wl-name-input');
+    const name = nameEl ? nameEl.value.trim() : '';
+    if (!name) { nameEl?.focus(); return; }
+    const newWl = { id: 'w'+genId(), name };
+    wishlists.push(newWl);
+    s.currentWid = newWl.id;
+    s.screen = 'wishlist-detail';
+    render();
+    showToast('Wishlist created.');
+  }
+
+  function openTagInput() {
+    s.addForm.showTagInput = true;
+    s.addForm.tagQuery = '';
+    render(); scalePhone();
+    setTimeout(() => document.getElementById('tag-inline-input')?.focus(), 60);
+  }
+
+  function closeTagInput() {
+    s.addForm.showTagInput = false;
+    s.addForm.tagQuery = '';
+    render(); scalePhone();
+  }
+
+  function onTagQuery(val) {
+    s.addForm.tagQuery = val;
+    // Update suggestion buttons without full re-render (preserve input focus)
+    const el = document.getElementById('tag-suggestions');
+    const input = document.getElementById('tag-inline-input');
+    if (!el || !input) return;
+    const selected = s.addForm.tags || [];
+    const q = val.toLowerCase();
+    const matches = availableTags.filter(t =>
+      !selected.includes(t) && (!q || t.toLowerCase().includes(q))
+    );
+    // Remove old suggestion buttons, keep the input
+    [...el.querySelectorAll('.tag-suggestion')].forEach(b => b.remove());
+    // Prepend fresh suggestion buttons before the input
+    matches.reverse().forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tag-suggestion';
+      btn.textContent = t;
+      btn.onclick = () => addTag(t);
+      el.prepend(btn);
+    });
+  }
+
+  function addTag(tag) {
+    const normalized = tag.trim();
+    if (!normalized) return;
+    const title = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+    if (!availableTags.includes(title)) availableTags = [...availableTags, title];
+    if (!(s.addForm.tags || []).includes(title)) {
+      s.addForm.tags = [...(s.addForm.tags || []), title];
+    }
+    s.addForm.showTagInput = false;
+    s.addForm.tagQuery = '';
+    render(); scalePhone();
+  }
+
+  function confirmTagInput() {
+    const val = document.getElementById('tag-inline-input')?.value.trim();
+    if (val) { addTag(val); } else { closeTagInput(); }
+  }
+
+  function removeTag(tag) {
+    s.addForm.tags = (s.addForm.tags || []).filter(t => t !== tag);
+    render(); scalePhone();
+  }
+
+  function currencyKeydown(e, fieldId) {
+    const passthrough = ['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter','Escape'];
+    if (passthrough.includes(e.key)) return;
+    e.preventDefault();
+    const field = e.target;
+    let cents = parseInt(field.dataset.cents || '0', 10);
+    if (e.key >= '0' && e.key <= '9') {
+      cents = Math.min(cents * 10 + parseInt(e.key, 10), 9999999); // max $99,999.99
+    } else if (e.key === 'Backspace') {
+      cents = Math.floor(cents / 10);
+    } else {
+      return;
+    }
+    field.dataset.cents = cents;
+    field.value = (cents / 100).toFixed(2);
+  }
+
+  function setAddIntent(value) {
+    const input = document.getElementById('f-serious');
+    if (input) input.value = value;
+    document.getElementById('intent-casual')?.classList.toggle('active', value === 'casual');
+    document.getElementById('intent-serious')?.classList.toggle('active', value === 'serious');
+  }
+
+  function saveItem() {
+    const name = document.getElementById('f-name')?.value.trim();
+    if (!name) { document.getElementById('f-name')?.focus(); return; }
+    const brand = document.getElementById('f-brand')?.value.trim();
+    const tags = s.addForm.tags || [];
+    const price = document.getElementById('f-price')?.value;
+    const saved = document.getElementById('f-saved')?.value;
+    const note = document.getElementById('f-note')?.value.trim();
+    const wid = document.getElementById('f-wid')?.value;
+    const serious = document.getElementById('f-serious')?.value === 'serious';
+    const img = s.addForm.img || null;
+
+    if (s.addIsEdit) {
+      items = items.map(i => i.id === s.currentIid ? {
+        ...i,
+        name,
+        brand: brand || null,
+        tags,
+        price: price ? parseFloat(price) : null,
+        saved: saved ? parseFloat(saved) : 0,
+        note,
+        wid: wid || null,
+        serious,
+        img: img || i.img,
+      } : i);
+      s.screen = 'item-detail';
+      render();
+      showToast('Changes saved.');
+    } else {
+      const newItem = {
+        id: 'i'+genId(), wid: wid || null,
+        name, brand: brand || null, tags, url: s.addForm.url, img,
+        note,
+        price: price ? parseFloat(price) : null,
+        saved: saved ? parseFloat(saved) : 0,
+        serious,
+        addedAt: NOW, status: 'watching', reason: null,
+      };
+      items = [newItem, ...items];
+      if (s.addWid) {
+        s.currentWid = s.addWid;
+        s.screen = 'wishlist-detail';
+      } else {
+        s.screen = 'items';
+      }
+      render();
+      showToast('Saved to Wishlist.');
+    }
+  }
+
+  function markPurchased(id) {
+    items = items.map(i => i.id === id ? {
+      ...i, status:'purchased', reason:null,
+    } : i);
+    // Stay in wishlist-detail so user sees the faded card
+    s.screen = 'wishlist-detail';
+    s.currentWid = s.fromWid || s.currentWid;
+    render();
+    showToast('Marked as purchased.');
+  }
+
+  function addBackToWishlist(id) {
+    items = items.map(i => i.id === id ? {
+      ...i, status:'watching', reason:null,
+    } : i);
+    s.screen = 'wishlist-detail';
+    s.currentWid = s.fromWid || s.currentWid;
+    render();
+    showToast('Added back to wishlist.');
+  }
+
+  function archiveItem(id) {
+    items = items.map(i => i.id === id ? {
+      ...i, status:'archived', reason:'let_go', archivedAt: NOW,
+    } : i);
+    s.screen = s.fromScreen === 'items' ? 'items' : 'wishlist-detail';
+    if (s.fromWid) s.currentWid = s.fromWid;
+    render();
+    showToast('Archived.');
+  }
+
+  // ─── Wishlist picker (form) ───────────────
+  function setFormWl(wid) {
+    s.addForm.wid = wid;
+    s.addForm.showNewWl = false;
+    render(); scalePhone();
+  }
+  function openNewWlInput() {
+    s.addForm.showNewWl = true;
+    render(); scalePhone();
+    setTimeout(() => document.getElementById('wl-new-wl-input')?.focus(), 60);
+  }
+  function createFormWl() {
+    const el = document.getElementById('wl-new-wl-input');
+    const name = el?.value.trim();
+    s.addForm.showNewWl = false;
+    if (name) {
+      const newWl = { id: 'w' + genId(), name };
+      wishlists.push(newWl);
+      s.addForm.wid = newWl.id;
+    }
+    render(); scalePhone();
+  }
+  function createFormWlBlur() {
+    // Small delay so click on a pill isn't swallowed
+    setTimeout(() => {
+      if (s.addForm.showNewWl) createFormWl();
+    }, 150);
+  }
+
+  // ─── Move unorganized item to wishlist ────
+  function openMoveToWishlist(id) {
+    s.currentIid = id;
+    s.overlay = 'move-wl';
+    render();
+  }
+  function moveItemToWl(itemId, wid) {
+    items = items.map(i => i.id === itemId ? { ...i, wid } : i);
+    s.overlay = null;
+    render();
+    showToast('Added to wishlist.');
+  }
+
+  function openDeleteOverlay(id) {
+    s.currentIid = id;
+    s.overlay = 'delete';
+    render();
+  }
+
+  function confirmDelete() {
+    const id = s.currentIid;
+    items = items.filter(i => i.id !== id);
+    s.overlay = null;
+    s.screen = s.fromScreen === 'items' ? 'items'
+      : s.fromScreen === 'archive' ? 'archive'
+      : 'wishlist-detail';
+    if (s.fromWid) s.currentWid = s.fromWid;
+    render();
+    showToast('Deleted.');
+  }
+
+  function deleteItem(id) {
+    // from archive — open confirm
+    s.currentIid = id;
+    s.fromScreen = 'archive';
+    s.overlay = 'delete';
+    render();
+  }
+
+  function restoreItem(id) {
+    items = items.map(i => i.id === id ? {
+      ...i, status:'watching', reason:null, archivedAt:undefined,
+    } : i);
+    render();
+    showToast('Restored to wishlist.');
+  }
+
+  // ═══════════════════════════════════════════
+  // WISHLIST EDIT MODE
+  // ═══════════════════════════════════════════
+
+  function toggleWlEdit() {
+    s.wlEditMode = !s.wlEditMode;
+    render(); scalePhone();
+  }
+
+  function itemListRow(item, idx=0) {
+    const d = days(item.addedAt);
+    const purchased = item.status === 'purchased';
+    const thumbH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    const dragAttrs = s.wlItemEditMode
+      ? `draggable="true"
+         ondragstart="itemDragStart(event,${idx})"
+         ondragover="itemDragOver(event,${idx})"
+         ondragleave="itemDragLeave(event)"
+         ondrop="itemDrop(event,${idx})"
+         ondragend="itemDragEnd(event)"` : '';
+    const clickAttr = s.wlItemEditMode || purchased ? '' : `onclick="openItem('${item.id}')"`;
+    return `
+      <div class="list-row ${purchased ? 'list-row-purchased' : ''}" ${clickAttr} ${dragAttrs}>
+        ${s.wlItemEditMode ? `<span class="list-drag-handle">⠿</span>` : ''}
+        <div class="list-thumb">${thumbH}</div>
+        <div class="list-info">
+          <p class="list-name">${esc(item.name)}</p>
+          <p class="list-meta">${pad(d)} · ${purchased ? 'Purchased' : item.serious ? 'Serious' : 'Watching'}</p>
+          ${item.price && savedAmount(item) && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
+        </div>
+        ${item.price ? `<span class="list-price">${money(item.price)}</span>` : ''}
+        ${s.wlItemEditMode
+          ? `<div class="list-delete-btn" onclick="removeItem(event,'${item.id}')">×</div>`
+          : ''}
+      </div>`;
+  }
+
+  function archiveRow(item) {
+    const d = days(item.addedAt);
+    const reason = item.reason === 'got_it' ? 'Purchased' : 'Archived';
+    const thumbH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    return `
+      <div class="archive-row">
+        <div class="archive-thumb">${thumbH}</div>
+        <div class="archive-info">
+          <p class="archive-reason">${reason}</p>
+          <p class="archive-name">${esc(item.name)}</p>
+          <p class="archive-meta">Watched ${d} days</p>
+        </div>
+        <div class="archive-btns">
+          <button class="archive-btn" onclick="restoreItem('${item.id}')">Restore</button>
+          <button class="archive-btn ghost" onclick="deleteItem('${item.id}')">Delete</button>
+        </div>
+      </div>`;
+  }
+
+  function archiveGridCard(item) {
+    const d = days(item.addedAt);
+    const reason = item.reason === 'got_it' ? 'Purchased' : 'Archived';
+    const imgH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
+      : `<div class="ph">${esc(item.name)}</div>`;
+    return `
+      <div class="card card-purchased" style="position:relative">
+        <div class="card-image">${imgH}</div>
+        <div class="card-meta">
+          <div class="card-prefix"><span class="card-days">${reason}</span></div>
+          <p class="card-name">${esc(item.name)}</p>
+          <p class="card-price">Watched ${d} days</p>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button class="archive-btn" style="flex:1" onclick="restoreItem('${item.id}')">Restore</button>
+            <button class="archive-btn ghost" style="flex:1" onclick="deleteItem('${item.id}')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function setWlView(mode) {
+    s.wlViewMode = mode;
+    render(); scalePhone();
+  }
+
+  function toggleItemsFilter(tag) {
+    const idx = s.itemsFilterTags.indexOf(tag);
+    if (idx === -1) s.itemsFilterTags = [...s.itemsFilterTags, tag];
+    else s.itemsFilterTags = s.itemsFilterTags.filter(t => t !== tag);
+    render(); scalePhone();
+  }
+
+  async function shareWishlist(wid) {
+    const wl = getWl(wid);
+    if (!wl) return;
+    const wItems = watchingItems(wid);
+    const itemLines = wItems.length
+      ? wItems.map(i => `• ${i.name}${i.price ? '  ' + money(i.price) : ''}`).join('\n')
+      : 'No items yet.';
+    const shareText = `${wl.name.toUpperCase()}\n\n${itemLines}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: wl.name, text: shareText });
+      } catch (e) {
+        if (e.name !== 'AbortError') showToast('Could not share.');
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        showToast('Copied to clipboard.');
+      } catch {
+        showToast('Sharing not available.');
+      }
+    }
+  }
+
+  function setItemsView(mode) {
+    s.itemsViewMode = mode;
+    render(); scalePhone();
+  }
+
+  function setArchiveView(mode) {
+    s.archiveViewMode = mode;
+    render(); scalePhone();
+  }
+
+  function openAddWishlistItem(wid) {
+    openAddItem(wid);
+  }
+
+  // Item drag-to-reorder
+  function itemDragStart(e, idx) {
+    itemDragSrcIdx = idx;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(idx));
+    setTimeout(() => { if (e.target) e.target.style.opacity = '0.35'; }, 0);
+  }
+  function itemDragOver(e, idx) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.style.outline = '2px solid #000';
+    e.currentTarget.style.outlineOffset = '-2px';
+  }
+  function itemDragLeave(e) {
+    e.currentTarget.style.outline = '';
+  }
+  function itemDrop(e, toIdx) {
+    e.preventDefault(); e.stopPropagation();
+    e.currentTarget.style.outline = '';
+    const fromIdx = itemDragSrcIdx;
+    if (fromIdx === null || fromIdx === toIdx) { itemDragSrcIdx = null; return; }
+    const wid = s.currentWid;
+    const wlList = wishlistItems(wid);
+    const moved = wlList.splice(fromIdx, 1)[0];
+    wlList.splice(toIdx, 0, moved);
+    // Assign explicit order values preserving new sequence
+    const base = Date.now();
+    wlList.forEach((itm, i) => {
+      items = items.map(x => x.id === itm.id ? { ...x, order: base - i * 1000 } : x);
+    });
+    itemDragSrcIdx = null;
+    render(); scalePhone();
+  }
+  function itemDragEnd(e) {
+    e.target.style.opacity = '';
+    itemDragSrcIdx = null;
+  }
+
+  function addManually() {
+    s.addForm.url  = '';
+    s.addForm.name = '';
+    s.addForm.brand = '';
+    s.addForm.tags = [];
+    s.addForm.showTagInput = false;
+    s.addForm.tagQuery = '';
+    s.addForm.img  = '';
+    s.addForm.price = '';
+    s.addForm.saved = '';
+    s.addForm.note  = '';
+    s.addForm.wid   = s.addWid || wishlists[0]?.id || '';
+    s.addForm.serious = false;
+    s.addStep = 'form';
+    render(); scalePhone();
+  }
+
+  function handleItemFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      s.addForm.img = e.target.result;
+      render(); scalePhone();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleCoverFile(input, wid) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: e.target.result } : w);
+      s.overlay = null;
+      render(); scalePhone();
+      showToast('Cover updated.');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function toggleWlItemEdit() {
+    s.wlItemEditMode = !s.wlItemEditMode;
+    render(); scalePhone();
+    if (s.wlItemEditMode) {
+      setTimeout(() => document.getElementById('wl-rename-input')?.select(), 80);
+    }
+  }
+
+  function renameWishlist(wid, newName) {
+    const name = newName.trim();
+    if (!name) return;
+    wishlists = wishlists.map(w => w.id === wid ? { ...w, name } : w);
+    // Update the display label without full re-render (preserves focus flow)
+    const big = document.querySelector('.wl-name-big');
+    if (big) big.textContent = name.toUpperCase();
+  }
+
+  function removeItem(e, id) {
+    e.stopPropagation();
+    items = items.filter(i => i.id !== id);
+    render(); scalePhone();
+    showToast('Item removed.');
+  }
+
+  function openChangeCover(wid) {
+    s.currentWid = wid;
+    s.overlay = 'change-cover';
+    render(); scalePhone();
+  }
+
+  function closeCoverPanel() {
+    s.overlay = null;
+    render(); scalePhone();
+  }
+
+  function saveCoverImage(wid) {
+    const val = document.getElementById('cover-url-input')?.value.trim();
+    if (!val) return;
+    wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: val } : w);
+    s.overlay = null;
+    render(); scalePhone();
+    showToast('Cover updated.');
+  }
+
+  function wlLongPressStart() {
+    longPressTimer = setTimeout(() => {
+      if (!s.wlEditMode) { s.wlEditMode = true; render(); scalePhone(); }
+    }, 550);
+  }
+
+  function itemLongPressStart(e, id) {
+    longPressTimer = setTimeout(() => {
+      if (!s.wlItemEditMode) {
+        s.wlItemEditMode = true;
+        render(); scalePhone();
+        showToast('Hold and drag to reorder.');
+      }
+    }, 500);
+  }
+
+  function itemLongPressCancel() {
+    clearTimeout(longPressTimer);
+  }
+
+  function wlLongPressCancel() {
+    clearTimeout(longPressTimer);
+  }
+
+  function deleteWishlist(id) {
+    const wl = getWl(id);
+    const count = watchingItems(id).length;
+    if (count > 0) {
+      // Remove items too
+      items = items.filter(i => i.wid !== id);
+    }
+    wishlists = wishlists.filter(w => w.id !== id);
+    if (wishlists.length === 0) s.wlEditMode = false;
+    render(); scalePhone();
+    showToast(wl ? `"${wl.name}" removed.` : 'Wishlist removed.');
+  }
+
+  // ── Drag & drop to reorder ──
+  function wlDragStart(e, idx) {
+    dragSrcIdx = idx;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(idx));
+    setTimeout(() => { if (e.target) e.target.style.opacity = '0.35'; }, 0);
+  }
+
+  function wlDragOver(e, idx) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('card-drag-over');
+  }
+
+  function wlDragLeave(e) {
+    e.currentTarget.classList.remove('card-drag-over');
+  }
+
+  function wlDrop(e, idx) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('card-drag-over');
+    if (dragSrcIdx === null || dragSrcIdx === idx) { dragSrcIdx = null; return; }
+    const moved = wishlists.splice(dragSrcIdx, 1)[0];
+    wishlists.splice(idx, 0, moved);
+    dragSrcIdx = null;
+    render(); scalePhone();
+  }
+
+  function wlDragEnd(e) {
+    e.target.style.opacity = '';
+    document.querySelectorAll('.card-drag-over').forEach(el => el.classList.remove('card-drag-over'));
+    dragSrcIdx = null;
+  }
+
+  // ═══════════════════════════════════════════
+  // INIT
+  // ═══════════════════════════════════════════
+
+  function scalePhone() {
+    const phone = document.getElementById('phone');
+    if (!phone) return;
+    const availW = window.innerWidth - 48;
+    const availH = window.innerHeight - 120;
+    const scale = Math.min(1, availW / 390, availH / 844);
+    phone.style.transform = `scale(${scale})`;
+    // Collapse the whitespace left by transform shrinking the element
+    phone.style.marginBottom = `${(844 * scale) - 844}px`;
+  }
+  window.addEventListener('resize', scalePhone);
+
+  // ─── Swipe back gesture ───────────────────
+  let swipeTouchId = null, swipeStartX = 0, swipeStartY = 0;
+
+  function handleSwipeBack() {
+    if (s.screen === 'wishlist-detail') {
+      navTo('wishlists');
+    } else if (s.screen === 'item-detail') {
+      if (s.fromScreen === 'wishlist-detail' && s.fromWid) {
+        openWl(s.fromWid);
+      } else {
+        navTo(s.fromScreen || 'wishlists');
+      }
+    }
+  }
+
+  document.getElementById('phone').addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    // Only intercept touches starting from the left 20% of the phone element
+    const rect = document.getElementById('phone').getBoundingClientRect();
+    if (t.clientX - rect.left < rect.width * 0.2) {
+      swipeTouchId = t.identifier;
+      swipeStartX = t.clientX;
+      swipeStartY = t.clientY;
+    }
+  }, { passive: true });
+
+  document.getElementById('phone').addEventListener('touchend', e => {
+    const t = [...e.changedTouches].find(x => x.identifier === swipeTouchId);
+    if (!t) return;
+    swipeTouchId = null;
+    const dx = t.clientX - swipeStartX;
+    const dy = Math.abs(t.clientY - swipeStartY);
+    if (dx > 70 && dy < 60) handleSwipeBack();
+  }, { passive: true });
+
+  render();
+  scalePhone();
+
+  // ─── Web Share Target handler ─────────────
+  // When the app is opened via "Share → The Wishlist" from a browser,
+  // the OS appends ?url=<product-url> (per manifest share_target config).
+  // Detect it and jump straight into the fetch flow.
+  (function handleShareTarget() {
+    const p = new URLSearchParams(window.location.search);
+    let sharedUrl = p.get('url') || '';
+    // Some apps share as plain text — try to extract a URL from it
+    if (!sharedUrl) {
+      const text = p.get('text') || '';
+      const match = text.match(/https?:\/\/\S+/);
+      if (match) sharedUrl = match[0];
+    }
+    if (!sharedUrl) return;
+    try { new URL(sharedUrl); } catch { return; } // ignore non-URLs
+    // Set up state to add item from this URL
+    s.screen = 'add-item';
+    s.addStep = 'url';
+    s.addForm = {
+      ...s.addForm,
+      url: sharedUrl,
+      name: p.get('title') || '',
+    };
+    // fetchUrl reads s.addForm.url when the input field isn't in the DOM yet
+    fetchUrl();
+  })();
+  </script>
+</body>
+</html>
