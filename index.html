@@ -3739,7 +3739,7 @@
     s.addForm.showTagInput = true;
     s.addForm.tagQuery = '';
     render();
-    setTimeout(() => document.getElementById('tag-inline-input')?.focus(), 60);
+    document.getElementById('tag-inline-input')?.focus();
   }
 
   function closeTagInput() {
