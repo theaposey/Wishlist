@@ -1,5 +1,6 @@
-const CACHE = 'wishlist-v25';
-const SHELL = ['/index.html', '/manifest.json', '/sw.js', '/icon.svg', '/install.html'];
+const CACHE = 'wishlist-v26';
+const BASE = '/wishlist';
+const SHELL = [BASE + '/index.html', BASE + '/manifest.json', BASE + '/sw.js', BASE + '/icon.svg', BASE + '/install.html'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();
@@ -21,14 +22,14 @@ self.addEventListener('fetch', e => {
   // Navigation → serve install.html directly, everything else gets app shell
   if (e.request.mode === 'navigate') {
     const pathname = url.pathname;
-    if (pathname === '/install.html') {
+    if (pathname === BASE + '/install.html') {
       e.respondWith(
         caches.match(pathname).then(r => r || fetch(e.request))
       );
       return;
     }
     e.respondWith(
-      caches.match('/index.html').then(r => r || fetch(e.request))
+      caches.match(BASE + '/index.html').then(r => r || fetch(e.request))
     );
     return;
   }
