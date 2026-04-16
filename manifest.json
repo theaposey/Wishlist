@@ -2,21 +2,21 @@
   "name": "The Wishlist",
   "short_name": "Wishlist",
   "description": "Save what you want. Share what you love.",
-  "start_url": "/wishlist/",
+  "start_url": "/Wishlist/",
   "display": "standalone",
   "background_color": "#86EE86",
   "theme_color": "#86EE86",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/wishlist/icon.png",
+      "src": "/Wishlist/icon.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
   "share_target": {
-    "action": "/wishlist/",
+    "action": "/Wishlist/",
     "method": "GET",
     "params": {
       "url": "url",
