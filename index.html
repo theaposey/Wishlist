@@ -2749,8 +2749,8 @@
         'utm_source','utm_medium','utm_campaign','utm_content','utm_term','utm_id',
         'gclid','gclsrc','gbraid','wbraid','fbclid','msclkid','ttclid','twclid',
         'gad_source','gad_campaignid','campaignid','adgroupid','adpos','creative',
-        'device','matchtype','network','targetid','pla_sku','pcat','storeid',
-        'a','ref','referrer','source','mc_cid','mc_eid','_ga','_gl',
+        'device','matchtype','network','targetid','pla_sku','pla_country','pcat','storeid',
+        'cm_mmc','cm_sp','cm_re','a','ref','referrer','source','mc_cid','mc_eid','_ga','_gl',
       ];
       TRACKING.forEach(p => u.searchParams.delete(p));
       return u.toString();
@@ -2789,6 +2789,13 @@
       else if (host.includes('mytheresa.com')) {
         const pIdx = parts.indexOf('p');
         if (pIdx >= 0) name = slugToTitle(parts[pIdx + 1]?.replace(/\.html$/, '').replace(/-[a-z0-9]{4,10}$/, '') || '');
+      }
+      // Bloomingdale's: /shop/product/{product-slug}?ID={id}
+      else if (host.includes('bloomingdales.com')) {
+        const pIdx = parts.indexOf('product');
+        const slug = pIdx >= 0 ? (parts[pIdx + 1] || '') : (parts[parts.length - 1] || '');
+        name = slugToTitle(slug);
+        brand = 'Bloomingdale\'s';
       }
       // CB2: /{product-slug}/s{sku}
       else if (host.includes('cb2.com')) {
