@@ -2870,7 +2870,7 @@
           .map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').trim();
       }
 
-      let brand = '', name = '';
+      let brand = '', name = '', img = '';
 
       // Net-a-Porter: /en-us/shop/product/{brand}/{cat}/{subcat}/{product-slug}/{id}
       if (host.includes('net-a-porter.com') || host.includes('mrporter.com')) {
@@ -2878,13 +2878,26 @@
         if (idx >= 0) {
           brand = slugToTitle(parts[idx + 1] || '');
           name  = slugToTitle(parts[idx + 4] || parts[idx + 3] || '');
+          // NAP product images follow a predictable CDN pattern keyed on numeric product ID
+          const productId = parts[parts.length - 1];
+          if (/^\d{10,}$/.test(productId)) {
+            img = `https://www.net-a-porter.com/variants/images/${productId}/in/w2000_q60.jpg`;
+          }
         }
       }
-      // SSENSE: /en-us/{brand}/{product-slug}/p{id}
+      // SSENSE: /en-us/{gender}/product/{brand}/{product-slug}/p{id}
       else if (host.includes('ssense.com')) {
-        const nonLocale = parts.filter(p => !/^[a-z]{2}-[a-z]{2}$/.test(p));
-        brand = slugToTitle(nonLocale[0] || '');
-        name  = slugToTitle((nonLocale[1] || '').replace(/-p\d+$/, ''));
+        const pIdx = parts.indexOf('product');
+        if (pIdx >= 0) {
+          brand = slugToTitle(parts[pIdx + 1] || '');
+          name  = slugToTitle((parts[pIdx + 2] || '').replace(/-p\d+$/, ''));
+        } else {
+          // Fallback: skip locale + gender/category words
+          const SKIP = /^[a-z]{2}-[a-z]{2}$|^(women|men|everything|kids|lifestyle|sale|new|designers)$/i;
+          const seg = parts.filter(p => !SKIP.test(p));
+          brand = slugToTitle(seg[0] || '');
+          name  = slugToTitle((seg[1] || '').replace(/-p\d+$/, ''));
+        }
       }
       // Mytheresa: /us-en/p/{product-slug}-{sku}.html
       else if (host.includes('mytheresa.com')) {
@@ -2925,6 +2938,27 @@
         brand = slugToTitle(parts[0] || '');
         name  = slugToTitle(parts[1] || '');
       }
+      // TheRealReal: /products/{gender}/{category}/{subcategory}/{brand-slug}-{product-slug}-{sku}
+      else if (host.includes('therealreal.com')) {
+        const slug = parts[parts.length - 1] || '';
+        // Strip trailing SKU — short alphanumeric segment containing at least one digit
+        const withoutSku = slug.replace(/-([a-z0-9]{3,8})$/i, (_, s) => /[0-9]/.test(s) ? '' : `-${s}`);
+        const segs = withoutSku.split('-').filter(Boolean);
+        // First word = brand, remainder = product name
+        brand = slugToTitle(segs[0] || '');
+        name  = slugToTitle(segs.slice(1).join('-'));
+      }
+      // Shopify: /products/{product-slug}
+      else if (parts.includes('products')) {
+        const pIdx = parts.indexOf('products');
+        // Skip gender/category segments — take the last path segment as the product
+        const slug = parts[parts.length - 1] || '';
+        name = slugToTitle(slug);
+        // Infer brand from hostname, skipping common prefixes
+        const SKIP_HOST = new Set(['www','shop','store','us','uk','ca','en']);
+        const brandSeg = host.split('.').find(s => !SKIP_HOST.has(s) && s.length > 1);
+        if (brandSeg) brand = brandSeg.charAt(0).toUpperCase() + brandSeg.slice(1);
+      }
       // Generic: longest hyphenated path segment = product name
       else {
         const candidates = parts
@@ -2933,7 +2967,7 @@
         name = candidates.length ? slugToTitle(candidates[0]) : '';
       }
 
-      return (name || brand) ? { name, brand } : null;
+      return (name || brand) ? { name, brand, img } : null;
     } catch { return null; }
   }
 
@@ -3054,7 +3088,7 @@
         try {
           const findPrice = (o, d = 0) => {
             if (d > 12 || !o || typeof o !== 'object') return '';
-            for (const k of ['price','salePrice','currentPrice','priceValue','amount','retailPrice','formattedPrice']) {
+            for (const k of ['price','salePrice','currentPrice','priceValue','amount','retailPrice','formattedPrice','markdownPrice','basePrice','sellingPrice','discountedPrice']) {
               const v = o[k];
               if (v != null) {
                 const s = String(v).replace(/[^0-9.]/g, '');
@@ -3198,8 +3232,10 @@
         }
         s.addForm.name  = cleanedTitle;
         s.addForm.brand = brand || s.addForm.brand || '';
-        s.addForm.img   = ml.image?.url || ml.screenshot?.url || '';
-        s.addForm.price = '';
+        s.addForm.img   = ml.image?.url || ml.screenshot?.url || urlMeta?.img || '';
+        // Microlink sometimes returns price data directly
+        const mlPrice = ml.price?.amount ?? ml.price ?? '';
+        s.addForm.price = mlPrice ? String(mlPrice).replace(/[^0-9.]/g, '') : '';
         s.addStep = 'form';
         render();
         // Backfill price from ALL proxies in parallel — first one that returns a price wins
@@ -3239,7 +3275,7 @@
         }
         s.addForm.name  = name;
         s.addForm.brand = brand || s.addForm.brand || '';
-        s.addForm.img   = parsed.image;
+        s.addForm.img   = parsed.image || urlMeta?.img || '';
         s.addForm.price = parsed.price;
         s.addStep = 'form';
         render();
@@ -3249,7 +3285,7 @@
       const fallback = parseUrlFallback(url);
       s.addForm.name  = fallback?.name  || '';
       s.addForm.brand = fallback?.brand || '';
-      s.addForm.img   = '';
+      s.addForm.img   = fallback?.img   || '';
       s.addForm.price = '';
       s.addStep = 'form';
       render();
