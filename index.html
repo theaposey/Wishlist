@@ -2853,7 +2853,8 @@
         'device','matchtype','network','targetid','pla_sku','pla_country','pcat','storeid',
         'cm_mmc','cm_sp','cm_re','a','ref','referrer','source','mc_cid','mc_eid','_ga','_gl',
       ];
-      TRACKING.forEach(p => u.searchParams.delete(p));
+      const toDelete = [...u.searchParams.keys()].filter(k => TRACKING.includes(k) || /^vtp\d+$/i.test(k));
+      toDelete.forEach(k => u.searchParams.delete(k));
       return u.toString();
     } catch { return urlStr; }
   }
@@ -3230,6 +3231,8 @@
             cleanedTitle = cleanedTitle.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
           }
         }
+        // If Microlink title is empty or just a numeric product ID, use URL-derived name
+        if (!cleanedTitle || /^\d+$/.test(cleanedTitle)) cleanedTitle = urlMeta?.name || cleanedTitle;
         s.addForm.name  = cleanedTitle;
         s.addForm.brand = brand || s.addForm.brand || '';
         s.addForm.img   = ml.image?.url || ml.screenshot?.url || urlMeta?.img || '';
@@ -3770,16 +3773,29 @@
       // For external URLs, try fetching via CORS so we get pixel access
       let imgSrc = src;
       if (!src.startsWith('data:')) {
+        const toDataUrl = blob => new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result);
+          reader.readAsDataURL(blob);
+        });
+        let fetched = false;
+        // 1. Direct CORS fetch
         try {
           const res = await fetch(src, { mode: 'cors' });
-          if (!res.ok) throw new Error('fetch failed');
-          const blob = await res.blob();
-          imgSrc = await new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
-            reader.readAsDataURL(blob);
-          });
-        } catch {
+          if (!res.ok) throw new Error('http');
+          imgSrc = await toDataUrl(await res.blob());
+          fetched = true;
+        } catch {}
+        // 2. Proxy fallback (for CDNs that block cross-origin browser requests)
+        if (!fetched) {
+          try {
+            const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(src)}`);
+            if (!res.ok) throw new Error('proxy-http');
+            imgSrc = await toDataUrl(await res.blob());
+            fetched = true;
+          } catch {}
+        }
+        if (!fetched) {
           s.removingBg = false;
           render();
           showToast('Upload the image first, then remove the background.');
