@@ -535,70 +535,80 @@
       text-transform: uppercase;
     }
 
-    /* ─── Onboarding ─── */
-    .onboarding {
-      position: fixed; inset: 0; background: #fff; z-index: 9999;
-      display: flex; flex-direction: column;
-      padding: env(safe-area-inset-top, 44px) 0 env(safe-area-inset-bottom, 24px);
-      overflow-y: auto;
+    /* ─── Install Bottom Sheet ─── */
+    .install-backdrop {
+      position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,0.45);
     }
-    .ob-hero {
-      padding: 48px 28px 36px;
-      flex: 1;
-      display: flex; flex-direction: column; justify-content: flex-end;
+    .install-sheet {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+      background: #fff; border-top: 1px solid #e8e8e8;
+      padding-bottom: env(safe-area-inset-bottom, 16px);
+      transform: translateY(105%);
+      transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 92vh; overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
-    .ob-eyebrow {
-      font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
-      color: #bbb; margin-bottom: 14px;
-    }
-    .ob-title {
-      font-size: 52px; font-weight: 800; letter-spacing: -0.025em;
-      text-transform: uppercase; line-height: 0.88; color: #000;
-      margin-bottom: 20px;
-    }
-    .ob-tagline {
-      font-size: 11px; letter-spacing: 0.05em; color: #999; line-height: 1.8;
-      text-transform: uppercase;
-    }
-    .ob-steps {
-      border-top: 1px solid #f0f0f0;
-      padding: 0 24px;
-    }
-    .ob-steps-label {
-      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
-      color: #bbb; padding: 18px 0 12px;
-    }
-    .ob-visual-step {
+    .install-sheet.is-open { transform: translateY(0); }
+    .install-sheet-header {
       display: flex; align-items: center; gap: 16px;
-      padding: 14px 0; border-bottom: 1px solid #f4f4f4;
+      padding: 22px 20px 18px; border-bottom: 1px solid #f0f0f0;
     }
-    .ob-visual-step:last-child { border-bottom: none; }
-    .ob-visual-box { width: 60px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .ob-step-text-col { flex: 1; min-width: 0; }
-    .ob-step-num {
+    .install-icon-sq {
+      width: 52px; height: 52px; background: var(--accent); flex-shrink: 0;
+    }
+    .install-title-col { flex: 1; min-width: 0; }
+    .install-app-name {
+      font-size: 13px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #000; display: block;
+    }
+    .install-app-sub {
       font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
-      color: #bbb; margin-bottom: 3px;
+      color: #999; margin-top: 4px; display: block;
     }
-    .ob-step-title-sm {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-      text-transform: uppercase; color: #000; margin-bottom: 3px;
+    .install-close-btn {
+      width: 30px; height: 30px; background: #efefef; border: none;
+      border-radius: 50%; font-size: 18px; color: #666;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; font-family: inherit; line-height: 1;
+      padding-bottom: 1px;
     }
-    .ob-step-body-sm {
-      font-size: 11px; letter-spacing: 0.02em; color: #999; line-height: 1.55;
+    .install-desc {
+      padding: 18px 20px 16px; border-bottom: 1px solid #f0f0f0;
+      font-size: 12px; letter-spacing: 0.03em; color: #444; line-height: 1.75;
     }
-    .ob-step-body-sm strong { color: #000; font-weight: 700; }
-    .ob-actions {
-      padding: 20px 24px 8px;
-      border-top: 1px solid #f0f0f0;
+    .install-steps { border-bottom: 1px solid #f0f0f0; }
+    .install-step-row {
+      display: flex; align-items: center; gap: 18px;
+      padding: 16px 20px; border-top: 1px solid #f4f4f4;
     }
-    .ob-skip {
+    .install-step-row:first-child { border-top: none; }
+    .install-step-icon {
+      width: 44px; height: 44px; background: #f0f0f0;
+      border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .install-step-label {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: #000; line-height: 1.4;
+    }
+    .install-step-sub {
+      font-size: 10px; letter-spacing: 0.04em; color: #999;
+      margin-top: 2px; line-height: 1.5;
+    }
+    .install-actions { padding: 16px 20px 8px; }
+    .install-cta {
+      display: block; width: 100%; background: #000; color: #fff;
+      font-family: inherit; font-size: 10px; letter-spacing: 0.2em;
+      text-transform: uppercase; padding: 16px; border: none; cursor: pointer;
+      text-align: center; margin-bottom: 10px;
+    }
+    .install-skip {
       display: block; width: 100%; background: none; border: none;
       font-family: inherit; font-size: 9px; letter-spacing: 0.15em;
-      text-transform: uppercase; color: #bbb; padding: 12px 0;
+      text-transform: uppercase; color: #bbb; padding: 10px 0;
       cursor: pointer; text-align: center;
     }
-    @keyframes ob-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.8;transform:scale(1.06)} }
-    .ob-pulse { animation: ob-pulse 2s ease-in-out infinite; transform-origin: center; }
 
     /* ─── Name prompt ─── */
     .name-prompt {
@@ -1160,6 +1170,8 @@
 
   let longPressTimer = null;
   let dragSrcIdx = null;
+  let deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstallPrompt = e; });
 
   // ═══════════════════════════════════════════
   // HELPERS
@@ -1402,119 +1414,110 @@
   // ═══════════════════════════════════════════
 
   function showOnboarding() {
-    document.getElementById('app').innerHTML = `
-      <div class="onboarding" id="onboarding">
-        <div class="ob-hero">
-          <p class="ob-eyebrow">The Wishlist</p>
-          <h1 class="ob-title">Save<br/>what you<br/>want.</h1>
+    // Render the app first so it shows underneath the sheet
+    render();
+
+    // Remove any leftover install UI
+    document.getElementById('install-backdrop-el')?.remove();
+    document.getElementById('install-sheet-el')?.remove();
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'install-backdrop';
+    backdrop.id = 'install-backdrop-el';
+    backdrop.addEventListener('click', dismissOnboarding);
+    document.body.appendChild(backdrop);
+
+    const sheet = document.createElement('div');
+    sheet.className = 'install-sheet';
+    sheet.id = 'install-sheet-el';
+
+    const isChrome = deferredInstallPrompt !== null;
+
+    sheet.innerHTML = `
+      <div class="install-sheet-header">
+        <div class="install-icon-sq"></div>
+        <div class="install-title-col">
+          <span class="install-app-name">The Wishlist</span>
+          <span class="install-app-sub">Web Application</span>
         </div>
-
-        <div class="ob-steps">
-          <p class="ob-steps-label">Install in 3 steps</p>
-
-          <!-- Step 1: Tap Share -->
-          <div class="ob-visual-step">
-            <div class="ob-visual-box">
-              <svg width="60" height="60" viewBox="0 0 60 60" class="ob-pulse">
-                <!-- Phone body -->
-                <rect x="6" y="1" width="48" height="58" rx="8" fill="#e8e8e8"/>
-                <!-- Screen -->
-                <rect x="8" y="7" width="44" height="44" fill="#fff"/>
-                <!-- Address bar -->
-                <rect x="11" y="9" width="38" height="5" rx="2.5" fill="#efefef"/>
-                <!-- Page content lines -->
-                <rect x="11" y="17" width="28" height="2.5" rx="1.25" fill="#f0f0f0"/>
-                <rect x="11" y="21.5" width="20" height="2.5" rx="1.25" fill="#f0f0f0"/>
-                <rect x="11" y="26" width="24" height="2.5" rx="1.25" fill="#f0f0f0"/>
-                <!-- Bottom toolbar -->
-                <rect x="8" y="43" width="44" height="8" fill="#f0f0f0"/>
-                <!-- ••• button highlighted on right -->
-                <rect x="40" y="43" width="12" height="8" fill="#86EE86"/>
-                <!-- Three dots -->
-                <circle cx="43.5" cy="47" r="1.1" fill="#000"/>
-                <circle cx="46" cy="47" r="1.1" fill="#000"/>
-                <circle cx="48.5" cy="47" r="1.1" fill="#000"/>
-                <!-- Home indicator -->
-                <rect x="22" y="56" width="16" height="2" rx="1" fill="#ccc"/>
+        <button class="install-close-btn" onclick="dismissOnboarding()">×</button>
+      </div>
+      <p class="install-desc">Add to your home screen for the full experience — works offline and opens like a native app. No download required.</p>
+      ${isChrome ? `
+        <div class="install-actions">
+          <button class="install-cta" onclick="triggerInstall()">Add to Home Screen</button>
+          <button class="install-skip" onclick="dismissOnboarding()">Continue in browser →</button>
+        </div>
+      ` : `
+        <div class="install-steps">
+          <div class="install-step-row">
+            <div class="install-step-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <circle cx="11" cy="11" r="1.8" fill="#333"/>
+                <circle cx="5.5" cy="11" r="1.8" fill="#333"/>
+                <circle cx="16.5" cy="11" r="1.8" fill="#333"/>
               </svg>
             </div>
-            <div class="ob-step-text-col">
-              <p class="ob-step-num">01</p>
-              <p class="ob-step-title-sm">Tap ••• then Share</p>
-              <p class="ob-step-body-sm">The three dots at the <strong>bottom right</strong> of Safari, then tap Share</p>
+            <div>
+              <p class="install-step-label">Tap ••• in Safari</p>
+              <p class="install-step-sub">Bottom right of your toolbar</p>
             </div>
           </div>
-
-          <!-- Step 2: Add to Home Screen -->
-          <div class="ob-visual-step">
-            <div class="ob-visual-box">
-              <svg width="60" height="60" viewBox="0 0 60 60">
-                <!-- Share sheet background -->
-                <rect x="2" y="4" width="56" height="52" rx="10" fill="#f0f0f0"/>
-                <!-- Sheet rows -->
-                <rect x="5" y="7" width="50" height="11" rx="3" fill="#fff"/>
-                <rect x="9" y="10" width="6" height="5" rx="1.5" fill="#e0e0e0"/>
-                <rect x="18" y="11.5" width="22" height="2.5" rx="1.25" fill="#e0e0e0"/>
-                <!-- Highlighted row: Add to Home Screen -->
-                <rect x="5" y="20" width="50" height="13" rx="3" fill="#fff" stroke="#86EE86" stroke-width="1.5"/>
-                <!-- App icon in row -->
-                <rect x="9" y="23.5" width="7" height="6" rx="2" fill="#86EE86"/>
-                <line x1="12.5" y1="25.5" x2="12.5" y2="27.5" stroke="#000" stroke-width="1.1" stroke-linecap="round"/>
-                <line x1="11.5" y1="26.5" x2="13.5" y2="26.5" stroke="#000" stroke-width="1.1" stroke-linecap="round"/>
-                <!-- Row label -->
-                <rect x="19" y="25" width="30" height="3" rx="1.5" fill="#222"/>
-                <!-- More rows (faded) -->
-                <rect x="5" y="35" width="50" height="9" rx="3" fill="#fff" opacity="0.55"/>
-                <rect x="9" y="38" width="5" height="4" rx="1" fill="#ddd" opacity="0.55"/>
-                <rect x="17" y="39" width="18" height="2" rx="1" fill="#ddd" opacity="0.55"/>
-                <rect x="5" y="46" width="50" height="8" rx="3" fill="#fff" opacity="0.3"/>
+          <div class="install-step-row">
+            <div class="install-step-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 14V4"/>
+                <path d="M7.5 7.5L11 4l3.5 3.5"/>
+                <path d="M4 14v4h14v-4"/>
               </svg>
             </div>
-            <div class="ob-step-text-col">
-              <p class="ob-step-num">02</p>
-              <p class="ob-step-title-sm">Add to Home Screen</p>
-              <p class="ob-step-body-sm">Scroll down in the share sheet to find it</p>
+            <div>
+              <p class="install-step-label">Tap Share</p>
+              <p class="install-step-sub">In the menu that opens</p>
             </div>
           </div>
-
-          <!-- Step 3: Tap Add -->
-          <div class="ob-visual-step">
-            <div class="ob-visual-box">
-              <svg width="60" height="60" viewBox="0 0 60 60">
-                <!-- Phone body -->
-                <rect x="6" y="1" width="48" height="58" rx="8" fill="#e8e8e8"/>
-                <!-- Screen -->
-                <rect x="8" y="7" width="44" height="44" fill="#fff"/>
-                <!-- Home screen app grid -->
-                <rect x="11" y="11" width="10" height="10" rx="3" fill="#ddd"/>
-                <rect x="25" y="11" width="10" height="10" rx="3" fill="#ddd"/>
-                <rect x="39" y="11" width="10" height="10" rx="3" fill="#ddd"/>
-                <rect x="11" y="24" width="10" height="10" rx="3" fill="#ddd"/>
-                <!-- App icon — highlighted -->
-                <rect x="25" y="24" width="10" height="10" rx="3" fill="#86EE86"/>
-                <text x="30" y="31.5" text-anchor="middle" fill="#000" font-size="6.5" font-family="Helvetica Neue,sans-serif" font-weight="800">W</text>
-                <rect x="39" y="24" width="10" height="10" rx="3" fill="#ddd"/>
-                <rect x="11" y="37" width="10" height="10" rx="3" fill="#ddd"/>
-                <rect x="25" y="37" width="10" height="10" rx="3" fill="#ddd"/>
-                <rect x="39" y="37" width="10" height="10" rx="3" fill="#ddd"/>
-                <!-- App label -->
-                <text x="30" y="38" text-anchor="middle" fill="#999" font-size="3.5" font-family="Helvetica Neue,sans-serif">Wishlist</text>
-                <!-- Home indicator -->
-                <rect x="22" y="56" width="16" height="2" rx="1" fill="#ccc"/>
+          <div class="install-step-row">
+            <div class="install-step-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.7" stroke-linecap="round">
+                <rect x="3" y="3" width="16" height="16" rx="2"/>
+                <line x1="11" y1="8" x2="11" y2="14"/>
+                <line x1="8" y1="11" x2="14" y2="11"/>
               </svg>
             </div>
-            <div class="ob-step-text-col">
-              <p class="ob-step-num">03</p>
-              <p class="ob-step-title-sm">Tap Add</p>
-              <p class="ob-step-body-sm">The Wishlist appears on your home screen and runs like a native app</p>
+            <div>
+              <p class="install-step-label">Add to Home Screen</p>
+              <p class="install-step-sub">Scroll down in the share sheet</p>
+            </div>
+          </div>
+          <div class="install-step-row">
+            <div class="install-step-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 11.5l5 5 9-9"/>
+              </svg>
+            </div>
+            <div>
+              <p class="install-step-label">Tap Add</p>
+              <p class="install-step-sub">You're done — opens like a native app</p>
             </div>
           </div>
         </div>
-
-        <div class="ob-actions">
-          <button class="ob-skip" onclick="dismissOnboarding()">Continue in browser →</button>
+        <div class="install-actions">
+          <button class="install-skip" onclick="dismissOnboarding()">Continue in browser →</button>
         </div>
-      </div>`;
+      `}
+    `;
+
+    document.body.appendChild(sheet);
+    // Double rAF ensures the initial transform is painted before the transition starts
+    requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('is-open')));
+  }
+
+  async function triggerInstall() {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const result = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (result.outcome === 'accepted') dismissOnboarding();
   }
 
   function getUserName() {
@@ -1563,11 +1566,18 @@
 
   function dismissOnboarding() {
     try { localStorage.setItem('vtr_ob_dismissed', '1'); } catch(e) {}
-    // After dismissing install instructions, prompt for name if not set
-    if (!getUserName()) {
-      showNamePrompt();
+    const sheet = document.getElementById('install-sheet-el');
+    const backdrop = document.getElementById('install-backdrop-el');
+    if (sheet) {
+      sheet.style.transition = 'transform 0.28s ease-in';
+      sheet.style.transform = 'translateY(105%)';
+      setTimeout(() => { sheet.remove(); backdrop?.remove(); }, 290);
     } else {
-      render();
+      backdrop?.remove();
+    }
+    // After dismissing, prompt for name if not set
+    if (!getUserName()) {
+      setTimeout(() => showNamePrompt(), 310);
     }
   }
 
