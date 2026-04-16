@@ -142,7 +142,7 @@
       text-transform: uppercase;
       color: #bbb;
     }
-    .sub-tab.active span { color: #000; font-weight: 600; }
+    .sub-tab.active span { color: #000; }
     @keyframes wlSlideFromRight { from { transform: translateX(100%); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
     @keyframes wlSlideFromLeft  { from { transform: translateX(-100%); opacity: 0.6; } to { transform: translateX(0); opacity: 1; } }
     .wl-slide-from-right { animation: wlSlideFromRight 0.42s cubic-bezier(0.4,0,0.2,1) both; }
@@ -810,7 +810,7 @@
 
     /* ─── Profile ─── */
     .profile-body { flex: 1; display: flex; flex-direction: column; padding: 36px 28px; }
-    .profile-hero { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; line-height: 0.9; color: #ebebeb; margin-bottom: 40px; }
+    .profile-hero { font-size: 54px; font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; line-height: 0.88; color: #ebebeb; margin-bottom: 40px; }
     .profile-stat-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f4f4f4; }
     .profile-stat-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; }
     .profile-stat-val { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; font-weight: 600; }
@@ -1854,7 +1854,7 @@
           ? `<div class="grid">${wishlists.map((wl, idx) => wishlistCard(wl, idx)).join('')}</div>`
           : `<div class="empty-state">
                <p class="empty-hero">nothing<br/>here<br/>yet</p>
-               <button class="empty-cta" onclick="openAddWishlist()">+ Create Your First Wishlist</button>
+               <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap + to create your first wishlist</p>
              </div>`}
         ${uncategorized.length ? `
           <div class="section-title-row" style="border-top:1px solid #f4f4f4">
@@ -1864,7 +1864,7 @@
             ${uncategorized.map(item => `<div style="flex:0 0 48vw;max-width:200px">${itemCard(item)}</div>`).join('')}
           </div>` : ''}
       </div>
-      ${hasLists ? fab("openAddWishlist()") : ''}
+      ${fab("openAddWishlist()")}
       ${nav('wishlists')}`;
   }
 
@@ -2054,12 +2054,12 @@
         ${all.length === 0 ? `
           <div class="empty-state" style="padding-top:60px">
             <p class="empty-hero">nothing<br/>here<br/>yet</p>
-            <button class="empty-cta" onclick="openAddItem(null)">+ Add Your First Item</button>
+            <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap + to add your first item</p>
           </div>` : s.itemsViewMode === 'list'
             ? `<div class="list-view">${filtered.map(item => itemListRow(item)).join('')}</div>`
             : `<div class="grid">${filtered.map(itemCard).join('')}</div>`}
       </div>
-      ${all.length > 0 ? fab("openAddItem(null)") : ''}
+      ${fab("openAddItem(null)")}
       ${nav('wishlists')}`;
   }
 
@@ -2178,7 +2178,7 @@
         <div class="scroll-area">
           <div class="empty-state">
             <p class="empty-hero">no<br/>data<br/>yet</p>
-            <p style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:center">Start saving items to see your patterns</p>
+            <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Start saving items to see your patterns</p>
           </div>
         </div>
         ${nav('stats')}`;
