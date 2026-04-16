@@ -26,8 +26,8 @@
   <meta name="twitter:title" content="The Wishlist" />
   <meta name="twitter:description" content="Save what you want. Share what you love." />
   <meta name="twitter:image" content="/icon.svg" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/icon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.svg" />
   <title>The Wishlist</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1542,7 +1542,7 @@
       <div class="safe-top"></div>
       <header>
         <span class="h-left">${headerTitle}</span>
-        <a href="/install.html" style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;text-decoration:none">Get the App</a>
+        <a href="install.html" style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;text-decoration:none">Get the App</a>
       </header>
       <div class="wl-detail-scroll">
         ${cover ? `<div class="wl-cover-wrap">
@@ -1804,7 +1804,9 @@
     return `
       <div class="safe-top"></div>
       <header>
-        <button class="h-left" onclick="navTo('wishlists')">← Wishlists</button>
+        ${s.wlItemEditMode
+          ? `<button class="h-left" style="color:#c0392b" onclick="deleteWishlist('${wl.id}')">Delete</button>`
+          : `<button class="h-left" onclick="navTo('wishlists')">← Wishlists</button>`}
         <div style="display:flex;align-items:center;gap:14px">
           ${!s.wlItemEditMode ? `
           <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="shareWishlist('${wl.id}')" title="Share">
@@ -2002,54 +2004,131 @@
   }
 
   function screenStats() {
-    const watching = watchingItems().length;
-    const archived = archivedItems().length;
-    const purchasedCount = items.filter(i => i.status === 'purchased').length;
-    const totalValue = totalWatchingValue();
-    const seriousValue = seriousWatchingValue();
-    const casualValue = casualWatchingValue();
-    const letGoTotal = letGoValue();
+    const watching = watchingItems();
+    const purchased = items.filter(i => i.status === 'purchased');
+    const letGo = letGoItems();
+    const decided = purchased.length + letGo.length;
+
+    // Conviction rate: of all decisions made, what % ended in a buy
+    const convictionRate = decided >= 3
+      ? Math.round((purchased.length / decided) * 100)
+      : null;
+
+    // Average days from save → buy
+    const withBuyTime = purchased.filter(i => i.archivedAt && i.addedAt);
+    const avgBuyDays = withBuyTime.length > 0
+      ? Math.round(withBuyTime.reduce((s, i) => s + Math.floor((i.archivedAt - i.addedAt) / DAY), 0) / withBuyTime.length)
+      : null;
+
+    // Average days from save → let go
+    const withLetGoTime = letGo.filter(i => i.archivedAt && i.addedAt);
+    const avgLetGoDays = withLetGoTime.length > 0
+      ? Math.round(withLetGoTime.reduce((s, i) => s + Math.floor((i.archivedAt - i.addedAt) / DAY), 0) / withLetGoTime.length)
+      : null;
+
+    // Impulse resisted: watched 30+ days, then let go without buying
+    const impulseResisted = letGo.filter(i =>
+      i.archivedAt && i.addedAt && Math.floor((i.archivedAt - i.addedAt) / DAY) >= 30
+    ).length;
+
+    const moneyNotSpent = letGoValue();
+    const purchasedValue = sumPrice(purchased);
+    const watchingValue = totalWatchingValue();
+
+    // Top brand across all items ever
+    const brandCounts = {};
+    items.forEach(i => { if (i.brand?.trim()) brandCounts[i.brand.trim()] = (brandCounts[i.brand.trim()] || 0) + 1; });
+    const topBrand = Object.entries(brandCounts).sort((a,b) => b[1]-a[1])[0] || null;
+
+    // Top tag across all items ever
+    const tagCounts = {};
+    items.forEach(i => (i.tags||[]).forEach(t => { if (t) tagCounts[t] = (tagCounts[t] || 0) + 1; }));
+    const topTag = Object.entries(tagCounts).sort((a,b) => b[1]-a[1])[0] || null;
+
+    // Longest currently-watching item
+    const oldest = watching.length > 0
+      ? watching.reduce((a, b) => a.addedAt < b.addedAt ? a : b)
+      : null;
+    const oldestDays = oldest ? days(oldest.addedAt) : 0;
+
+    const statRow = (label, value, sub='') => `
+      <div class="profile-stat-row">
+        <span class="profile-stat-label">${label}</span>
+        <div style="text-align:right">
+          <span class="profile-stat-val">${value}</span>
+          ${sub ? `<p style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#ccc;margin-top:2px">${sub}</p>` : ''}
+        </div>
+      </div>`;
+
+    const bigStat = (number, label, sub='') => `
+      <div style="padding:20px 0;border-bottom:1px solid #f4f4f4">
+        <p style="font-size:48px;font-weight:800;letter-spacing:-0.03em;line-height:1;color:#000;margin-bottom:6px">${number}</p>
+        <p style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#bbb">${label}</p>
+        ${sub ? `<p style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#ccc;margin-top:3px">${sub}</p>` : ''}
+      </div>`;
+
+    const sectionLabel = label => `
+      <p style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#bbb;margin-top:36px;padding-bottom:10px;border-bottom:1px solid #f4f4f4">${label}</p>`;
+
+    if (items.length === 0) {
+      return `
+        <div class="safe-top"></div>
+        <header><span class="h-left">Stats</span></header>
+        <div class="scroll-area">
+          <div class="empty-state">
+            <p class="empty-hero">no<br/>data<br/>yet</p>
+            <p style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:center">Start saving items to see your patterns</p>
+          </div>
+        </div>
+        ${nav('stats')}`;
+    }
+
     return `
       <div class="safe-top"></div>
       <header>
         <span class="h-left">Stats</span>
-        <span class="h-right h-muted"></span>
       </header>
       <div class="scroll-area">
-        <div class="profile-body">
-          <p class="profile-hero">Your\nDesire\nData</p>
-          <div class="profile-stat-row">
-            <span class="profile-stat-label">Watching</span>
-            <span class="profile-stat-val">${watching}</span>
-          </div>
-          <div class="profile-stat-row">
-            <span class="profile-stat-label">Total Desire Cost</span>
-            <span class="profile-stat-val">${money(totalValue)}</span>
-          </div>
-          <div class="profile-stat-row profile-substat-row">
-            <span class="profile-stat-label profile-substat-label">Serious</span>
-            <span class="profile-stat-val">${money(seriousValue)}</span>
-          </div>
-          <div class="profile-stat-row profile-substat-row">
-            <span class="profile-stat-label profile-substat-label">Casual</span>
-            <span class="profile-stat-val">${money(casualValue)}</span>
-          </div>
-          <div class="profile-stat-row">
-            <span class="profile-stat-label">Wishlists</span>
-            <span class="profile-stat-val">${wishlists.length}</span>
-          </div>
-          <div class="profile-stat-row">
-            <span class="profile-stat-label">Purchased</span>
-            <span class="profile-stat-val">${purchasedCount}</span>
-          </div>
-          <div class="profile-stat-row">
-            <span class="profile-stat-label">Archived</span>
-            <span class="profile-stat-val">${archived}</span>
-          </div>
-          <div class="profile-stat-row">
-            <span class="profile-stat-label">Let Go Value</span>
-            <span class="profile-stat-val">${money(letGoTotal)}</span>
-          </div>
+        <div style="padding:36px 28px 80px">
+
+          <p class="profile-hero" style="margin-bottom:8px">Your<br/>Desire<br/>Report</p>
+
+          ${sectionLabel('Decisions')}
+          ${convictionRate !== null
+            ? bigStat(`${convictionRate}%`, 'Conviction Rate', `${purchased.length} bought &middot; ${letGo.length} let go`)
+            : `<p style="padding:18px 0;border-bottom:1px solid #f4f4f4;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc">Archive a few items to see your conviction rate</p>`}
+          ${avgBuyDays !== null ? statRow('Avg Days to Buy', avgBuyDays + 'd') : ''}
+          ${avgLetGoDays !== null ? statRow('Avg Days to Let Go', avgLetGoDays + 'd') : ''}
+
+          ${(impulseResisted > 0 || moneyNotSpent > 0) ? sectionLabel('Discipline') : ''}
+          ${impulseResisted > 0 ? bigStat(impulseResisted, 'Impulse' + (impulseResisted === 1 ? '' : 's') + ' Resisted', 'Watched 30+ days, then let go') : ''}
+          ${moneyNotSpent > 0 ? statRow('Money Not Spent', money(moneyNotSpent)) : ''}
+          ${purchasedValue > 0 ? statRow('Total Purchased', money(purchasedValue)) : ''}
+
+          ${(topBrand || topTag) ? sectionLabel('Your Pattern') : ''}
+          ${topBrand ? statRow('Most Saved Brand', esc(topBrand[0]), topBrand[1] + ' ' + (topBrand[1] === 1 ? 'item' : 'items')) : ''}
+          ${topTag ? statRow('Top Category', esc(topTag[0]), topTag[1] + ' ' + (topTag[1] === 1 ? 'item' : 'items')) : ''}
+
+          ${sectionLabel('Right Now')}
+          ${statRow('Watching', watching.length + ' ' + (watching.length === 1 ? 'Item' : 'Items'))}
+          ${watchingValue > 0 ? statRow('Total Desire Value', money(watchingValue)) : ''}
+
+          ${oldest ? `
+          ${sectionLabel('Longest Watch')}
+          <div onclick="openItem('${oldest.id}')" style="display:flex;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid #f4f4f4;cursor:pointer">
+            <div style="width:56px;height:56px;background:#f9f9f9;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center">
+              ${oldest.img
+                ? `<img src="${esc(oldest.img)}" style="width:100%;height:100%;object-fit:contain" />`
+                : `<span style="font-size:8px;letter-spacing:0.06em;text-transform:uppercase;color:#ccc;text-align:center;padding:4px;line-height:1.4">${esc(oldest.name)}</span>`}
+            </div>
+            <div style="flex:1;min-width:0">
+              <p style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#bbb;margin-bottom:4px">${pad(oldestDays)} Days</p>
+              <p style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(oldest.name)}</p>
+              ${oldest.price ? `<p style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-top:3px">${money(oldest.price)}</p>` : ''}
+            </div>
+            <span style="font-size:18px;color:#ddd;flex-shrink:0">›</span>
+          </div>` : ''}
+
         </div>
       </div>
       ${nav('stats')}`;
@@ -2898,6 +2977,19 @@
       }
     }
 
+    // Smallable: price stored in inline JSON as "price":{"EUR":{"amount":NNN}}
+    if (!price && html.includes('smallable.com') || (!price && html.match(/"amount"\s*:\s*\d+/) && html.includes('smallable'))) {
+      try {
+        const m = html.match(/"amount"\s*:\s*(\d+(?:\.\d+)?)/);
+        if (m) price = m[1];
+      } catch {}
+    }
+    // Generic JSON price in page source (covers Smallable and similar)
+    if (!price) {
+      const m = html.match(/"(?:price|amount|salePrice|currentPrice)"\s*:\s*"?(\d+(?:\.\d{1,2})?)"?/);
+      if (m && parseFloat(m[1]) > 0) price = m[1];
+    }
+
     // DOM price selectors (fallback for non-SSR pages)
     if (!price) {
       const selectors = [
@@ -3203,6 +3295,7 @@
     } else {
       s.screen = s.fromScreen === 'items' ? 'items'
         : s.fromScreen === 'archive' ? 'archive'
+        : s.fromScreen === 'stats' ? 'stats'
         : 'wishlist-detail';
       if (s.fromWid) s.currentWid = s.fromWid;
     }
@@ -3567,21 +3660,26 @@
       const imageData = ctx.getImageData(0, 0, W, H);
       const d = imageData.data;
 
-      // Sample the 4 corners to estimate background color
+      // Sample corners + edge midpoints to estimate background color robustly
       function px(x, y) { const i = (y*W+x)*4; return [d[i], d[i+1], d[i+2]]; }
-      const corners = [px(0,0), px(W-1,0), px(0,H-1), px(W-1,H-1)];
-      const bg = corners.reduce((a,c) => [a[0]+c[0],a[1]+c[1],a[2]+c[2]], [0,0,0])
-                        .map(v => Math.round(v/4));
+      const samples = [
+        px(0,0), px(W-1,0), px(0,H-1), px(W-1,H-1),
+        px(Math.floor(W/2),0), px(Math.floor(W/2),H-1),
+        px(0,Math.floor(H/2)), px(W-1,Math.floor(H/2)),
+      ];
+      const bg = samples.reduce((a,c) => [a[0]+c[0],a[1]+c[1],a[2]+c[2]], [0,0,0])
+                        .map(v => Math.round(v/samples.length));
 
-      // BFS flood-fill from all edges — pixels within color threshold become transparent
-      const THRESH = 38;
+      // Two-zone threshold: hard remove (pure bg) + soft fade (shadows/gradients)
+      const HARD = 30;   // fully transparent
+      const SOFT = 90;   // BFS still propagates but alpha is blended
+
       function dist(i) {
         const dr=d[i]-bg[0], dg=d[i+1]-bg[1], db=d[i+2]-bg[2];
         return Math.sqrt(dr*dr+dg*dg+db*db);
       }
 
       const visited = new Uint8Array(W*H);
-      // Pre-allocate queue as flat [x0,y0, x1,y1, ...] pairs
       const queue = new Int32Array(W*H*2);
       let head=0, tail=0;
 
@@ -3595,8 +3693,17 @@
       while (head < tail) {
         const x=queue[head++], y=queue[head++];
         const pi=(y*W+x)*4;
-        if (dist(pi) <= THRESH) {
-          d[pi+3]=0;
+        const dd=dist(pi);
+        if (dd <= SOFT) {
+          if (dd <= HARD) {
+            // Pure background — fully transparent
+            d[pi+3] = 0;
+          } else {
+            // Shadow/gradient zone — blend alpha proportionally
+            const t = (dd - HARD) / (SOFT - HARD); // 0 = bg edge, 1 = product edge
+            d[pi+3] = Math.round(d[pi+3] * t * t); // quadratic fade, bias toward transparent
+          }
+          // Continue BFS into neighbours
           if (x>0)   enq(x-1,y);
           if (x<W-1) enq(x+1,y);
           if (y>0)   enq(x,y-1);
@@ -3989,7 +4096,7 @@
     };
 
     const encoded = await encodeShare(payload);
-    const shareUrl = `${location.origin}/#share=${encoded}`;
+    const shareUrl = location.href.split('#')[0] + '#share=' + encoded;
     const senderName = getUserName();
     const shareTitle = senderName ? `${senderName}'s Wishlist` : wl.name;
 
@@ -4082,7 +4189,7 @@
     // ─── Register service worker — auto-reload when a new version activates
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.register('sw.js').catch(() => {});
       });
       // When a new SW takes control (skipWaiting fired), reload to get fresh code
       navigator.serviceWorker.addEventListener('controllerchange', () => {
