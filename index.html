@@ -562,36 +562,43 @@
     }
     .ob-steps {
       border-top: 1px solid #f0f0f0;
-      padding: 0 28px;
+      padding: 0 24px;
     }
     .ob-steps-label {
       font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
-      color: #bbb; padding: 20px 0 14px;
+      color: #bbb; padding: 18px 0 12px;
     }
-    .ob-step {
-      display: flex; align-items: flex-start; gap: 16px;
-      padding: 14px 0; border-bottom: 1px solid #f8f8f8;
+    .ob-visual-step {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 0; border-bottom: 1px solid #f4f4f4;
     }
-    .ob-step:last-child { border-bottom: none; }
+    .ob-visual-step:last-child { border-bottom: none; }
+    .ob-visual-box { width: 60px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .ob-step-text-col { flex: 1; min-width: 0; }
     .ob-step-num {
       font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
-      color: #bbb; padding-top: 2px; width: 20px; flex-shrink: 0;
+      color: #bbb; margin-bottom: 3px;
     }
-    .ob-step-text {
-      font-size: 12px; letter-spacing: 0.03em; color: #000; line-height: 1.6;
+    .ob-step-title-sm {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #000; margin-bottom: 3px;
     }
-    .ob-step-text strong { font-weight: 700; }
-    .ob-step-text span { color: #999; font-size: 11px; }
+    .ob-step-body-sm {
+      font-size: 11px; letter-spacing: 0.02em; color: #999; line-height: 1.55;
+    }
+    .ob-step-body-sm strong { color: #000; font-weight: 700; }
     .ob-actions {
-      padding: 24px 28px 8px;
+      padding: 20px 24px 8px;
       border-top: 1px solid #f0f0f0;
     }
     .ob-skip {
       display: block; width: 100%; background: none; border: none;
       font-family: inherit; font-size: 9px; letter-spacing: 0.15em;
       text-transform: uppercase; color: #bbb; padding: 12px 0;
-      cursor: pointer; text-align: center; margin-top: 10px;
+      cursor: pointer; text-align: center;
     }
+    @keyframes ob-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.8;transform:scale(1.06)} }
+    .ob-pulse { animation: ob-pulse 2s ease-in-out infinite; transform-origin: center; }
 
     /* ─── Name prompt ─── */
     .name-prompt {
@@ -1400,26 +1407,111 @@
         <div class="ob-hero">
           <p class="ob-eyebrow">The Wishlist</p>
           <h1 class="ob-title">Save<br/>what you<br/>want.</h1>
-          <p class="ob-tagline">A personal wishlist built for<br/>intentional shopping.</p>
+          <p class="ob-tagline">Free. No App Store needed.<br/>Installs right to your home screen.</p>
         </div>
+
         <div class="ob-steps">
-          <p class="ob-steps-label">Add to your iPhone</p>
-          <div class="ob-step">
-            <span class="ob-step-num">01</span>
-            <p class="ob-step-text">Tap the <strong>Share</strong> button
-              <span>— the box with an arrow ↑ in Safari's toolbar</span></p>
+          <p class="ob-steps-label">Install in 3 steps</p>
+
+          <!-- Step 1: Tap Share -->
+          <div class="ob-visual-step">
+            <div class="ob-visual-box">
+              <svg width="60" height="60" viewBox="0 0 60 60" class="ob-pulse">
+                <!-- Phone body -->
+                <rect x="6" y="1" width="48" height="58" rx="8" fill="#e8e8e8"/>
+                <!-- Screen -->
+                <rect x="8" y="7" width="44" height="44" fill="#fff"/>
+                <!-- Address bar -->
+                <rect x="11" y="9" width="38" height="5" rx="2.5" fill="#efefef"/>
+                <!-- Page content lines -->
+                <rect x="11" y="17" width="28" height="2.5" rx="1.25" fill="#f0f0f0"/>
+                <rect x="11" y="21.5" width="20" height="2.5" rx="1.25" fill="#f0f0f0"/>
+                <rect x="11" y="26" width="24" height="2.5" rx="1.25" fill="#f0f0f0"/>
+                <!-- Bottom toolbar -->
+                <rect x="8" y="43" width="44" height="8" fill="#f0f0f0"/>
+                <!-- Share button highlighted -->
+                <rect x="24" y="43" width="12" height="8" fill="#86EE86"/>
+                <!-- Share icon -->
+                <line x1="30" y1="45" x2="30" y2="49" stroke="#000" stroke-width="1.3" stroke-linecap="round"/>
+                <polyline points="27.5,46.8 30,44.5 32.5,46.8" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="27" y="48" width="6" height="4" rx="0.8" fill="none" stroke="#000" stroke-width="1"/>
+                <!-- Home indicator -->
+                <rect x="22" y="56" width="16" height="2" rx="1" fill="#ccc"/>
+              </svg>
+            </div>
+            <div class="ob-step-text-col">
+              <p class="ob-step-num">01</p>
+              <p class="ob-step-title-sm">Tap the Share button</p>
+              <p class="ob-step-body-sm">The <strong>↑</strong> icon at the <strong>bottom</strong> of Safari's toolbar</p>
+            </div>
           </div>
-          <div class="ob-step">
-            <span class="ob-step-num">02</span>
-            <p class="ob-step-text">Tap <strong>Add to Home Screen</strong>
-              <span>— scroll down in the share sheet to find it</span></p>
+
+          <!-- Step 2: Add to Home Screen -->
+          <div class="ob-visual-step">
+            <div class="ob-visual-box">
+              <svg width="60" height="60" viewBox="0 0 60 60">
+                <!-- Share sheet background -->
+                <rect x="2" y="4" width="56" height="52" rx="10" fill="#f0f0f0"/>
+                <!-- Sheet rows -->
+                <rect x="5" y="7" width="50" height="11" rx="3" fill="#fff"/>
+                <rect x="9" y="10" width="6" height="5" rx="1.5" fill="#e0e0e0"/>
+                <rect x="18" y="11.5" width="22" height="2.5" rx="1.25" fill="#e0e0e0"/>
+                <!-- Highlighted row: Add to Home Screen -->
+                <rect x="5" y="20" width="50" height="13" rx="3" fill="#fff" stroke="#86EE86" stroke-width="1.5"/>
+                <!-- App icon in row -->
+                <rect x="9" y="23.5" width="7" height="6" rx="2" fill="#86EE86"/>
+                <line x1="12.5" y1="25.5" x2="12.5" y2="27.5" stroke="#000" stroke-width="1.1" stroke-linecap="round"/>
+                <line x1="11.5" y1="26.5" x2="13.5" y2="26.5" stroke="#000" stroke-width="1.1" stroke-linecap="round"/>
+                <!-- Row label -->
+                <rect x="19" y="25" width="30" height="3" rx="1.5" fill="#222"/>
+                <!-- More rows (faded) -->
+                <rect x="5" y="35" width="50" height="9" rx="3" fill="#fff" opacity="0.55"/>
+                <rect x="9" y="38" width="5" height="4" rx="1" fill="#ddd" opacity="0.55"/>
+                <rect x="17" y="39" width="18" height="2" rx="1" fill="#ddd" opacity="0.55"/>
+                <rect x="5" y="46" width="50" height="8" rx="3" fill="#fff" opacity="0.3"/>
+              </svg>
+            </div>
+            <div class="ob-step-text-col">
+              <p class="ob-step-num">02</p>
+              <p class="ob-step-title-sm">Add to Home Screen</p>
+              <p class="ob-step-body-sm">Scroll down in the share sheet to find it</p>
+            </div>
           </div>
-          <div class="ob-step">
-            <span class="ob-step-num">03</span>
-            <p class="ob-step-text">Tap <strong>Add</strong>
-              <span>— The Wishlist appears on your home screen like a native app</span></p>
+
+          <!-- Step 3: Tap Add -->
+          <div class="ob-visual-step">
+            <div class="ob-visual-box">
+              <svg width="60" height="60" viewBox="0 0 60 60">
+                <!-- Phone body -->
+                <rect x="6" y="1" width="48" height="58" rx="8" fill="#e8e8e8"/>
+                <!-- Screen -->
+                <rect x="8" y="7" width="44" height="44" fill="#fff"/>
+                <!-- Home screen app grid -->
+                <rect x="11" y="11" width="10" height="10" rx="3" fill="#ddd"/>
+                <rect x="25" y="11" width="10" height="10" rx="3" fill="#ddd"/>
+                <rect x="39" y="11" width="10" height="10" rx="3" fill="#ddd"/>
+                <rect x="11" y="24" width="10" height="10" rx="3" fill="#ddd"/>
+                <!-- App icon — highlighted -->
+                <rect x="25" y="24" width="10" height="10" rx="3" fill="#86EE86"/>
+                <text x="30" y="31.5" text-anchor="middle" fill="#000" font-size="6.5" font-family="Helvetica Neue,sans-serif" font-weight="800">W</text>
+                <rect x="39" y="24" width="10" height="10" rx="3" fill="#ddd"/>
+                <rect x="11" y="37" width="10" height="10" rx="3" fill="#ddd"/>
+                <rect x="25" y="37" width="10" height="10" rx="3" fill="#ddd"/>
+                <rect x="39" y="37" width="10" height="10" rx="3" fill="#ddd"/>
+                <!-- App label -->
+                <text x="30" y="38" text-anchor="middle" fill="#999" font-size="3.5" font-family="Helvetica Neue,sans-serif">Wishlist</text>
+                <!-- Home indicator -->
+                <rect x="22" y="56" width="16" height="2" rx="1" fill="#ccc"/>
+              </svg>
+            </div>
+            <div class="ob-step-text-col">
+              <p class="ob-step-num">03</p>
+              <p class="ob-step-title-sm">Tap Add</p>
+              <p class="ob-step-body-sm">The Wishlist appears on your home screen and runs like a native app</p>
+            </div>
           </div>
         </div>
+
         <div class="ob-actions">
           <button class="ob-skip" onclick="dismissOnboarding()">Continue in browser →</button>
         </div>
