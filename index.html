@@ -4288,6 +4288,29 @@
   // ─── Async init: decode shared URL (may require decompression), then render ──
   (async () => {
     const hash = location.hash;
+
+    // ─── Bookmarklet pre-fill (#bm=base64JSON) ─────────────────────
+    // When the bookmarklet runs on a product page, it encodes name/img/price/brand
+    // and opens the app here — we skip the URL fetch entirely and pre-fill the form.
+    if (hash.startsWith('#bm=')) {
+      try {
+        const bm = JSON.parse(decodeURIComponent(escape(atob(hash.slice(4)))));
+        history.replaceState(null, '', location.pathname + location.search);
+        s.screen = 'add-item';
+        s.addStep = 'form';
+        s.addIsEdit = false;
+        s.addForm = {
+          url: bm.url || '', name: bm.name || '', brand: bm.brand || '',
+          tags: [], img: bm.img || '', price: bm.price || '',
+          saved: '', note: '', wid: wishlists[0]?.id || '',
+          serious: false, showImgEdit: false, showTagInput: false,
+          tagQuery: '', showNewWl: false,
+        };
+      } catch {}
+      render();
+      return;
+    }
+
     if (hash.startsWith('#share=')) {
       const decoded = await decodeShare(hash.slice(7));
       if (decoded?.wl && Array.isArray(decoded.items)) {

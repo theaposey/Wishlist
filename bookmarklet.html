@@ -163,7 +163,7 @@
       <div class="step-content">
         <p class="step-title">Use it on any product page</p>
         <p class="step-desc">
-          On SSENSE, Net-a-Porter, or anywhere — tap the book icon → <strong>Wishlist Save</strong>. A blue save button appears. Tap it, confirm, done.
+          On SSENSE, Net-a-Porter, or anywhere — tap the book icon → <strong>Wishlist Save</strong>. A green save button appears. Tap it, confirm, done.
         </p>
       </div>
     </div>
@@ -175,12 +175,12 @@
   </div>
 
   <script>
-    const ORIGIN = location.origin;
+    const APP_BASE = location.href.replace(/\/bookmarklet\.html.*$/, '');
     const BLUE = '#86EE86';
 
     // ── Bookmarklet source ──────────────────────────────────────────
     const bmSrc = `(function(){
-var V='${ORIGIN}',B='${BLUE}';
+var V='${APP_BASE}',B='${BLUE}';
 var ex=document.getElementById('_vtr');
 if(ex){ex.remove();return;}
 function og(p){var m=document.querySelector('meta[property="'+p+'"]');return m?m.content:'';}
@@ -190,6 +190,17 @@ function cleanTitle(t){
   t=t.replace(/\s*[\|\-\u2013\u2014][^\|\-\u2013\u2014]{2,60}$/, '').trim();
   t=t.replace(/\s*[\|\-\u2013\u2014][^\|\-\u2013\u2014]{2,60}$/, '').trim();
   return t;
+}
+function getBrand(){
+  var b=og('product:brand')||og('og:brand')||'';
+  if(!b){
+    var ss=document.querySelectorAll('script[type="application/ld+json"]');
+    for(var i=0;i<ss.length&&!b;i++){try{
+      var dig=function(o){if(!o||typeof o!=='object')return'';if(o.brand){return typeof o.brand==='string'?o.brand:(o.brand.name||'');}if(Array.isArray(o)){for(var j=0;j<o.length;j++){var r=dig(o[j]);if(r)return r;}}if(o['@graph'])return dig(o['@graph']);return'';};
+      b=dig(JSON.parse(ss[i].textContent));
+    }catch(e){}}
+  }
+  return (b||'').trim();
 }
 function getPrice(){
   var p=og('product:price:amount')||og('og:price:amount')||mt('twitter:data1')||'';
@@ -207,6 +218,7 @@ function getPrice(){
   return (p||'').replace(/[^0-9.]/g,'');
 }
 var title=cleanTitle(og('og:title')||mt('twitter:title')||document.title||'');
+var brand=getBrand();
 var img=og('og:image:secure_url')||og('og:image')||mt('twitter:image')||'';
 var price=getPrice();
 var pageUrl=location.href;
@@ -220,15 +232,17 @@ root.appendChild(fab);
 var sheet=document.createElement('div');
 sheet.style.cssText='position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:22px 20px 48px;pointer-events:all;display:none;box-shadow:0 -2px 24px rgba(0,0,0,.1);';
 var st=title.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+var sb=brand.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 sheet.innerHTML='<p style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#bbb;margin:0 0 16px">SAVE TO WISHLIST</p>'
-+'<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:16px">'
++'<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">'
 +(img?'<img src="'+img+'" style="width:64px;height:64px;object-fit:contain;background:#fafafa;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
 +'<div style="flex:1;min-width:0"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Name</p>'
 +'<input id="_vtr-name" type="text" value="'+st+'" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div></div>'
-+'<div style="display:flex;gap:14px;margin-bottom:20px">'
++'<div style="display:flex;gap:14px;margin-bottom:14px">'
++'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Brand</p><input id="_vtr-brand" type="text" value="'+sb+'" placeholder="Optional" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
 +'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Price</p><input id="_vtr-price" type="text" inputmode="decimal" value="'+price+'" placeholder="0.00" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
-+'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Wishlist</p><input id="_vtr-wl" type="text" placeholder="Optional" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
 +'</div>'
++'<div style="margin-bottom:20px"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Wishlist</p><input id="_vtr-wl" type="text" placeholder="Optional" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
 +'<button id="_vtr-save" style="width:100%;background:#000;color:#fff;border:none;padding:16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;-webkit-appearance:none;border-radius:0;">SAVE</button>'
 +'<button id="_vtr-cancel" style="display:block;width:100%;background:none;border:none;padding:10px 0;margin-top:6px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#bbb;text-decoration:underline;cursor:pointer;font-family:inherit;">Cancel</button>';
 root.appendChild(sheet);
@@ -243,10 +257,12 @@ else{fab.style.background='#fff';fab.style.borderColor='#ddd';fab.querySelector(
 document.getElementById('_vtr-cancel').onclick=function(){root.remove();};
 document.getElementById('_vtr-save').onclick=function(){
 var n=(document.getElementById('_vtr-name').value||'').trim()||title;
+var br=(document.getElementById('_vtr-brand').value||'').trim();
 var pr=(document.getElementById('_vtr-price').value||'').trim();
 var wl=(document.getElementById('_vtr-wl').value||'').trim();
-var d=encodeURIComponent(JSON.stringify({url:pageUrl,name:n,img:img,price:pr,wl:wl}));
-window.open(V+'/?vtr=1&d='+d,'_blank');
+var data={url:pageUrl,name:n,brand:br,img:img,price:pr,wl:wl};
+var encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+window.open(V+'/#bm='+encoded,'_blank');
 root.remove();
 };
 })()`;
