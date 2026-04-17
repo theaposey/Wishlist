@@ -4367,23 +4367,10 @@
 
     if (navigator.share) {
       try {
-        // Try to attach cover image so messaging apps show it as a thumbnail
-        let shareFiles = [];
-        const coverForFile = coverImgResolved || '';
-        if (coverForFile && navigator.canShare) {
-          try {
-            const resp = await fetch(coverForFile, { mode: 'cors' });
-            const blob = await resp.blob();
-            const ext = blob.type.includes('png') ? 'png' : 'jpg';
-            const file = new File([blob], `wishlist-cover.${ext}`, { type: blob.type });
-            if (navigator.canShare({ files: [file] })) shareFiles = [file];
-          } catch {}
-        }
         await navigator.share({
           title: shareTitle,
           text: `${shareTitle} — check it out`,
           url: shareUrl,
-          ...(shareFiles.length ? { files: shareFiles } : {})
         });
         if (typeof gtag === 'function') gtag('event', 'share_wishlist', { method: 'native_share', item_count: wItems.length });
       } catch (e) {
