@@ -4305,6 +4305,16 @@
   (async () => {
     const hash = location.hash;
 
+    // ─── Force install sheet (#install) ────────────────────────────
+    // When someone taps "Get the App" from a shared wishlist, they land here
+    // with #install and we show the onboarding sheet regardless of dismissed state.
+    if (hash === '#install') {
+      history.replaceState(null, '', location.pathname + location.search);
+      render();
+      showOnboarding();
+      return;
+    }
+
     // ─── Bookmarklet pre-fill (#bm=base64JSON) ─────────────────────
     // When the bookmarklet runs on a product page, it encodes name/img/price/brand
     // and opens the app here — we skip the URL fetch entirely and pre-fill the form.
