@@ -538,9 +538,9 @@
     /* ─── Install Dialog (iOS native style) ─── */
     .install-overlay {
       position: fixed; inset: 0; z-index: 9998;
-      background: rgba(0,0,0,0.35);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(0,0,0,0.18);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       display: flex; align-items: flex-end; justify-content: center;
       padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 20px);
       opacity: 0; transition: opacity 0.22s ease;
@@ -1528,10 +1528,11 @@
       <div class="install-dlg-steps">
         <div class="install-dlg-step">
           <div class="install-dlg-step-icon">
-            <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
-              <circle cx="11" cy="11" r="1.8" fill="#333"/>
-              <circle cx="5" cy="11" r="1.8" fill="#333"/>
-              <circle cx="17" cy="11" r="1.8" fill="#333"/>
+            <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8.5"/>
+              <path d="M11 2.5c-2.5 3-4 5.5-4 8.5s1.5 5.5 4 8.5"/>
+              <path d="M11 2.5c2.5 3 4 5.5 4 8.5s-1.5 5.5-4 8.5"/>
+              <line x1="2.5" y1="11" x2="19.5" y2="11"/>
             </svg>
           </div>
           <span class="install-dlg-step-label">Open in your main browser</span>
@@ -3849,41 +3850,66 @@
     await new Promise(r => setTimeout(r, 0));
 
     try {
-      // For external URLs, try fetching via CORS so we get pixel access
-      let imgSrc = src;
+      // For external URLs we need pixel access — try several strategies in order
+      let imgEl = null; // set if we got a usable Image element
+      let imgSrc = src; // set if we got a data URL
+
       if (!src.startsWith('data:')) {
         const toDataUrl = blob => new Promise(resolve => {
           const reader = new FileReader();
           reader.onload = e => resolve(e.target.result);
           reader.readAsDataURL(blob);
         });
-        let fetched = false;
-        // 1. Direct CORS fetch
-        try {
-          const res = await fetch(src, { mode: 'cors' });
-          if (!res.ok) throw new Error('http');
-          imgSrc = await toDataUrl(await res.blob());
-          fetched = true;
-        } catch {}
-        // 2. Proxy fallback (for CDNs that block cross-origin browser requests)
-        if (!fetched) {
+        const fetchTimeout = (url, ms) => {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), ms);
+          return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+        };
+
+        // 1. Load with crossOrigin=anonymous — works if CDN sends CORS headers
+        const directImg = await new Promise(resolve => {
+          const i = new Image();
+          i.crossOrigin = 'anonymous';
+          i.onload = () => resolve(i);
+          i.onerror = () => resolve(null);
+          setTimeout(() => resolve(null), 6000);
+          i.src = src;
+        });
+        if (directImg) {
+          // Test canvas access — throws SecurityError if server didn't send CORS headers
           try {
-            const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(src)}`);
-            if (!res.ok) throw new Error('proxy-http');
-            imgSrc = await toDataUrl(await res.blob());
-            fetched = true;
+            const tc = document.createElement('canvas');
+            tc.width = 1; tc.height = 1;
+            tc.getContext('2d').drawImage(directImg, 0, 0);
+            tc.getContext('2d').getImageData(0, 0, 1, 1);
+            imgEl = directImg; // success — use this image element directly
           } catch {}
         }
-        if (!fetched) {
-          s.removingBg = false;
-          render();
-          showToast('Upload the image first, then remove the background.');
-          return;
+
+        // 2. Proxy fetches (race allorigins vs corsproxy, 10s timeout each)
+        if (!imgEl) {
+          const enc = encodeURIComponent(src);
+          const tryProxy = async url => {
+            const res = await fetchTimeout(url, 10000);
+            if (!res.ok) throw new Error('bad');
+            return toDataUrl(await res.blob());
+          };
+          try {
+            imgSrc = await Promise.any([
+              tryProxy(`https://api.allorigins.win/raw?url=${enc}`),
+              tryProxy(`https://corsproxy.io/?${enc}`),
+            ]);
+          } catch {
+            s.removingBg = false;
+            render();
+            showToast('Upload the image first, then remove the background.');
+            return;
+          }
         }
       }
 
       // Draw image to canvas
-      const img = await new Promise((resolve, reject) => {
+      const img = imgEl || await new Promise((resolve, reject) => {
         const i = new Image();
         i.onload = () => resolve(i);
         i.onerror = reject;
