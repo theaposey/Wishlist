@@ -4538,7 +4538,7 @@
     } else if (!isInstalled && !obDismissed) {
       // Not installed yet — render app first, then show install dialog after a short delay
       render();
-      setTimeout(showOnboarding, 2500);
+      setTimeout(showOnboarding, 800);
     } else if (!getUserName()) {
       // Installed (or browser user) but no name set yet — prompt for name
       showNamePrompt();
