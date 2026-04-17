@@ -436,14 +436,18 @@
     /* ─── List view rows ─── */
     .list-view { width: 100%; }
     .swipe-row-wrap { position: relative; overflow: hidden; }
-    .swipe-delete-bg {
-      position: absolute; inset: 0; background: #c0392b;
-      display: flex; align-items: center; justify-content: flex-end;
-      padding-right: 22px; opacity: 0;
+    .swipe-action-bg {
+      position: absolute; inset: 0;
+      display: flex; align-items: stretch; justify-content: flex-end;
     }
-    .swipe-delete-bg span {
-      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #fff;
+    .swipe-act-btn {
+      width: 80px; display: flex; align-items: center; justify-content: center;
+      font-family: inherit; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+      border: none; cursor: pointer; flex-shrink: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
+    .swipe-act-archive { background: #222; color: #fff; }
+    .swipe-act-purchase { background: var(--accent); color: #000; }
     .list-row {
       display: flex;
       align-items: center;
@@ -1131,10 +1135,10 @@
       left: 20px; right: 20px;
       background: #000; color: #fff;
       padding: 11px 16px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-      text-align: center; z-index: 999;
-      opacity: 0; transition: opacity 0.22s ease; pointer-events: none;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 999; opacity: 0; transition: opacity 0.22s ease; pointer-events: none;
     }
-    #toast.show { opacity: 1; }
+    #toast.show { opacity: 1; pointer-events: auto; }
   </style>
 </head>
 <body>
@@ -1285,12 +1289,32 @@
     }, 60);
   }
 
+  let _undoFn = null;
+
   function showToast(msg) {
+    _undoFn = null;
     const el = document.getElementById('toast');
-    el.textContent = msg;
+    el.innerHTML = `<span>${msg}</span>`;
     el.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  function showUndoToast(msg, undoFn) {
+    _undoFn = undoFn;
+    const el = document.getElementById('toast');
+    el.innerHTML = `<span>${msg}</span><button onclick="doUndo()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;padding:0;flex-shrink:0">Undo</button>`;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.classList.remove('show'); _undoFn = null; }, 4000);
+  }
+
+  function doUndo() {
+    if (!_undoFn) return;
+    _undoFn();
+    _undoFn = null;
+    clearTimeout(toastTimer);
+    document.getElementById('toast').classList.remove('show');
   }
 
   // ═══════════════════════════════════════════
@@ -1985,7 +2009,7 @@
       <header>
         ${s.wlItemEditMode
           ? `<button class="h-left" style="color:#c0392b" onclick="deleteWishlist('${wl.id}')">Delete</button>`
-          : `<button class="h-left" onclick="navTo('wishlists')">← Wishlists</button>`}
+          : `<button class="h-left" onclick="navTo('wishlists')">←</button>`}
         <div style="display:flex;align-items:center;gap:14px">
           ${!s.wlItemEditMode ? `
           <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="shareWishlist('${wl.id}')" title="Share">
@@ -2276,8 +2300,8 @@
           ${convictionRate !== null
             ? bigStat(`${convictionRate}%`, 'Conviction Rate', `${purchased.length} bought &middot; ${letGo.length} let go`)
             : `<p style="padding:18px 0;border-bottom:1px solid #f4f4f4;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc">Archive a few items to see your conviction rate</p>`}
-          ${avgBuyDays !== null ? statRow('Avg Days to Buy', avgBuyDays + 'd') : ''}
-          ${avgLetGoDays !== null ? statRow('Avg Days to Let Go', avgLetGoDays + 'd') : ''}
+          ${avgBuyDays !== null ? statRow('Avg Days to Buy', avgBuyDays) : ''}
+          ${avgLetGoDays !== null ? statRow('Avg Days to Let Go', avgLetGoDays) : ''}
 
           ${(impulseResisted > 0 || moneyNotSpent > 0) ? sectionLabel('Discipline') : ''}
           ${impulseResisted > 0 ? bigStat(impulseResisted, 'Impulse' + (impulseResisted === 1 ? '' : 's') + ' Resisted', 'Watched 30+ days, then let go') : ''}
@@ -3613,18 +3637,44 @@
     dragSrcIdx = null;
   }
 
-  // ── Swipe-to-delete ─────────────────────────────────────────────────
+  // ── Swipe-to-act (Archive / Purchase) ──────────────────────────────
+  let _openSwipeWrap = null;
+
+  function _closeOpenSwipe() {
+    if (!_openSwipeWrap) return;
+    const inner = _openSwipeWrap.querySelector('.list-row');
+    if (inner) {
+      inner.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
+      inner.style.transform = '';
+      setTimeout(() => { inner.style.transition = ''; }, 300);
+    }
+    _openSwipeWrap = null;
+  }
+
   function swipeRowStart(e, itemId) {
-    // Don't intercept taps on the drag handle
     if (e.target.closest('.list-drag-handle')) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // Let button taps fall through to their onclick handlers
+    if (e.target.closest('.swipe-act-btn')) return;
 
     const wrap = e.currentTarget;
+
+    // Tap on any row while another is open → close the open one, don't start swipe
+    if (_openSwipeWrap && _openSwipeWrap !== wrap) {
+      _closeOpenSwipe();
+      return;
+    }
+    // Tap on the already-open row's inner area → close it
+    if (_openSwipeWrap === wrap) {
+      _closeOpenSwipe();
+      return;
+    }
+
     const inner = wrap.querySelector('.list-row');
-    const bg    = wrap.querySelector('.swipe-delete-bg');
     const startX = e.clientX;
     const startY = e.clientY;
-    const THRESHOLD = 80;
+    const SNAP = 160;                                   // px — width of both buttons combined
+    const FULL = Math.min(window.innerWidth * 0.65, 280); // px — full-swipe auto-archive
     let decided = false, isSwipe = false, dx = 0;
 
     function onMove(ev) {
@@ -3632,21 +3682,20 @@
       const y = ev.clientY - startY;
       if (!decided) {
         if (Math.abs(x) < 5 && Math.abs(y) < 5) return;
-        if (Math.abs(y) >= Math.abs(x)) { cleanup(); return; } // vertical — let scroll handle it
+        if (Math.abs(y) >= Math.abs(x)) { cleanup(); return; }
         decided = true; isSwipe = true;
       }
       if (!isSwipe) return;
       ev.preventDefault();
       dx = Math.min(0, x);
       inner.style.transform = `translateX(${dx}px)`;
-      bg.style.opacity = Math.min(1, Math.abs(dx) / THRESHOLD);
     }
 
     function onUp() {
       cleanup();
       if (!isSwipe || dx === 0) return;
-      if (dx <= -THRESHOLD) {
-        // Commit — animate row out then delete
+      if (dx <= -FULL) {
+        // Full swipe → animate off then archive
         inner.style.transition = 'transform 0.2s ease-in';
         inner.style.transform = 'translateX(-110vw)';
         const h = wrap.offsetHeight;
@@ -3657,14 +3706,18 @@
           wrap.style.maxHeight = '0';
           wrap.style.opacity = '0';
         });
-        setTimeout(() => removeItem(null, itemId), 350);
+        setTimeout(() => swipeArchiveItem(itemId), 350);
+      } else if (dx <= -(SNAP / 2)) {
+        // Partial swipe → snap open to show buttons
+        inner.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
+        inner.style.transform = `translateX(-${SNAP}px)`;
+        setTimeout(() => { inner.style.transition = ''; }, 300);
+        _openSwipeWrap = wrap;
       } else {
-        // Snap back
+        // Not far enough → snap back
         inner.style.transition = 'transform 0.35s cubic-bezier(0.16,1,0.3,1)';
         inner.style.transform = '';
-        bg.style.transition = 'opacity 0.25s ease';
-        bg.style.opacity = '0';
-        setTimeout(() => { inner.style.transition = ''; bg.style.transition = ''; }, 350);
+        setTimeout(() => { inner.style.transition = ''; }, 350);
       }
     }
 
@@ -3677,6 +3730,40 @@
     document.addEventListener('pointermove', onMove, { passive: false });
     document.addEventListener('pointerup', onUp);
     document.addEventListener('pointercancel', onUp);
+  }
+
+  function swipeArchiveItem(itemId) {
+    _openSwipeWrap = null;
+    const item = getItem(itemId);
+    if (!item) { render(); return; }
+    const snapshot = { ...item };
+    items = items.map(i => i.id === itemId
+      ? { ...i, status: 'archived', reason: 'let_go', archivedAt: Date.now() }
+      : i);
+    saveData();
+    render();
+    showUndoToast('Archived', () => {
+      items = items.map(i => i.id === itemId ? snapshot : i);
+      saveData();
+      render();
+    });
+  }
+
+  function swipePurchaseItem(itemId) {
+    _openSwipeWrap = null;
+    const item = getItem(itemId);
+    if (!item) { render(); return; }
+    const snapshot = { ...item };
+    items = items.map(i => i.id === itemId
+      ? { ...i, status: 'purchased', reason: null }
+      : i);
+    saveData();
+    render();
+    showUndoToast('Marked as purchased', () => {
+      items = items.map(i => i.id === itemId ? snapshot : i);
+      saveData();
+      render();
+    });
   }
 
   // ── Pointer-based list drag (smooth, animated) ──────────────────────
@@ -4006,7 +4093,10 @@
     const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
     return `
       <div class="swipe-row-wrap" onpointerdown="swipeRowStart(event,'${item.id}')">
-        <div class="swipe-delete-bg"><span>Delete</span></div>
+        <div class="swipe-action-bg">
+          <button class="swipe-act-btn swipe-act-archive" onclick="swipeArchiveItem('${item.id}')">Archive</button>
+          <button class="swipe-act-btn swipe-act-purchase" onclick="swipePurchaseItem('${item.id}')">Purchase</button>
+        </div>
         <div class="list-row ${purchased ? 'list-row-purchased' : ''}" data-idx="${idx}" ${clickAttr}>
           ${s.wlItemEditMode ? `<span class="list-drag-handle" onpointerdown="event.stopPropagation();listDragStart(event,${idx})">⠿</span>` : ''}
           <div class="list-thumb">${thumbH}</div>
