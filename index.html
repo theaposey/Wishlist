@@ -535,80 +535,114 @@
       text-transform: uppercase;
     }
 
-    /* ─── Install Bottom Sheet ─── */
-    .install-backdrop {
+    /* ─── Install Dialog (iOS native style) ─── */
+    .install-overlay {
       position: fixed; inset: 0; z-index: 9998;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 20px);
+      opacity: 0; transition: opacity 0.22s ease;
     }
-    .install-sheet {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
-      background: #fff; border-top: 1px solid #e8e8e8;
-      padding-bottom: env(safe-area-inset-bottom, 16px);
-      transform: translateY(105%);
-      transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
-      max-height: 92vh; overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+    .install-overlay.is-open { opacity: 1; }
+    .install-dialog {
+      width: 100%; max-width: 360px;
+      background: rgba(242,242,247,0.88);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.28), 0 0 0 0.5px rgba(255,255,255,0.3) inset;
+      transform: translateY(32px) scale(0.97);
+      transition: transform 0.32s cubic-bezier(0.16,1,0.3,1), opacity 0.22s ease;
+      opacity: 0;
     }
-    .install-sheet.is-open { transform: translateY(0); }
-    .install-sheet-header {
-      display: flex; align-items: center; gap: 16px;
-      padding: 22px 20px 18px; border-bottom: 1px solid #f0f0f0;
+    .install-overlay.is-open .install-dialog {
+      transform: translateY(0) scale(1); opacity: 1;
     }
-    .install-icon-sq {
-      width: 52px; height: 52px; background: var(--accent); flex-shrink: 0;
+    /* Header row */
+    .install-dlg-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 18px 14px; position: relative;
     }
-    .install-title-col { flex: 1; min-width: 0; }
-    .install-app-name {
-      font-size: 13px; font-weight: 800; letter-spacing: 0.1em;
-      text-transform: uppercase; color: #000; display: block;
+    .install-dlg-icon {
+      width: 56px; height: 56px; background: var(--accent);
+      border-radius: 14px; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
-    .install-app-sub {
-      font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
-      color: #999; margin-top: 4px; display: block;
+    .install-dlg-titles { flex: 1; min-width: 0; }
+    .install-dlg-name {
+      font-size: 17px; font-weight: 700; color: #000; letter-spacing: -0.01em;
+      display: block;
     }
-    .install-close-btn {
-      width: 30px; height: 30px; background: #efefef; border: none;
-      border-radius: 50%; font-size: 18px; color: #666;
+    .install-dlg-sub {
+      font-size: 13px; color: rgba(0,0,0,0.45); margin-top: 1px; display: block;
+    }
+    .install-dlg-close {
+      width: 30px; height: 30px;
+      background: rgba(0,0,0,0.1);
+      border: none; border-radius: 50%;
+      font-size: 16px; color: rgba(0,0,0,0.5);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0; font-family: inherit; line-height: 1;
-      padding-bottom: 1px;
+      position: absolute; top: 16px; right: 16px;
     }
-    .install-desc {
-      padding: 18px 20px 16px; border-bottom: 1px solid #f0f0f0;
-      font-size: 12px; letter-spacing: 0.03em; color: #444; line-height: 1.75;
+    /* Desc */
+    .install-dlg-desc {
+      padding: 0 18px 16px;
+      font-size: 15px; color: #000; line-height: 1.5;
     }
-    .install-steps { border-bottom: 1px solid #f0f0f0; }
-    .install-step-row {
-      display: flex; align-items: center; gap: 18px;
-      padding: 16px 20px; border-top: 1px solid #f4f4f4;
+    /* Divider */
+    .install-dlg-divider {
+      height: 0.5px; background: rgba(0,0,0,0.14); margin: 0 18px;
     }
-    .install-step-row:first-child { border-top: none; }
-    .install-step-icon {
-      width: 44px; height: 44px; background: #f0f0f0;
+    /* Action rows */
+    .install-dlg-actions { padding: 6px 0; }
+    .install-dlg-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 11px 18px; cursor: pointer;
+      background: none; border: none; width: 100%;
+      text-align: left; font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .install-dlg-row:active { background: rgba(0,0,0,0.06); }
+    .install-dlg-row-icon {
+      width: 38px; height: 38px;
+      background: rgba(0,0,0,0.08);
       border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
     }
-    .install-step-label {
-      font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
-      text-transform: uppercase; color: #000; line-height: 1.4;
+    .install-dlg-row-label {
+      font-size: 15px; font-weight: 600; color: #000;
     }
-    .install-step-sub {
-      font-size: 10px; letter-spacing: 0.04em; color: #999;
-      margin-top: 2px; line-height: 1.5;
+    /* Steps screen */
+    .install-dlg-steps { padding: 6px 0 4px; }
+    .install-dlg-step {
+      display: flex; align-items: center; gap: 14px;
+      padding: 11px 18px;
     }
-    .install-actions { padding: 16px 20px 8px; }
-    .install-cta {
-      display: block; width: 100%; background: #000; color: #fff;
-      font-family: inherit; font-size: 10px; letter-spacing: 0.2em;
-      text-transform: uppercase; padding: 16px; border: none; cursor: pointer;
-      text-align: center; margin-bottom: 10px;
+    .install-dlg-step-icon {
+      width: 38px; height: 38px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
     }
-    .install-skip {
-      display: block; width: 100%; background: none; border: none;
-      font-family: inherit; font-size: 9px; letter-spacing: 0.15em;
-      text-transform: uppercase; color: #bbb; padding: 10px 0;
-      cursor: pointer; text-align: center;
+    .install-dlg-step-label {
+      font-size: 15px; font-weight: 600; color: #000;
     }
+    /* Back button */
+    .install-dlg-back {
+      margin: 4px 12px 14px;
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(0,0,0,0.08); border: none;
+      border-radius: 14px; padding: 14px 20px;
+      font-size: 17px; font-weight: 500; color: #000;
+      cursor: pointer; font-family: inherit; width: calc(100% - 24px);
+    }
+    /* Screen swap animation */
+    .install-screen { transition: opacity 0.18s ease; }
+    .install-screen.hidden { display: none; }
 
     /* ─── Name prompt ─── */
     .name-prompt {
@@ -1414,102 +1448,152 @@
   // ═══════════════════════════════════════════
 
   function showOnboarding() {
-    // Render the app first so it shows underneath the sheet
-    render();
+    render(); // app renders behind the overlay
 
-    // Remove any leftover install UI
-    document.getElementById('install-backdrop-el')?.remove();
-    document.getElementById('install-sheet-el')?.remove();
-
-    const backdrop = document.createElement('div');
-    backdrop.className = 'install-backdrop';
-    backdrop.id = 'install-backdrop-el';
-    backdrop.addEventListener('click', dismissOnboarding);
-    document.body.appendChild(backdrop);
-
-    const sheet = document.createElement('div');
-    sheet.className = 'install-sheet';
-    sheet.id = 'install-sheet-el';
+    document.getElementById('install-overlay-el')?.remove();
 
     const isChrome = deferredInstallPrompt !== null;
 
-    sheet.innerHTML = `
-      <div class="install-sheet-header">
-        <div class="install-icon-sq"></div>
-        <div class="install-title-col">
-          <span class="install-app-name">The Wishlist</span>
-          <span class="install-app-sub">Web Application</span>
+    const overlay = document.createElement('div');
+    overlay.className = 'install-overlay';
+    overlay.id = 'install-overlay-el';
+    overlay.addEventListener('click', e => { if (e.target === overlay) dismissOnboarding(); });
+
+    // ── Screen 1: initial card ──────────────────────────────────────
+    const screen1 = document.createElement('div');
+    screen1.className = 'install-dialog install-screen';
+    screen1.id = 'install-screen-1';
+    screen1.innerHTML = `
+      <div class="install-dlg-header">
+        <div class="install-dlg-icon"></div>
+        <div class="install-dlg-titles">
+          <span class="install-dlg-name">The Wishlist</span>
+          <span class="install-dlg-sub">Web Application</span>
         </div>
-        <button class="install-close-btn" onclick="dismissOnboarding()">×</button>
+        <button class="install-dlg-close" onclick="dismissOnboarding()">×</button>
       </div>
-      <p class="install-desc">Add to your home screen for the full experience — works offline and opens like a native app. No download required.</p>
-      ${isChrome ? `
-        <div class="install-actions">
-          <button class="install-cta" onclick="triggerInstall()">Add to Home Screen</button>
-          <button class="install-skip" onclick="dismissOnboarding()">Continue in browser →</button>
-        </div>
-      ` : `
-        <div class="install-steps">
-          <div class="install-step-row">
-            <div class="install-step-icon">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <circle cx="11" cy="11" r="1.8" fill="#333"/>
-                <circle cx="5.5" cy="11" r="1.8" fill="#333"/>
-                <circle cx="16.5" cy="11" r="1.8" fill="#333"/>
+      <p class="install-dlg-desc">Add to your Home Screen for the full experience — works offline and opens like a native app.</p>
+      <div class="install-dlg-divider"></div>
+      <div class="install-dlg-actions">
+        ${isChrome ? `
+          <button class="install-dlg-row" onclick="triggerInstall()">
+            <div class="install-dlg-row-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
               </svg>
             </div>
-            <div>
-              <p class="install-step-label">Tap ••• in Safari</p>
-              <p class="install-step-sub">Bottom right of your toolbar</p>
-            </div>
-          </div>
-          <div class="install-step-row">
-            <div class="install-step-icon">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 14V4"/>
-                <path d="M7.5 7.5L11 4l3.5 3.5"/>
-                <path d="M4 14v4h14v-4"/>
+            <span class="install-dlg-row-label">Add to Home Screen</span>
+          </button>
+        ` : `
+          <button class="install-dlg-row" onclick="installShowSteps()">
+            <div class="install-dlg-row-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
               </svg>
             </div>
-            <div>
-              <p class="install-step-label">Tap Share</p>
-              <p class="install-step-sub">In the menu that opens</p>
-            </div>
+            <span class="install-dlg-row-label">Add to Home Screen</span>
+          </button>
+        `}
+        <button class="install-dlg-row" onclick="dismissOnboarding()">
+          <div class="install-dlg-row-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
           </div>
-          <div class="install-step-row">
-            <div class="install-step-icon">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.7" stroke-linecap="round">
-                <rect x="3" y="3" width="16" height="16" rx="2"/>
-                <line x1="11" y1="8" x2="11" y2="14"/>
-                <line x1="8" y1="11" x2="14" y2="11"/>
-              </svg>
-            </div>
-            <div>
-              <p class="install-step-label">Add to Home Screen</p>
-              <p class="install-step-sub">Scroll down in the share sheet</p>
-            </div>
-          </div>
-          <div class="install-step-row">
-            <div class="install-step-icon">
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 11.5l5 5 9-9"/>
-              </svg>
-            </div>
-            <div>
-              <p class="install-step-label">Tap Add</p>
-              <p class="install-step-sub">You're done — opens like a native app</p>
-            </div>
-          </div>
-        </div>
-        <div class="install-actions">
-          <button class="install-skip" onclick="dismissOnboarding()">Continue in browser →</button>
-        </div>
-      `}
+          <span class="install-dlg-row-label" style="color:rgba(0,0,0,0.45);font-weight:400">Not now</span>
+        </button>
+      </div>
     `;
 
-    document.body.appendChild(sheet);
-    // Double rAF ensures the initial transform is painted before the transition starts
-    requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('is-open')));
+    // ── Screen 2: step-by-step ──────────────────────────────────────
+    const screen2 = document.createElement('div');
+    screen2.className = 'install-dialog install-screen hidden';
+    screen2.id = 'install-screen-2';
+    screen2.innerHTML = `
+      <div class="install-dlg-header" style="padding-bottom:10px">
+        <div class="install-dlg-icon"></div>
+        <div class="install-dlg-titles">
+          <span class="install-dlg-name">The Wishlist</span>
+          <span class="install-dlg-sub">Web Application</span>
+        </div>
+        <button class="install-dlg-close" onclick="dismissOnboarding()">×</button>
+      </div>
+      <div class="install-dlg-divider"></div>
+      <div class="install-dlg-steps">
+        <div class="install-dlg-step">
+          <div class="install-dlg-step-icon">
+            <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+              <circle cx="11" cy="11" r="1.8" fill="#333"/>
+              <circle cx="5" cy="11" r="1.8" fill="#333"/>
+              <circle cx="17" cy="11" r="1.8" fill="#333"/>
+            </svg>
+          </div>
+          <span class="install-dlg-step-label">Open in your main browser</span>
+        </div>
+        <div class="install-dlg-step">
+          <div class="install-dlg-step-icon">
+            <svg width="18" height="18" viewBox="0 0 22 22" fill="none">
+              <circle cx="11" cy="11" r="1.8" fill="#333"/>
+              <circle cx="5" cy="11" r="1.8" fill="#333"/>
+              <circle cx="17" cy="11" r="1.8" fill="#333"/>
+            </svg>
+          </div>
+          <span class="install-dlg-step-label">Press ••• if no Share icon</span>
+        </div>
+        <div class="install-dlg-step">
+          <div class="install-dlg-step-icon">
+            <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 14V4"/><path d="M7.5 7.5L11 4l3.5 3.5"/>
+              <path d="M4 14v4h14v-4"/>
+            </svg>
+          </div>
+          <span class="install-dlg-step-label">Press Share in Navigation bar</span>
+        </div>
+        <div class="install-dlg-step">
+          <div class="install-dlg-step-icon">
+            <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round">
+              <rect x="3" y="3" width="16" height="16" rx="2"/>
+              <line x1="11" y1="8" x2="11" y2="14"/>
+              <line x1="8" y1="11" x2="14" y2="11"/>
+            </svg>
+          </div>
+          <span class="install-dlg-step-label">Scroll down to "Add to Home Screen"</span>
+        </div>
+      </div>
+      <button class="install-dlg-back" onclick="installShowMain()">
+        <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 2L2 8l6 6"/>
+        </svg>
+        Back
+      </button>
+    `;
+
+    overlay.appendChild(screen1);
+    overlay.appendChild(screen2);
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('is-open')));
+  }
+
+  function installShowSteps() {
+    const s1 = document.getElementById('install-screen-1');
+    const s2 = document.getElementById('install-screen-2');
+    if (!s1 || !s2) return;
+    s1.classList.add('hidden');
+    s2.classList.remove('hidden');
+  }
+
+  function installShowMain() {
+    const s1 = document.getElementById('install-screen-1');
+    const s2 = document.getElementById('install-screen-2');
+    if (!s1 || !s2) return;
+    s2.classList.add('hidden');
+    s1.classList.remove('hidden');
   }
 
   async function triggerInstall() {
@@ -1566,18 +1650,13 @@
 
   function dismissOnboarding() {
     try { localStorage.setItem('vtr_ob_dismissed', '1'); } catch(e) {}
-    const sheet = document.getElementById('install-sheet-el');
-    const backdrop = document.getElementById('install-backdrop-el');
-    if (sheet) {
-      sheet.style.transition = 'transform 0.28s ease-in';
-      sheet.style.transform = 'translateY(105%)';
-      setTimeout(() => { sheet.remove(); backdrop?.remove(); }, 290);
-    } else {
-      backdrop?.remove();
+    const overlay = document.getElementById('install-overlay-el');
+    if (overlay) {
+      overlay.classList.remove('is-open');
+      setTimeout(() => overlay.remove(), 240);
     }
-    // After dismissing, prompt for name if not set
     if (!getUserName()) {
-      setTimeout(() => showNamePrompt(), 310);
+      setTimeout(() => showNamePrompt(), 260);
     }
   }
 
