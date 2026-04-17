@@ -667,6 +667,7 @@
       width: 100%; border: none; border-bottom: 2px solid #000;
       font-size: 18px; font-family: inherit; font-weight: 600;
       padding: 8px 0 10px; outline: none; background: none; color: #000;
+      text-transform: uppercase;
     }
     .name-prompt-input::placeholder { color: #ccc; font-weight: 400; }
     .name-prompt-actions { padding: 0 28px 20px; }
@@ -1762,8 +1763,7 @@
         </div>
       </div>
       <div class="shared-footer">
-        <p style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:10px">Saved with The Wishlist</p>
-        <a href="https://theaposey.github.io/Wishlist/#install" style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#000;text-decoration:none;border-bottom:1px solid #000;padding-bottom:2px">Get the App →</a>
+        <p style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#bbb">Saved with The Wishlist</p>
       </div>
       <div class="safe-bottom"></div>`;
   }
@@ -2544,9 +2544,6 @@
     const selectedWid = f.wid || s.addWid || '';
     const imgBtns = f.img ? `
       <div class="form-image-btn-row">
-        <button class="form-removebg-btn" onclick="event.stopPropagation();removeItemBackground()" ${s.removingBg ? 'disabled' : ''}>
-          ${s.removingBg ? 'Removing...' : 'Remove BG'}
-        </button>
         <button class="form-image-change-btn" onclick="event.stopPropagation();document.getElementById('item-file-input').click()">Change Image</button>
       </div>` : '';
     return `
