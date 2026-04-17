@@ -1773,7 +1773,7 @@
       </div>
       <div class="shared-footer">
         <p style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#bbb;margin-bottom:10px">Saved with The Wishlist</p>
-        <a href="/install.html" style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#000;text-decoration:none;border-bottom:1px solid #000;padding-bottom:2px">Get the App →</a>
+        <a href="https://theaposey.github.io/Wishlist/#install" style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#000;text-decoration:none;border-bottom:1px solid #000;padding-bottom:2px">Get the App →</a>
       </div>
       <div class="safe-bottom"></div>`;
   }
@@ -4314,64 +4314,28 @@
     const wl = getWl(wid);
     if (!wl) return;
     const wItems = watchingItems(wid);
-
-    // Resolve any data URL images to hosted HTTP URLs so they render for recipients
-    const resolveImg = async (img) => {
-      if (!img) return '';
-      if (img.startsWith('http')) return img;
-      if (img.startsWith('data:')) {
-        const hosted = await uploadDataUrl(img);
-        if (hosted) {
-          // Persist the hosted URL back so future shares are instant
-          return hosted;
-        }
-      }
-      return '';
-    };
-
-    const hasDataUrls = wl.coverImg?.startsWith('data:') || wItems.some(i => i.img?.startsWith('data:'));
-    if (hasDataUrls) showToast('Preparing images…');
-
-    const [coverImgResolved, ...itemImgsResolved] = await Promise.all([
-      resolveImg(wl.coverImg),
-      ...wItems.map(i => resolveImg(i.img))
-    ]);
-
-    // Persist hosted URLs back to items so future shares don't re-upload
-    let changed = false;
-    wItems.forEach((item, idx) => {
-      const hosted = itemImgsResolved[idx];
-      if (hosted && hosted.startsWith('http') && item.img !== hosted) {
-        items = items.map(x => x.id === item.id ? { ...x, img: hosted } : x);
-        changed = true;
-      }
-    });
-    if (coverImgResolved?.startsWith('http') && wl.coverImg !== coverImgResolved) {
-      wishlists = wishlists.map(w => w.id === wl.id ? { ...w, coverImg: coverImgResolved } : w);
-      changed = true;
-    }
-    if (changed) saveData();
-
-    const payload = {
-      v: 1,
-      senderName: getUserName(),
-      wl: { name: wl.name, coverImg: coverImgResolved },
-      items: wItems.map((i, idx) => ({
-        name: i.name,
-        brand: i.brand || '',
-        img: itemImgsResolved[idx],
-        price: i.price || '',
-        url: i.url || '',
-        tags: i.tags || [],
-        note: i.note || '',
-        addedAt: i.addedAt
-      }))
-    };
-
-    const encoded = await encodeShare(payload);
-    const shareUrl = location.href.split('#')[0] + '#share=' + encoded;
     const senderName = getUserName();
     const shareTitle = senderName ? `${senderName}'s Wishlist` : wl.name;
+
+    // ── Build share URL synchronously so navigator.share() fires within
+    // the user-gesture context. iOS Safari drops activation after any await.
+    // Only include already-hosted HTTP images; data: URLs are skipped here
+    // and uploaded in the background so future shares look better.
+    const compact = {
+      v: 2,
+      w: { n: wl.name, c: wl.coverImg?.startsWith('http') ? wl.coverImg : '' },
+      ...(senderName ? { s: senderName } : {}),
+      i: wItems.map(i => ({
+        n: i.name, b: i.brand || '',
+        m: i.img?.startsWith('http') ? i.img : '',
+        p: i.price || '', u: i.url || '',
+        ...(i.tags?.length ? { t: i.tags } : {}),
+        ...(i.note       ? { o: i.note  } : {}),
+        a: i.addedAt,
+      }))
+    };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
+    const shareUrl = location.href.split('#')[0] + '#share=' + encoded;
 
     if (navigator.share) {
       try {
@@ -4392,6 +4356,33 @@
       } catch {
         showToast('Could not copy link.');
       }
+    }
+
+    // ── Background: upload any data: images so future shares include them ──
+    const hasDataUrls = wl.coverImg?.startsWith('data:') || wItems.some(i => i.img?.startsWith('data:'));
+    if (hasDataUrls) {
+      const resolveImg = async (img) => {
+        if (!img || img.startsWith('http')) return img || '';
+        if (img.startsWith('data:')) return (await uploadDataUrl(img)) || '';
+        return '';
+      };
+      const [coverHosted, ...itemHosted] = await Promise.all([
+        resolveImg(wl.coverImg),
+        ...wItems.map(i => resolveImg(i.img))
+      ]);
+      let changed = false;
+      wItems.forEach((item, idx) => {
+        const h = itemHosted[idx];
+        if (h?.startsWith('http') && item.img !== h) {
+          items = items.map(x => x.id === item.id ? { ...x, img: h } : x);
+          changed = true;
+        }
+      });
+      if (coverHosted?.startsWith('http') && wl.coverImg !== coverHosted) {
+        wishlists = wishlists.map(w => w.id === wl.id ? { ...w, coverImg: coverHosted } : w);
+        changed = true;
+      }
+      if (changed) saveData();
     }
   }
 
