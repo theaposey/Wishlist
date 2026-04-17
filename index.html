@@ -1482,16 +1482,6 @@
       <div class="install-dlg-divider"></div>
       <div class="install-dlg-actions">
         <div class="install-dlg-action-group">
-          <button class="install-dlg-row" onclick="installShowSteps()">
-            <div class="install-dlg-row-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                <rect x="3" y="14" width="7" height="7"/>
-                <line x1="14" y1="17" x2="21" y2="17"/><line x1="17.5" y1="14" x2="17.5" y2="21"/>
-              </svg>
-            </div>
-            <span class="install-dlg-row-label">Show Gallery</span>
-          </button>
           ${isChrome ? `
           <button class="install-dlg-row" onclick="triggerInstall()">
             <div class="install-dlg-row-icon">
@@ -4317,24 +4307,22 @@
     const senderName = getUserName();
     const shareTitle = senderName ? `${senderName}'s Wishlist` : wl.name;
 
-    // ── Build share URL synchronously so navigator.share() fires within
-    // the user-gesture context. iOS Safari drops activation after any await.
-    // Only include already-hosted HTTP images; data: URLs are skipped here
-    // and uploaded in the background so future shares look better.
-    const compact = {
-      v: 2,
-      w: { n: wl.name, c: wl.coverImg?.startsWith('http') ? wl.coverImg : '' },
-      ...(senderName ? { s: senderName } : {}),
-      i: wItems.map(i => ({
-        n: i.name, b: i.brand || '',
-        m: i.img?.startsWith('http') ? i.img : '',
-        p: i.price || '', u: i.url || '',
-        ...(i.tags?.length ? { t: i.tags } : {}),
-        ...(i.note       ? { o: i.note  } : {}),
-        a: i.addedAt,
+    // ── Build share URL — only http images included (no network calls before
+    // navigator.share). CompressionStream is local so it's safe to await here;
+    // it completes in <5ms and doesn't consume the iOS user-gesture activation
+    // the way a network fetch would.
+    const payload = {
+      v: 1,
+      senderName,
+      wl: { name: wl.name, coverImg: wl.coverImg?.startsWith('http') ? wl.coverImg : '' },
+      items: wItems.map(i => ({
+        name: i.name, brand: i.brand || '',
+        img: i.img?.startsWith('http') ? i.img : '',
+        price: i.price || '', url: i.url || '',
+        tags: i.tags || [], note: i.note || '', addedAt: i.addedAt
       }))
     };
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
+    const encoded = await encodeShare(payload);
     const shareUrl = location.href.split('#')[0] + '#share=' + encoded;
 
     if (navigator.share) {
