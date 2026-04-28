@@ -2568,6 +2568,10 @@
     const selectedWid = f.wid || s.addWid || '';
     const imgBtns = f.img ? `
       <div class="form-image-btn-row">
+        ${f.img.startsWith('data:') ? `
+        <button class="form-removebg-btn" onclick="event.stopPropagation();removeItemBackground()" ${s.removingBg ? 'disabled' : ''}>
+          ${s.removingBg ? 'Removing...' : 'Remove BG'}
+        </button>` : ''}
         <button class="form-image-change-btn" onclick="event.stopPropagation();document.getElementById('item-file-input').click()">Change Image</button>
       </div>` : '';
     return `
@@ -3924,7 +3928,7 @@
 
   async function removeItemBackground() {
     const src = s.addForm.img;
-    if (!src || s.removingBg) return;
+    if (!src || !src.startsWith('data:') || s.removingBg) return;
 
     s.removingBg = true;
     render();
@@ -3932,70 +3936,11 @@
     await new Promise(r => setTimeout(r, 0));
 
     try {
-      // For external URLs we need pixel access — try several strategies in order
-      let imgEl = null; // set if we got a usable Image element
-      let imgSrc = src; // set if we got a data URL
-
-      if (!src.startsWith('data:')) {
-        const toDataUrl = blob => new Promise(resolve => {
-          const reader = new FileReader();
-          reader.onload = e => resolve(e.target.result);
-          reader.readAsDataURL(blob);
-        });
-        const fetchTimeout = (url, ms) => {
-          const ctrl = new AbortController();
-          const t = setTimeout(() => ctrl.abort(), ms);
-          return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
-        };
-
-        // 1. Load with crossOrigin=anonymous — works if CDN sends CORS headers
-        const directImg = await new Promise(resolve => {
-          const i = new Image();
-          i.crossOrigin = 'anonymous';
-          i.onload = () => resolve(i);
-          i.onerror = () => resolve(null);
-          setTimeout(() => resolve(null), 6000);
-          i.src = src;
-        });
-        if (directImg) {
-          // Test canvas access — throws SecurityError if server didn't send CORS headers
-          try {
-            const tc = document.createElement('canvas');
-            tc.width = 1; tc.height = 1;
-            tc.getContext('2d').drawImage(directImg, 0, 0);
-            tc.getContext('2d').getImageData(0, 0, 1, 1);
-            imgEl = directImg; // success — use this image element directly
-          } catch {}
-        }
-
-        // 2. Proxy fetches (race allorigins vs corsproxy, 10s timeout each)
-        if (!imgEl) {
-          const enc = encodeURIComponent(src);
-          const tryProxy = async url => {
-            const res = await fetchTimeout(url, 10000);
-            if (!res.ok) throw new Error('bad');
-            return toDataUrl(await res.blob());
-          };
-          try {
-            imgSrc = await Promise.any([
-              tryProxy(`https://api.allorigins.win/raw?url=${enc}`),
-              tryProxy(`https://corsproxy.io/?${enc}`),
-            ]);
-          } catch {
-            s.removingBg = false;
-            render();
-            showToast('Upload the image first, then remove the background.');
-            return;
-          }
-        }
-      }
-
-      // Draw image to canvas
-      const img = imgEl || await new Promise((resolve, reject) => {
+      const img = await new Promise((resolve, reject) => {
         const i = new Image();
         i.onload = () => resolve(i);
         i.onerror = reject;
-        i.src = imgSrc;
+        i.src = src;
       });
 
       const W = img.naturalWidth, H = img.naturalHeight;
