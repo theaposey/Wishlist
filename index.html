@@ -2762,10 +2762,9 @@
     const selectedWid = f.wid || s.addWid || '';
     const imgBtns = f.img ? `
       <div class="form-image-btn-row">
-        ${f.img.startsWith('data:') ? `
         <button class="form-removebg-btn" onclick="event.stopPropagation();removeItemBackground()" ${s.removingBg ? 'disabled' : ''}>
           ${s.removingBg ? 'Removing...' : 'Remove BG'}
-        </button>` : ''}
+        </button>
         <button class="form-image-change-btn" onclick="event.stopPropagation();document.getElementById('item-file-input').click()">Change Image</button>
       </div>` : '';
     return `
@@ -4125,7 +4124,7 @@
 
   async function removeItemBackground() {
     const src = s.addForm.img;
-    if (!src || !src.startsWith('data:') || s.removingBg) return;
+    if (!src || s.removingBg) return;
 
     s.removingBg = true;
     render();
@@ -4133,11 +4132,35 @@
     await new Promise(r => setTimeout(r, 0));
 
     try {
+      // For external URLs, fetch through a proxy to get a data: URL we can draw on canvas
+      let imgSrc = src;
+      if (!src.startsWith('data:')) {
+        const proxies = [
+          'https://api.allorigins.win/raw?url=' + encodeURIComponent(src),
+          'https://corsproxy.io/?' + encodeURIComponent(src),
+        ];
+        for (const proxy of proxies) {
+          try {
+            const resp = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+            if (resp.ok) {
+              const blob = await resp.blob();
+              imgSrc = await new Promise((res, rej) => {
+                const reader = new FileReader();
+                reader.onload = () => res(reader.result);
+                reader.onerror = rej;
+                reader.readAsDataURL(blob);
+              });
+              break;
+            }
+          } catch {}
+        }
+      }
+
       const img = await new Promise((resolve, reject) => {
         const i = new Image();
         i.onload = () => resolve(i);
         i.onerror = reject;
-        i.src = src;
+        i.src = imgSrc;
       });
 
       const W = img.naturalWidth, H = img.naturalHeight;
