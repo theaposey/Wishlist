@@ -1139,6 +1139,89 @@
       z-index: 999; opacity: 0; transition: opacity 0.22s ease; pointer-events: none;
     }
     #toast.show { opacity: 1; pointer-events: auto; }
+
+    /* ─── Boards gallery ─── */
+    .boards-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1px; background: #f0f0f0;
+    }
+    .board-card {
+      background: #fff; cursor: pointer;
+      aspect-ratio: 1; overflow: hidden;
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .board-card:active { opacity: 0.8; }
+    .board-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .board-card-meta {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 8px 10px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.32));
+    }
+    .board-card-name {
+      font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ─── Board editor ─── */
+    .board-editor-layout { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .board-canvas-area {
+      width: 100%; aspect-ratio: 1;
+      position: relative; background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      flex-shrink: 0; overflow: hidden;
+      touch-action: none;
+      -webkit-user-select: none; user-select: none;
+    }
+    .board-sticker {
+      position: absolute; cursor: move;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .board-sticker img {
+      width: 100%; height: 100%;
+      object-fit: contain; display: block;
+      pointer-events: none; -webkit-user-drag: none;
+    }
+    .board-sticker-del {
+      position: absolute; top: -10px; right: -10px;
+      width: 22px; height: 22px;
+      background: #000; color: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 300; line-height: 1;
+      cursor: pointer; z-index: 10; touch-action: manipulation;
+    }
+    .board-sticker-resize {
+      position: absolute; bottom: -8px; right: -8px;
+      width: 18px; height: 18px;
+      background: #000; border-radius: 50%;
+      cursor: se-resize; touch-action: none;
+    }
+    .board-picker-area {
+      flex: 1; overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 14px 16px 32px;
+    }
+    .board-picker-label {
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #bbb; margin-bottom: 10px;
+    }
+    .board-picker-scroll {
+      display: flex; gap: 6px; overflow-x: auto;
+      scrollbar-width: none; touch-action: pan-x;
+    }
+    .board-picker-scroll::-webkit-scrollbar { display: none; }
+    .board-picker-thumb {
+      flex-shrink: 0; width: 58px; height: 58px;
+      cursor: pointer; overflow: hidden; background: #f5f5f5;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .board-picker-thumb:active { opacity: 0.7; }
+    .board-picker-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .board-picker-thumb .ph {
+      font-size: 6px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #ccc; text-align: center; padding: 4px; line-height: 1.3;
+    }
   </style>
 </head>
 <body>
@@ -1162,6 +1245,7 @@
 
   let wishlists = [];
   let items = [];
+  let boards = [];
   let availableTags = [];
   let shareData = null; // set when viewing a shared wishlist URL
 
@@ -1176,12 +1260,19 @@
     try {
       const wl = localStorage.getItem('vitrine_wishlists');
       const it = localStorage.getItem('vitrine_items');
+      const bd = localStorage.getItem('vitrine_boards');
       if (wl) wishlists = JSON.parse(wl);
       if (it) items = JSON.parse(it);
+      if (bd) boards = JSON.parse(bd);
     } catch(e) {
       wishlists = [];
       items = [];
+      boards = [];
     }
+  }
+
+  function saveBoardData() {
+    try { localStorage.setItem('vitrine_boards', JSON.stringify(boards)); } catch(e) {}
   }
 
   // ═══════════════════════════════════════════
@@ -1322,9 +1413,9 @@
   // ═══════════════════════════════════════════
 
   function nav(active) {
-    // active = 'wishlists' | 'stats' | 'profile'
-    const tabs = ['wishlists','stats','profile'];
-    const labels = { wishlists:'Wishlists', stats:'Stats', profile:'Profile' };
+    // active = 'wishlists' | 'boards' | 'stats' | 'profile'
+    const tabs = ['wishlists','boards','stats','profile'];
+    const labels = { wishlists:'Wishlists', boards:'Boards', stats:'Stats', profile:'Profile' };
     return `
       <nav class="bottom-nav">
         ${tabs.map(t => `
@@ -1690,6 +1781,8 @@
       case 'wishlist-detail': return screenWlDetail();
       case 'items':           return screenWlTab();
       case 'archive':         return screenWlTab();
+      case 'boards':          return screenBoards();
+      case 'board-editor':    return screenBoardEditor();
       case 'stats':           return screenStats();
       case 'profile':         return screenProfile();
       case 'item-detail':     return screenItemDetail();
@@ -2204,6 +2297,88 @@
             : arch.map(archiveRow).join('')}
       </div>
       ${nav('wishlists')}`;
+  }
+
+  // ═══════════════════════════════════════════
+  // BOARDS SCREENS
+  // ═══════════════════════════════════════════
+
+  function screenBoards() {
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <span class="h-left">Boards</span>
+        <button class="h-right h-muted" onclick="openBoardEditor(null)">New</button>
+      </header>
+      <div class="scroll-area">
+        ${boards.length === 0 ? `
+          <div class="empty-state">
+            <p class="empty-hero">no<br/>boards<br/>yet</p>
+            <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap New to create your first board</p>
+            <button class="empty-cta" onclick="openBoardEditor(null)">Create Board</button>
+          </div>`
+        : `<div class="boards-grid">
+            ${boards.map(b => `
+              <div class="board-card" onclick="openBoardEditor('${b.id}')">
+                ${b.img
+                  ? `<img src="${esc(b.img)}" alt="${esc(b.name)}" />`
+                  : `<div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center"><span style="font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#ccc">No Preview</span></div>`}
+                <div class="board-card-meta">
+                  <p class="board-card-name">${esc(b.name.toUpperCase())}</p>
+                </div>
+              </div>`).join('')}
+          </div>`}
+      </div>
+      ${nav('boards')}`;
+  }
+
+  function boardStickerHtml(st, idx) {
+    const imgH = st.img
+      ? `<img src="${esc(st.img)}" alt="" />`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f0f0f0;font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:#bbb;text-align:center;padding:6px">${esc((st.name||'').slice(0,20))}</div>`;
+    return `
+      <div class="board-sticker" data-idx="${idx}"
+        style="left:${st.x}px;top:${st.y}px;width:${st.w}px;height:${st.h}px"
+        onpointerdown="boardStickerDown(event,${idx})">
+        ${imgH}
+        <div class="board-sticker-del" onpointerdown="event.stopPropagation()" onclick="removeBoardSticker(${idx})">×</div>
+        <div class="board-sticker-resize" onpointerdown="boardResizeDown(event,${idx})"></div>
+      </div>`;
+  }
+
+  function screenBoardEditor() {
+    const allWatching = watchingItems();
+    return `
+      <div class="safe-top"></div>
+      <header>
+        <button class="h-left h-muted" onclick="cancelBoardEdit()">Cancel</button>
+        <input id="board-name-input" value="${esc(_boardName)}"
+          style="border:none;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;text-align:center;flex:1;margin:0 8px;outline:none;background:none;color:#000"
+          oninput="_boardName=this.value" placeholder="Board Name" />
+        <button class="h-right" onclick="saveBoardFinal()">Save</button>
+      </header>
+      <div class="board-editor-layout">
+        <div class="board-canvas-area" id="board-canvas-area">
+          ${_boardStickers.map((st, idx) => boardStickerHtml(st, idx)).join('')}
+        </div>
+        <div class="board-picker-area">
+          <p class="board-picker-label">${allWatching.length ? 'Tap to add to board' : 'Save some items first'}</p>
+          ${allWatching.length ? `
+          <div class="board-picker-scroll">
+            ${allWatching.map(item => `
+              <div class="board-picker-thumb" onclick="addStickerToBoard('${item.id}')">
+                ${item.img
+                  ? `<img src="${esc(item.img)}" alt="${esc(item.name)}" loading="lazy" />`
+                  : `<div class="ph">${esc(item.name.slice(0,14))}</div>`}
+              </div>`).join('')}
+          </div>` : ''}
+          ${_boardEditId ? `
+          <button onclick="deleteBoard('${_boardEditId}')"
+            style="background:none;border:none;font-family:inherit;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;cursor:pointer;padding:0;margin-top:24px;display:block;text-decoration:underline;text-underline-offset:3px">
+            Delete Board
+          </button>` : ''}
+        </div>
+      </div>`;
   }
 
   function screenStats() {
@@ -2761,6 +2936,9 @@
       s.currentWid = null;
       render();
       s.wlSlideDir = null;
+    } else if (tab === 'boards') {
+      s.screen = 'boards';
+      render();
     } else if (tab === 'stats') {
       s.screen = 'stats';
       render();
@@ -4404,6 +4582,229 @@
       }
       if (changed) saveData();
     }
+  }
+
+  // ═══════════════════════════════════════════
+  // BOARD EDITOR LOGIC
+  // ═══════════════════════════════════════════
+
+  let _boardStickers = [];  // [{itemId, img, name, x, y, w, h}]
+  let _boardName = 'My Board';
+  let _boardEditId = null;
+  let _boardDrag = null;    // active drag state
+
+  function openBoardEditor(boardId) {
+    if (boardId) {
+      const board = boards.find(b => b.id === boardId);
+      if (!board) return;
+      _boardEditId = boardId;
+      _boardName = board.name;
+      _boardStickers = (board.stickers || []).map(st => {
+        const item = getItem(st.itemId);
+        return { itemId: st.itemId, img: item?.img || '', name: item?.name || '', x: st.x, y: st.y, w: st.w, h: st.h };
+      });
+    } else {
+      _boardEditId = null;
+      _boardName = 'My Board';
+      _boardStickers = [];
+    }
+    _boardDrag = null;
+    s.screen = 'board-editor';
+    render();
+  }
+
+  function cancelBoardEdit() {
+    _boardDrag = null;
+    document.removeEventListener('pointermove', _onBoardMove);
+    document.removeEventListener('pointerup', _onBoardUp);
+    document.removeEventListener('pointercancel', _onBoardUp);
+    s.screen = 'boards';
+    render();
+  }
+
+  function addStickerToBoard(itemId) {
+    const item = getItem(itemId);
+    if (!item) return;
+    const canvasEl = document.getElementById('board-canvas-area');
+    const canvasW = canvasEl ? canvasEl.offsetWidth : 300;
+    const size = Math.round(canvasW * 0.44);
+    const n = _boardStickers.length;
+    const spread = (n % 7) * 16;
+    const sticker = {
+      itemId,
+      img: item.img || '',
+      name: item.name,
+      x: Math.max(0, Math.min(canvasW - size, 10 + spread)),
+      y: Math.max(0, Math.min(canvasW - size, 10 + spread)),
+      w: size, h: size,
+    };
+    const idx = _boardStickers.length;
+    _boardStickers.push(sticker);
+    if (canvasEl) {
+      canvasEl.insertAdjacentHTML('beforeend', boardStickerHtml(sticker, idx));
+    }
+  }
+
+  function removeBoardSticker(idx) {
+    _boardStickers.splice(idx, 1);
+    const canvasEl = document.getElementById('board-canvas-area');
+    if (canvasEl) {
+      canvasEl.innerHTML = _boardStickers.map((st, i) => boardStickerHtml(st, i)).join('');
+    }
+  }
+
+  // ── Drag: move ────────────────────────────────────────────────────
+  function boardStickerDown(e, idx) {
+    if (e.target.classList.contains('board-sticker-del')) return;
+    if (e.target.classList.contains('board-sticker-resize')) return;
+    e.preventDefault();
+    const st = _boardStickers[idx];
+    _boardDrag = { type: 'move', idx, startX: e.clientX, startY: e.clientY, origX: st.x, origY: st.y };
+    document.addEventListener('pointermove', _onBoardMove, { passive: false });
+    document.addEventListener('pointerup', _onBoardUp);
+    document.addEventListener('pointercancel', _onBoardUp);
+  }
+
+  // ── Drag: resize ──────────────────────────────────────────────────
+  function boardResizeDown(e, idx) {
+    e.preventDefault();
+    e.stopPropagation();
+    const st = _boardStickers[idx];
+    _boardDrag = { type: 'resize', idx, startX: e.clientX, startY: e.clientY, origW: st.w, origH: st.h };
+    document.addEventListener('pointermove', _onBoardMove, { passive: false });
+    document.addEventListener('pointerup', _onBoardUp);
+    document.addEventListener('pointercancel', _onBoardUp);
+  }
+
+  function _onBoardMove(e) {
+    if (!_boardDrag) return;
+    e.preventDefault();
+    const dx = e.clientX - _boardDrag.startX;
+    const dy = e.clientY - _boardDrag.startY;
+    const idx = _boardDrag.idx;
+    const st = _boardStickers[idx];
+    const canvasEl = document.getElementById('board-canvas-area');
+    const canvasW = canvasEl ? canvasEl.offsetWidth : 300;
+    const el = canvasEl ? canvasEl.querySelector(`.board-sticker[data-idx="${idx}"]`) : null;
+    if (!el) return;
+
+    if (_boardDrag.type === 'move') {
+      const newX = Math.max(-st.w * 0.5, Math.min(canvasW - st.w * 0.5, _boardDrag.origX + dx));
+      const newY = Math.max(-st.h * 0.5, Math.min(canvasW - st.h * 0.5, _boardDrag.origY + dy));
+      st.x = newX;
+      st.y = newY;
+      el.style.left = newX + 'px';
+      el.style.top  = newY + 'px';
+    } else {
+      const newW = Math.max(40, _boardDrag.origW + dx);
+      const newH = Math.max(40, _boardDrag.origH + dy);
+      st.w = newW;
+      st.h = newH;
+      el.style.width  = newW + 'px';
+      el.style.height = newH + 'px';
+    }
+  }
+
+  function _onBoardUp() {
+    _boardDrag = null;
+    document.removeEventListener('pointermove', _onBoardMove);
+    document.removeEventListener('pointerup', _onBoardUp);
+    document.removeEventListener('pointercancel', _onBoardUp);
+  }
+
+  // ── Save board: compose to canvas, store PNG ──────────────────────
+  async function saveBoardFinal() {
+    if (_boardStickers.length === 0) { showToast('Add some items first'); return; }
+    const nameEl = document.getElementById('board-name-input');
+    if (nameEl) _boardName = nameEl.value.trim() || 'My Board';
+
+    const canvasEl = document.getElementById('board-canvas-area');
+    const canvasW = canvasEl ? canvasEl.offsetWidth : 300;
+    const EXPORT = 750;
+    const scale = EXPORT / canvasW;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = EXPORT; canvas.height = EXPORT;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, EXPORT, EXPORT);
+
+    let hasCorsFail = false;
+    for (const st of _boardStickers) {
+      if (!st.img) continue;
+      try {
+        const img = await new Promise((res, rej) => {
+          const i = new Image();
+          // Only set crossOrigin for external URLs (data: doesn't need it)
+          if (!st.img.startsWith('data:')) i.crossOrigin = 'anonymous';
+          i.onload = () => res(i);
+          i.onerror = rej;
+          i.src = st.img;
+        });
+        ctx.drawImage(img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
+      } catch {
+        hasCorsFail = true;
+        ctx.fillStyle = '#e8e8e8';
+        ctx.fillRect(st.x * scale, st.y * scale, st.w * scale, st.h * scale);
+      }
+    }
+
+    let boardImg = '';
+    try {
+      boardImg = canvas.toDataURL('image/jpeg', 0.85);
+    } catch {
+      // Canvas tainted by external image — export without those
+      hasCorsFail = true;
+      const safeCanvas = document.createElement('canvas');
+      safeCanvas.width = EXPORT; safeCanvas.height = EXPORT;
+      const sCtx = safeCanvas.getContext('2d');
+      sCtx.fillStyle = '#fff';
+      sCtx.fillRect(0, 0, EXPORT, EXPORT);
+      for (const st of _boardStickers) {
+        if (!st.img || !st.img.startsWith('data:')) {
+          sCtx.fillStyle = '#e8e8e8';
+          sCtx.fillRect(st.x * scale, st.y * scale, st.w * scale, st.h * scale);
+          continue;
+        }
+        try {
+          const img = await new Promise((res, rej) => {
+            const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = st.img;
+          });
+          sCtx.drawImage(img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
+        } catch {}
+      }
+      boardImg = safeCanvas.toDataURL('image/jpeg', 0.85);
+    }
+
+    const board = {
+      id: _boardEditId || ('b' + genId()),
+      name: _boardName,
+      img: boardImg,
+      stickers: _boardStickers.map(st => ({ itemId: st.itemId, x: st.x, y: st.y, w: st.w, h: st.h })),
+      createdAt: Date.now(),
+    };
+
+    if (_boardEditId) {
+      boards = boards.map(b => b.id === _boardEditId ? board : b);
+    } else {
+      boards.unshift(board);
+    }
+    saveBoardData();
+
+    _boardDrag = null;
+    document.removeEventListener('pointermove', _onBoardMove);
+    document.removeEventListener('pointerup', _onBoardUp);
+    document.removeEventListener('pointercancel', _onBoardUp);
+
+    s.screen = 'boards';
+    render();
+    if (hasCorsFail) showToast('Tip: use Remove BG for cleaner exports');
+  }
+
+  function deleteBoard(boardId) {
+    boards = boards.filter(b => b.id !== boardId);
+    saveBoardData();
+    cancelBoardEdit();
   }
 
   // ═══════════════════════════════════════════
