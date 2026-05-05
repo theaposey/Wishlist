@@ -4,8 +4,8 @@
   "description": "Save what you want. Share what you love.",
   "start_url": "/Wishlist/",
   "display": "standalone",
-  "background_color": "#86EE86",
-  "theme_color": "#86EE86",
+  "background_color": "#2E45FF",
+  "theme_color": "#2E45FF",
   "orientation": "portrait-primary",
   "icons": [
     {
