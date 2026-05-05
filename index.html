@@ -14,7 +14,7 @@
       page_location: location.href
     });
   </script>
-  <meta name="theme-color" content="#faf8f5" />
+  <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="The Wishlist" />
@@ -28,16 +28,10 @@
   <meta name="twitter:image" content="/icon.svg" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
   <title>The Wishlist</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --accent: #8C6A3F;
-      --serif: 'Cormorant Garamond', Georgia, serif;
-    }
+    :root { --accent: #2E45FF; }
 
     html, body {
       height: 100%;
@@ -47,7 +41,6 @@
 
     body {
       font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-      color: #1A1714;
     }
 
     /* ─── App root ─── */
@@ -259,7 +252,7 @@
       box-shadow: 0 2px 16px rgba(0,0,0,0.18);
       -webkit-tap-highlight-color: transparent;
     }
-    .fab:active { background: #7A5835; }
+    .fab:active { background: #6ad46a; }
     .fab svg { display: block; }
 
     /* ─── Shared wishlist footer ─── */
@@ -270,14 +263,13 @@
     }
 
     /* ─── Wishlist folder cards ─── */
-    .folder-label { font-size: 13px; font-family: var(--serif); font-weight: 600; letter-spacing: 0.02em; color: #1A1714; }
+    .folder-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; }
     .folder-count { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
     .folder-initial {
-      font-size: 34px;
-      font-weight: 600;
-      font-family: var(--serif);
-      color: #e0d8cf;
-      letter-spacing: 0.02em;
+      font-size: 32px;
+      font-weight: 700;
+      color: #e8e8e8;
+      letter-spacing: -0.02em;
     }
 
     /* ─── Wishlist collage thumbnail ─── */
@@ -419,10 +411,10 @@
       background: #fff;
     }
     .wl-name-big {
-      font-size: 19px;
-      font-weight: 600;
-      font-family: var(--serif);
-      letter-spacing: 0.02em;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       display: block;
     }
     .wl-count-sm {
@@ -496,9 +488,8 @@
     .list-thumb .ph { font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase; color: #d0d0d0; padding: 4px; text-align: center; line-height: 1.4; }
     .list-info { flex: 1; min-width: 0; }
     .list-name {
-      font-size: 13px; font-family: var(--serif); font-weight: 600;
-      letter-spacing: 0.02em;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1A1714;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000;
     }
     .list-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
     .list-price { font-size: 10px; letter-spacing: 0.06em; color: #000; flex-shrink: 0; }
@@ -670,8 +661,8 @@
     }
     .name-prompt-hero { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 48px 28px 36px; }
     .name-prompt-title {
-      font-size: 52px; font-weight: 600; font-family: var(--serif);
-      letter-spacing: 0.01em; line-height: 0.92; color: #1A1714; margin-bottom: 20px;
+      font-size: 48px; font-weight: 800; letter-spacing: -0.025em;
+      text-transform: uppercase; line-height: 0.88; color: #000; margin-bottom: 20px;
     }
     .name-prompt-sub { font-size: 11px; letter-spacing: 0.05em; color: #999; line-height: 1.8; text-transform: uppercase; }
     .name-prompt-body { border-top: 1px solid #f0f0f0; padding: 32px 28px; }
@@ -705,12 +696,12 @@
       padding: 40px 28px;
     }
     .empty-hero {
-      font-size: 58px;
-      font-weight: 600;
-      font-family: var(--serif);
-      letter-spacing: 0.01em;
-      line-height: 0.95;
-      color: #e0d8cf;
+      font-size: 54px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      line-height: 0.88;
+      color: #ebebeb;
     }
     .empty-cta {
       margin-top: 32px;
@@ -864,7 +855,7 @@
 
     /* ─── Profile ─── */
     .profile-body { flex: 1; display: flex; flex-direction: column; padding: 36px 28px; }
-    .profile-hero { font-size: 58px; font-weight: 600; font-family: var(--serif); letter-spacing: 0.01em; line-height: 0.95; color: #e0d8cf; margin-bottom: 40px; }
+    .profile-hero { font-size: 54px; font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; line-height: 0.88; color: #ebebeb; margin-bottom: 40px; }
     .profile-stat-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f4f4f4; }
     .profile-stat-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; }
     .profile-stat-val { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; font-weight: 600; }
@@ -1012,21 +1003,21 @@
     }
     .new-wl-title-wrap { position: relative; margin-bottom: 24px; }
     .new-wl-title-input {
-      font-size: 38px; font-weight: 600; letter-spacing: 0.02em;
-      font-family: var(--serif); text-align: center;
-      border: none; outline: none; background: none; color: #1A1714;
-      width: 100%; line-height: 1.1;
-      padding: 0; caret-color: #1A1714;
+      font-size: 38px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; text-align: center;
+      border: none; outline: none; background: none; color: #000;
+      width: 100%; font-family: inherit; line-height: 1.15;
+      padding: 0; caret-color: #000;
       transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.4,0,0.2,1);
     }
     .new-wl-title-input.nwl-done {
       opacity: 0; transform: translateY(-6px); pointer-events: none;
     }
-    .new-wl-title-input::placeholder { color: #d8cfc6; font-weight: 400; }
+    .new-wl-title-input::placeholder { color: #e0e0e0; }
     .new-wl-title-ghost {
       position: absolute; top: 0; left: 0; right: 0;
-      font-size: 38px; font-weight: 600; letter-spacing: 0.01em;
-      font-family: var(--serif); line-height: 1.1; color: #1A1714;
+      font-size: 38px; font-weight: 700; letter-spacing: -0.02em;
+      text-transform: uppercase; line-height: 1.15; color: #000;
       text-align: center; opacity: 0; transform: translateY(8px);
       transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1),
                   transform 0.75s cubic-bezier(0.16,1,0.3,1),
@@ -1034,7 +1025,7 @@
       pointer-events: none; cursor: text;
     }
     .new-wl-title-ghost.nwl-show {
-      opacity: 1; transform: translateY(0); letter-spacing: 0.04em;
+      opacity: 1; transform: translateY(0); letter-spacing: 0.06em;
       pointer-events: auto;
     }
     .new-wl-url-wrap {
@@ -1056,10 +1047,10 @@
     /* ─── Wishlist detail — editorial header ─── */
     .wl-editorial-header { padding: 20px 24px 12px; text-align: center; }
     .wl-editorial-title {
-      font-size: 42px; font-weight: 600; letter-spacing: 0.02em;
-      font-family: var(--serif); line-height: 1.05; color: #1A1714;
+      font-size: 38px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; line-height: 1.1; color: #000;
       border: none; outline: none; background: none;
-      width: 100%; text-align: center;
+      font-family: inherit; width: 100%; text-align: center;
       padding: 0; display: block;
     }
     .wl-editorial-desc {
@@ -1602,7 +1593,7 @@
           <div class="wl-delete-btn" onclick="deleteWishlist('${wl.id}')">−</div>
           <div class="card-image" style="overflow:hidden">${thumbH}</div>
           <div class="card-meta">
-            <p class="folder-label">${esc(wl.name)}</p>
+            <p class="folder-label">${esc(wl.name.toUpperCase())}</p>
             <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
           </div>
         </div>`;
@@ -1617,7 +1608,7 @@
         onpointerleave="wlLongPressCancel()">
         <div class="card-image" style="overflow:hidden">${thumbH}</div>
         <div class="card-meta">
-          <p class="folder-label">${esc(wl.name)}</p>
+          <p class="folder-label">${esc(wl.name.toUpperCase())}</p>
           <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
         </div>
       </div>`;
@@ -1643,7 +1634,7 @@
         ${s.wlEditMode ? `<span class="list-drag-handle">⠿</span>` : ''}
         <div class="list-thumb" style="overflow:hidden">${thumb}</div>
         <div class="list-info">
-          <p class="list-name">${esc(wl.name)}</p>
+          <p class="list-name">${esc(wl.name.toUpperCase())}</p>
           <p class="list-meta">${count} ${count===1?'Item':'Items'}${totalVal ? ` · ${money(totalVal)}` : ''}</p>
         </div>
       </div>`;
@@ -1917,8 +1908,8 @@
     const watchCount = sItems.length;
     const totalValue = sItems.reduce((sum, i) => sum + (parseFloat(i.price) || 0), 0);
     const headerTitle = senderName
-      ? `${esc(senderName)}'s Wishlist`
-      : 'Shared Wishlist';
+      ? `${esc(senderName.toUpperCase())}'S WISHLIST`
+      : 'SHARED WISHLIST';
     return `
       <div class="safe-top"></div>
       <header>
@@ -1934,7 +1925,7 @@
           <div class="wl-sticky-top">
             <div class="wl-name-row">
               <div style="flex:1;min-width:0;margin-right:12px">
-                <span class="wl-name-big">${esc(wl.name)}</span>
+                <span class="wl-name-big">${esc(wl.name.toUpperCase())}</span>
                 <span class="wl-count-sm">${watchCount} Watching</span>
               </div>
               <div class="view-toggle">
@@ -2207,7 +2198,7 @@
                  value="${esc(wl.name)}" maxlength="50" autocorrect="off"
                  onblur="renameWishlist('${wl.id}',this.value)"
                  onkeydown="if(event.key==='Enter'){this.blur()}" />`
-            : `<p class="wl-editorial-title">${esc(wl.name)}</p>`}
+            : `<p class="wl-editorial-title">${esc(wl.name.toUpperCase())}</p>`}
           <textarea class="wl-editorial-desc" id="wl-desc-input" rows="1"
             placeholder="Write a description"
             onblur="updateWlDescription('${wl.id}')"
@@ -2627,7 +2618,7 @@
       <div class="scroll-area">
         <div class="profile-body">
           ${name
-            ? `<p class="profile-hero">Hello,<br/>${esc(name)}</p>
+            ? `<p class="profile-hero">Hello,<br/>${esc(name.toUpperCase())}</p>
                <button onclick="openEditName()" style="display:block;margin-top:16px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;background:none;border:none;font-family:inherit;cursor:pointer;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px">That's not my name</button>`
             : `<p class="profile-hero">Hello.</p>
                <button onclick="openEditName()" style="display:block;margin-top:16px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;background:none;border:none;font-family:inherit;cursor:pointer;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px">Add your name</button>`}
@@ -2999,7 +2990,7 @@
             <div class="wl-move-list">
               ${wishlists.map(w => `
                 <button class="wl-move-option" onclick="moveItemToWl('${s.currentIid}','${w.id}')">
-                  ${esc(w.name)}
+                  ${esc(w.name.toUpperCase())}
                 </button>`).join('')}
             </div>
             <button class="btn btn-ghost" style="margin-top:16px" onclick="closeOverlay()">Cancel</button>
@@ -3712,7 +3703,7 @@
   function newWlSyncGhost() {
     const v = document.getElementById('wl-name-input')?.value || '';
     const g = document.getElementById('new-wl-title-ghost');
-    if (g) g.textContent = v;
+    if (g) g.textContent = v.toUpperCase();
   }
 
   function newWlConfirmTitle() {
@@ -3720,7 +3711,7 @@
     if (!input?.value.trim()) return;
     const ghost = document.getElementById('new-wl-title-ghost');
     const urlWrap = document.getElementById('new-wl-url-wrap');
-    ghost.textContent = input.value.trim();
+    ghost.textContent = input.value.trim().toUpperCase();
     input.classList.add('nwl-done');
     requestAnimationFrame(() => requestAnimationFrame(() => {
       ghost.classList.add('nwl-show');
