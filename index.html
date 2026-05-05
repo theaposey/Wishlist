@@ -1003,7 +1003,8 @@
     }
     .new-wl-title-wrap { position: relative; margin-bottom: 24px; }
     .new-wl-title-input {
-      font-size: 38px; font-weight: 300; letter-spacing: -0.02em;
+      font-size: 38px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; text-align: center;
       border: none; outline: none; background: none; color: #000;
       width: 100%; font-family: inherit; line-height: 1.15;
       padding: 0; caret-color: #000;
@@ -2154,22 +2155,12 @@
     const coverPanel = s.overlay === 'change-cover' && s.currentWid === wl.id
       ? buildChangeCoverPanel(wl) : '';
 
-    // Cover: full-width editorial image (tall) when a board/photo is set
+    // Cover: full-width editorial image when a board is set (read-only, set by board save)
     const coverHtml = cover ? `
-      <div style="width:100%;aspect-ratio:1;overflow:hidden;flex-shrink:0;position:relative;cursor:${s.wlItemEditMode?'pointer':'default'}"
-        ${s.wlItemEditMode ? `onclick="s.overlay='change-cover';s.currentWid='${wl.id}';render()"` : ''}>
+      <div style="width:100%;aspect-ratio:1;overflow:hidden;flex-shrink:0;position:relative">
         <img src="${esc(cover)}" alt="${esc(wl.name)}"
           style="width:100%;height:100%;object-fit:cover;display:block" />
-        ${s.wlItemEditMode ? `<div style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:14px">
-          <span style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;background:rgba(255,255,255,0.88);padding:6px 14px;color:#000">Change Cover</span>
-        </div>` : ''}
       </div>` : '';
-
-    const editCoverBtn = !cover && s.wlItemEditMode
-      ? `<button onclick="s.overlay='change-cover';s.currentWid='${wl.id}';render()"
-          style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;background:none;border:1px solid #e0e0e0;padding:7px 14px;cursor:pointer;font-family:inherit;color:#888;margin-top:8px">
-          + Add Cover
-        </button>` : '';
 
     return `
       <div class="safe-top"></div>
@@ -2178,7 +2169,7 @@
           ? `<button class="h-left" style="color:#c0392b" onclick="deleteWishlist('${wl.id}')">Delete</button>`
           : `<button class="h-left" onclick="navTo('wishlists')">←</button>`}
         <div style="display:flex;align-items:center;gap:14px">
-          ${!s.wlItemEditMode ? `
+          ${s.wlItemEditMode ? `
           <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="openWishlistMoodboard('${wl.id}')" title="Moodboard">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <rect x="1" y="1" width="5.5" height="8"/>
@@ -2186,14 +2177,14 @@
               <rect x="8.5" y="7.5" width="5.5" height="6.5"/>
               <rect x="1" y="11" width="5.5" height="3"/>
             </svg>
-          </button>
+          </button>` : `
           <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="shareWishlist('${wl.id}')" title="Share">
             <svg width="15" height="16" viewBox="0 0 15 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="7.5" y1="1" x2="7.5" y2="10"/>
               <polyline points="4.5,4 7.5,1 10.5,4"/>
               <path d="M3,6.5H1.5v8h12v-8H12"/>
             </svg>
-          </button>` : ''}
+          </button>`}
           <button class="h-right ${s.wlItemEditMode ? '' : 'h-muted'}" onclick="toggleWlItemEdit()">
             ${s.wlItemEditMode ? 'Done' : 'Edit'}
           </button>
@@ -2213,16 +2204,15 @@
             onblur="updateWlDescription('${wl.id}')"
             oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
           >${esc(wl.description || '')}</textarea>
-          ${editCoverBtn}
         </div>
         <p class="wl-stats-line">${watchCount} ${watchCount===1?'item':'items'}${totalValue ? ` · ${money(totalValue)}` : ''}</p>
         ${(() => {
           if (!wl.boardId) return '';
           const mb = boards.find(b => b.id === wl.boardId);
           if (!mb?.img) return '';
-          return `<div class="wl-moodboard-preview" onclick="openWishlistMoodboard('${wl.id}')">
+          return `<div class="wl-moodboard-preview"${s.wlItemEditMode ? ` onclick="openWishlistMoodboard('${wl.id}')"` : ''}>
             <img src="${esc(mb.img)}" alt="Moodboard" />
-            <span class="wl-moodboard-edit-pill">Edit Board</span>
+            ${s.wlItemEditMode ? '<span class="wl-moodboard-edit-pill">Edit Board</span>' : ''}
           </div>`;
         })()}
         ${allTags.length ? `
@@ -3866,6 +3856,13 @@
         s.screen = 'items';
       }
       render();
+      if (newItem.img) {
+        removeImageBackground(newItem.img).then(cleaned => {
+          items = items.map(i => i.id === newItem.id ? { ...i, img: cleaned } : i);
+          saveData();
+          render();
+        }).catch(() => {});
+      }
 
     }
   }
@@ -4837,6 +4834,67 @@
     }
   }
 
+  async function removeImageBackground(imgSrc) {
+    let src = imgSrc;
+    if (!src.startsWith('data:')) {
+      const proxies = [
+        'https://api.allorigins.win/raw?url=' + encodeURIComponent(src),
+        'https://corsproxy.io/?' + encodeURIComponent(src),
+      ];
+      for (const proxy of proxies) {
+        try {
+          const resp = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
+          if (resp.ok) {
+            const blob = await resp.blob();
+            src = await new Promise((res, rej) => {
+              const r = new FileReader();
+              r.onload = () => res(r.result);
+              r.onerror = rej;
+              r.readAsDataURL(blob);
+            });
+            break;
+          }
+        } catch {}
+      }
+    }
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = src;
+    });
+    const W = img.naturalWidth, H = img.naturalHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, W, H);
+    const d = imageData.data;
+    function px(x, y) { const i = (y*W+x)*4; return [d[i], d[i+1], d[i+2]]; }
+    const samples = [px(0,0),px(W-1,0),px(0,H-1),px(W-1,H-1),px(Math.floor(W/2),0),px(Math.floor(W/2),H-1),px(0,Math.floor(H/2)),px(W-1,Math.floor(H/2))];
+    const bg = samples.reduce((a,c) => [a[0]+c[0],a[1]+c[1],a[2]+c[2]], [0,0,0]).map(v => Math.round(v/samples.length));
+    const HARD = 30, SOFT = 90;
+    function dist(i) { const dr=d[i]-bg[0],dg=d[i+1]-bg[1],db=d[i+2]-bg[2]; return Math.sqrt(dr*dr+dg*dg+db*db); }
+    const visited = new Uint8Array(W*H);
+    const queue = new Int32Array(W*H*2);
+    let head=0, tail=0;
+    function enq(x,y) { const qi=y*W+x; if (!visited[qi]) { visited[qi]=1; queue[tail++]=x; queue[tail++]=y; } }
+    for (let x=0; x<W; x++) { enq(x,0); enq(x,H-1); }
+    for (let y=1; y<H-1; y++) { enq(0,y); enq(W-1,y); }
+    while (head < tail) {
+      const x=queue[head++], y=queue[head++];
+      const pi=(y*W+x)*4;
+      const dd=dist(pi);
+      if (dd <= SOFT) {
+        d[pi+3] = dd <= HARD ? 0 : Math.round(d[pi+3] * ((dd-HARD)/(SOFT-HARD)) ** 2);
+        if (x>0) enq(x-1,y); if (x<W-1) enq(x+1,y);
+        if (y>0) enq(x,y-1); if (y<H-1) enq(x,y+1);
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+    return canvas.toDataURL('image/png');
+  }
+
   async function removeStickerBg(idx) {
     const st = _boardStickers[idx];
     if (!st || !st.img || _removingBgIdx !== null) return;
@@ -4845,64 +4903,7 @@
     if (btn) btn.textContent = '…';
     await new Promise(r => setTimeout(r, 0));
     try {
-      let imgSrc = st.img;
-      if (!st.img.startsWith('data:')) {
-        const proxies = [
-          'https://api.allorigins.win/raw?url=' + encodeURIComponent(st.img),
-          'https://corsproxy.io/?' + encodeURIComponent(st.img),
-        ];
-        for (const proxy of proxies) {
-          try {
-            const resp = await fetch(proxy, { signal: AbortSignal.timeout(6000) });
-            if (resp.ok) {
-              const blob = await resp.blob();
-              imgSrc = await new Promise((res, rej) => {
-                const r2 = new FileReader();
-                r2.onload = () => res(r2.result);
-                r2.onerror = rej;
-                r2.readAsDataURL(blob);
-              });
-              break;
-            }
-          } catch {}
-        }
-      }
-      const img = await new Promise((resolve, reject) => {
-        const i = new Image();
-        i.onload = () => resolve(i);
-        i.onerror = reject;
-        i.src = imgSrc;
-      });
-      const W = img.naturalWidth, H = img.naturalHeight;
-      const canvas = document.createElement('canvas');
-      canvas.width = W; canvas.height = H;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, W, H);
-      const d = imageData.data;
-      function px(x, y) { const i = (y*W+x)*4; return [d[i], d[i+1], d[i+2]]; }
-      const samples = [px(0,0),px(W-1,0),px(0,H-1),px(W-1,H-1),px(Math.floor(W/2),0),px(Math.floor(W/2),H-1),px(0,Math.floor(H/2)),px(W-1,Math.floor(H/2))];
-      const bg = samples.reduce((a,c) => [a[0]+c[0],a[1]+c[1],a[2]+c[2]], [0,0,0]).map(v => Math.round(v/samples.length));
-      const HARD = 30, SOFT = 90;
-      function dist(i) { const dr=d[i]-bg[0],dg=d[i+1]-bg[1],db=d[i+2]-bg[2]; return Math.sqrt(dr*dr+dg*dg+db*db); }
-      const visited = new Uint8Array(W*H);
-      const queue = new Int32Array(W*H*2);
-      let head=0, tail=0;
-      function enq(x,y) { const qi=y*W+x; if (!visited[qi]) { visited[qi]=1; queue[tail++]=x; queue[tail++]=y; } }
-      for (let x=0; x<W; x++) { enq(x,0); enq(x,H-1); }
-      for (let y=1; y<H-1; y++) { enq(0,y); enq(W-1,y); }
-      while (head < tail) {
-        const x=queue[head++], y=queue[head++];
-        const pi=(y*W+x)*4;
-        const dd=dist(pi);
-        if (dd <= SOFT) {
-          d[pi+3] = dd <= HARD ? 0 : Math.round(d[pi+3] * ((dd-HARD)/(SOFT-HARD)) ** 2);
-          if (x>0) enq(x-1,y); if (x<W-1) enq(x+1,y);
-          if (y>0) enq(x,y-1); if (y<H-1) enq(x,y+1);
-        }
-      }
-      ctx.putImageData(imageData, 0, 0);
-      const newImg = canvas.toDataURL('image/png');
+      const newImg = await removeImageBackground(st.img);
       _boardStickers[idx].img = newImg;
       if (st.itemId) {
         items = items.map(i => i.id === st.itemId ? { ...i, img: newImg } : i);
@@ -5061,6 +5062,7 @@
       canvasEl.insertAdjacentHTML('beforeend', boardStickerHtml(sticker, idx));
     }
     selectBoardSticker(idx);
+    removeStickerBg(idx);
   }
 
   function removeBoardSticker(idx) {
@@ -5140,14 +5142,14 @@
     const canvasW = canvasEl ? canvasEl.offsetWidth : 300;
     const canvasH = canvasEl ? canvasEl.offsetHeight : 300;
     const EXPORT = 750;
-    const scaleX = EXPORT / canvasW;
-    const scaleY = EXPORT / canvasH;
+    const scale = EXPORT / canvasW;
+    const exportH = Math.round(canvasH * scale);
 
     const canvas = document.createElement('canvas');
-    canvas.width = EXPORT; canvas.height = EXPORT;
+    canvas.width = EXPORT; canvas.height = exportH;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, EXPORT, EXPORT);
+    ctx.fillRect(0, 0, EXPORT, exportH);
 
     let hasCorsFail = false;
     for (const st of _boardStickers) {
@@ -5161,11 +5163,11 @@
           i.onerror = rej;
           i.src = st.img;
         });
-        ctx.drawImage(img, st.x * scaleX, st.y * scaleY, st.w * scaleX, st.h * scaleY);
+        ctx.drawImage(img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
       } catch {
         hasCorsFail = true;
         ctx.fillStyle = '#e8e8e8';
-        ctx.fillRect(st.x * scaleX, st.y * scaleY, st.w * scaleX, st.h * scaleY);
+        ctx.fillRect(st.x * scale, st.y * scale, st.w * scale, st.h * scale);
       }
     }
 
@@ -5176,21 +5178,21 @@
       // Canvas tainted by external image — export without those
       hasCorsFail = true;
       const safeCanvas = document.createElement('canvas');
-      safeCanvas.width = EXPORT; safeCanvas.height = EXPORT;
+      safeCanvas.width = EXPORT; safeCanvas.height = exportH;
       const sCtx = safeCanvas.getContext('2d');
       sCtx.fillStyle = '#fff';
-      sCtx.fillRect(0, 0, EXPORT, EXPORT);
+      sCtx.fillRect(0, 0, EXPORT, exportH);
       for (const st of _boardStickers) {
         if (!st.img || !st.img.startsWith('data:')) {
           sCtx.fillStyle = '#e8e8e8';
-          sCtx.fillRect(st.x * scaleX, st.y * scaleY, st.w * scaleX, st.h * scaleY);
+          sCtx.fillRect(st.x * scale, st.y * scale, st.w * scale, st.h * scale);
           continue;
         }
         try {
           const img = await new Promise((res, rej) => {
             const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = st.img;
           });
-          sCtx.drawImage(img, st.x * scaleX, st.y * scaleY, st.w * scaleX, st.h * scaleY);
+          sCtx.drawImage(img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
         } catch {}
       }
       boardImg = safeCanvas.toDataURL('image/jpeg', 0.85);
@@ -5212,7 +5214,7 @@
     saveBoardData();
 
     if (_boardFromWid) {
-      wishlists = wishlists.map(w => w.id === _boardFromWid ? { ...w, boardId: board.id } : w);
+      wishlists = wishlists.map(w => w.id === _boardFromWid ? { ...w, boardId: board.id, coverImg: board.img } : w);
       saveData();
     }
 
