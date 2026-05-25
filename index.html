@@ -2923,7 +2923,14 @@
       <header>
         <button class="h-left h-muted" onclick="cancelBoardEdit()">←</button>
         <span></span>
-        <button class="h-right" onclick="saveBoardFinal()">Done</button>
+        <div style="display:flex;align-items:center;gap:16px">
+          <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="saveBoardToCamera()" title="Save to camera roll">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2"/><line x1="8" y1="2" x2="8" y2="10"/><polyline points="5,7 8,10 11,7"/>
+            </svg>
+          </button>
+          <button class="h-right" onclick="saveBoardFinal()">Done</button>
+        </div>
       </header>
       <div class="board-editor-layout">
         <div class="be-canvas-wrap" id="be-canvas-wrap" onclick="beTapCanvas(event)">
@@ -3156,7 +3163,7 @@
       </div>`;
 
     const tagsHtml = item.tags && item.tags.length
-      ? item.tags.map(t => `<span style="display:inline-block;background:#f2f2f2;border-radius:20px;padding:4px 12px;font-size:13px;color:#000;margin-left:6px">${esc(t)}</span>`).join('')
+      ? item.tags.map(t => `<span class="tag-pill-display">${esc(t)}</span>`).join('')
       : '';
 
     return `
@@ -6124,6 +6131,11 @@
     if (e.target.classList.contains('be-sticker-rmbg')) return;
     e.preventDefault();
     e.stopPropagation();
+    // Tap on unselected sticker → select it, don't drag
+    if (idx !== _boardActiveIdx) {
+      selectBoardSticker(idx);
+      return;
+    }
     const st = _boardStickers[idx];
     _boardDrag = { type: 'move', idx, startX: e.clientX, startY: e.clientY, origX: st.x, origY: st.y, hasMoved: false };
     document.addEventListener('pointermove', _onBoardMove, { passive: false });
@@ -6276,6 +6288,48 @@
       s.screen = 'boards';
     }
     render();
+  }
+
+  async function saveBoardToCamera() {
+    const canvasEl = document.getElementById('be-canvas');
+    const canvasW = canvasEl ? canvasEl.offsetWidth : 300;
+    const canvasH = canvasEl ? canvasEl.offsetHeight : Math.round(canvasW * 4/3);
+    const EXPORT = 750;
+    const EXPORT_H = Math.round(canvasH * EXPORT / canvasW);
+    const scale = EXPORT / canvasW;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = EXPORT; canvas.height = EXPORT_H;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, EXPORT, EXPORT_H);
+
+    for (const st of _boardStickers) {
+      if (!st.img) continue;
+      try {
+        const img = await new Promise((res, rej) => {
+          const i = new Image();
+          if (!st.img.startsWith('data:')) i.crossOrigin = 'anonymous';
+          i.onload = () => res(i); i.onerror = rej; i.src = st.img;
+        });
+        ctx.drawImage(img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
+      } catch { /* skip tainted images */ }
+    }
+
+    try {
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+      const file = new File([blob], 'board.jpg', { type: 'image/jpeg' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'My Board' });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'board.jpg'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch(err) {
+      if (err.name !== 'AbortError') showToast('Could not save image');
+    }
   }
 
   function confirmDeleteBoard(e, boardId) {
