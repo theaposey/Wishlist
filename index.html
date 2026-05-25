@@ -1607,8 +1607,6 @@
     .be-sticker.be-selected { outline: 1.5px solid #0264FD; outline-offset: 3px; }
     .be-sticker-resize { position: absolute; bottom: -10px; right: -10px; width: 22px; height: 22px; background: #0264FD; border-radius: 50%; cursor: se-resize; touch-action: none; display: none; }
     .be-sticker.be-selected .be-sticker-resize { display: block; }
-    .be-sticker-rmbg { position: absolute; bottom: -10px; left: -10px; width: 22px; height: 22px; background: #fff; border: 1.5px solid #ddd; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 6px; letter-spacing: 0.04em; text-transform: uppercase; color: #888; cursor: pointer; z-index: 10; touch-action: manipulation; font-family: inherit; font-weight: 600; }
-    .be-sticker.be-selected .be-sticker-rmbg { display: flex; }
     .be-panel { position: absolute; bottom: 0; left: 0; right: 0; background: #f5f5f5; border-radius: 16px 16px 0 0; overflow: hidden; display: flex; flex-direction: column; transition: height 0.38s cubic-bezier(0.32,0.72,0,1); }
     .be-panel.no-transition { transition: none !important; }
     .be-panel-handle-wrap { flex-shrink: 0; display: flex; justify-content: center; padding: 10px 0 6px; cursor: grab; touch-action: none; }
@@ -5189,6 +5187,15 @@
       const { data } = ctx.getImageData(0, 0, S, S);
 
       const sample = (x, y) => { const i=(y*S+x)*4; return { r:data[i], g:data[i+1], b:data[i+2], a:data[i+3] }; };
+
+      // If image already has meaningful transparency, background was already removed
+      let transparentCount = 0;
+      const totalPixels = S * S;
+      for (let k = 0; k < data.length; k += 4) {
+        if (data[k + 3] < 128) transparentCount++;
+      }
+      if (transparentCount / totalPixels > 0.05) return;
+
       const corners = [
         sample(0,0), sample(S-1,0), sample(0,S-1), sample(S-1,S-1),
         sample(Math.floor(S/2),0), sample(Math.floor(S/2),S-1),
@@ -5738,7 +5745,6 @@
   let _boardEditId = null;
   let _boardDrag = null;    // active drag state
   let _boardFromWid = null; // set when opened from a wishlist
-  let _removingBgIdx = null;
   let _bePanelH = 0;
   let _bePanelDrag = null;
   let _boardActiveIdx = -1;
@@ -5861,30 +5867,6 @@
     return canvas.toDataURL('image/png');
   }
 
-  async function removeStickerBg(idx) {
-    const st = _boardStickers[idx];
-    if (!st || !st.img || _removingBgIdx !== null) return;
-    _removingBgIdx = idx;
-    const btn = document.querySelector(`.be-sticker[data-idx="${idx}"] .be-sticker-rmbg`);
-    if (btn) btn.textContent = '…';
-    await new Promise(r => setTimeout(r, 0));
-    try {
-      const newImg = await removeImageBackground(st.img);
-      _boardStickers[idx].img = newImg;
-      if (st.itemId) {
-        items = items.map(i => i.id === st.itemId ? { ...i, img: newImg } : i);
-        saveData();
-      }
-      _removingBgIdx = null;
-      const canvasEl = document.getElementById('be-canvas');
-      if (canvasEl) canvasEl.innerHTML = _boardStickers.map((s2, i) => boardStickerHtml(s2, i)).join('');
-      if (_boardActiveIdx >= 0) selectBoardSticker(_boardActiveIdx);
-    } catch(err) {
-      _removingBgIdx = null;
-      if (btn) btn.textContent = 'BG';
-      showToast('Could not remove background.');
-    }
-  }
 
   function openBoardShare(boardId) {
     s.currentBoardId = boardId;
@@ -6127,7 +6109,6 @@
   // ── Drag: move ────────────────────────────────────────────────────
   function boardStickerDown(e, idx) {
     if (e.target.classList.contains('be-sticker-resize')) return;
-    if (e.target.classList.contains('be-sticker-rmbg')) return;
     e.preventDefault();
     e.stopPropagation();
     // Tap on unselected sticker → select it, don't drag
