@@ -575,7 +575,7 @@
     .swipe-row-wrap { overflow: hidden; }
     .swipe-inner { display: flex; align-items: stretch; }
     .swipe-inner > .list-row,
-    .swipe-inner > .note-row { flex: 0 0 100%; }
+    .swipe-inner > .note-row { flex: 0 0 100%; overflow: hidden; }
     .swipe-act-btn {
       width: 80px; display: flex; align-items: center; justify-content: center;
       font-family: inherit; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
@@ -1777,9 +1777,9 @@
     if (s.overlay && s.overlay !== 'change-cover') {
       document.getElementById('app').insertAdjacentHTML('beforeend', buildOverlay());
     }
-    // Apply smart crop to any already-loaded thumb images (cache hit = no onload fires)
+    // Apply smart crop to list-thumb images (cache hit = no onload fires)
     setTimeout(() => {
-      document.querySelectorAll('.note-thumb img').forEach(img => {
+      document.querySelectorAll('.list-thumb img').forEach(img => {
         if (img.complete && img.naturalWidth && !img.style.objectViewBox) {
           smartCropThumb(img);
         }
