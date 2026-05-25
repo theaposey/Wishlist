@@ -2703,8 +2703,21 @@
             <button class="tag-filter-pill ${activeTags.includes(t)?'active':''}" onclick="toggleWlDetailFilter('${esc(t)}')">${esc(t)}</button>
           `).join('')}
         </div>` : ''}
+        ${allWItems.length > 0 && !s.wlItemEditMode ? `
+        <div style="display:flex;justify-content:flex-end;padding:0 14px 10px">
+          <div class="view-toggle">
+            <button class="view-btn ${s.wlViewMode==='list'?'active':''}" onclick="setWlView('list')" title="List">
+              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
+            </button>
+            <button class="view-btn ${s.wlViewMode==='grid'?'active':''}" onclick="setWlView('grid')" title="Grid">
+              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
+            </button>
+          </div>
+        </div>` : ''}
         ${s.pendingItems.filter(p => p.wid === wl.id).map(p => notePendingRow(p)).join('')}
-        ${wItems.map(item => noteItemRow(item)).join('')}
+        ${s.wlViewMode === 'grid'
+          ? `<div class="grid">${wItems.map(item => wlDetailCard(item)).join('')}</div>`
+          : wItems.map(item => noteItemRow(item)).join('')}
         ${allWItems.length === 0 && s.pendingItems.filter(p => p.wid === wl.id).length === 0 ? `
           <div style="padding:48px 28px;text-align:center">
             <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#e0e0e0">
