@@ -4393,7 +4393,7 @@
   function openWlAddBar(wid) {
     s.wlAddBarOpen = true;
     render();
-    setTimeout(() => document.getElementById('wl-add-url')?.focus(), 50);
+    document.getElementById('wl-add-url')?.focus();
   }
 
   function closeWlAddBar() {
