@@ -642,13 +642,14 @@
       display: flex; align-items: center; gap: 16px;
       padding: 14px 16px;
       cursor: pointer; background: #fff; -webkit-tap-highlight-color: transparent;
+      position: relative; z-index: 1;
     }
     .note-row:active { opacity: 0.72; }
     .note-thumb {
       width: 72px; height: 72px; flex-shrink: 0;
       overflow: hidden; border-radius: 14px; background: #fff;
     }
-    .note-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; mix-blend-mode: multiply; }
+    .note-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: multiply; }
     .note-thumb-ph { width: 100%; height: 100%; background: #ebebeb; border-radius: 14px; }
     .note-info { flex: 1; min-width: 0; }
     .note-name {
@@ -1951,7 +1952,7 @@
   function noteItemRow(item) {
     const purchased = item.status === 'purchased';
     const thumbH = item.img
-      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" onload="smartCropThumb(this)" />`
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
       : `<div class="note-thumb-ph"></div>`;
     const d = item.addedAt ? days(item.addedAt) : null;
     const dateStr = d === null ? '' : d === 0 ? 'Added today' : d === 1 ? 'Added yesterday' : `Added ${d}d ago`;
@@ -3516,9 +3517,9 @@
     if (s.overlay === 'item-sheet') {
       return `
         <div class="item-sheet-backdrop" id="item-sheet-backdrop" onclick="closeItemSheet()"></div>
-        <div class="item-sheet" id="item-sheet">
+        <div class="item-sheet" id="item-sheet" onpointerdown="sheetDragStart(event)">
           <div class="item-sheet-handle"></div>
-          <div class="item-sheet-scroll">${itemSheetContent()}</div>
+          <div class="item-sheet-scroll" id="item-sheet-scroll">${itemSheetContent()}</div>
         </div>`;
     }
     if (s.overlay === 'delete') {
@@ -3643,6 +3644,65 @@
       if (backdrop) backdrop.style.animation = 'fadeIn 0.22s ease reverse both';
     }
     setTimeout(() => { s.overlay = null; render(); }, 240);
+  }
+
+  function sheetDragStart(e) {
+    if (e.pointerType === 'mouse') return;
+    const sheet = document.getElementById('item-sheet');
+    const scroll = document.getElementById('item-sheet-scroll');
+    if (!sheet) return;
+
+    // Only dismiss-drag when scrollable area is at top, or drag starts on handle
+    const fromHandle = e.target.closest('.item-sheet-handle');
+    if (!fromHandle && scroll && scroll.scrollTop > 2) return;
+
+    const startY = e.clientY;
+    let dy = 0, lastY = startY, velY = 0, decided = false, isDrag = false;
+
+    sheet.setPointerCapture(e.pointerId);
+
+    function onMove(ev) {
+      const y = ev.clientY - startY;
+      if (!decided) {
+        if (Math.abs(y) < 6) return;
+        isDrag = y > 0; decided = true;
+        if (!isDrag) { cleanup(); return; }
+        sheet.style.transition = 'none';
+      }
+      if (!isDrag) return;
+      dy = Math.max(0, y);
+      velY = ev.clientY - lastY;
+      lastY = ev.clientY;
+      sheet.style.transform = `translateY(${dy}px)`;
+    }
+
+    function onUp() {
+      cleanup();
+      if (!isDrag) return;
+      const DISMISS_PX = 120;
+      const DISMISS_VEL = 8;
+      if (dy > DISMISS_PX || velY > DISMISS_VEL) {
+        sheet.style.transition = 'transform 0.22s ease-in';
+        sheet.style.transform = 'translateY(100%)';
+        const backdrop = document.getElementById('item-sheet-backdrop');
+        if (backdrop) backdrop.style.animation = 'fadeIn 0.22s ease reverse both';
+        setTimeout(() => { s.overlay = null; render(); }, 210);
+      } else {
+        sheet.style.transition = 'transform 0.35s cubic-bezier(0.16,1,0.3,1)';
+        sheet.style.transform = '';
+        setTimeout(() => { sheet.style.transition = ''; }, 350);
+      }
+    }
+
+    function cleanup() {
+      sheet.removeEventListener('pointermove', onMove);
+      sheet.removeEventListener('pointerup', onUp);
+      sheet.removeEventListener('pointercancel', onUp);
+    }
+
+    sheet.addEventListener('pointermove', onMove);
+    sheet.addEventListener('pointerup', onUp);
+    sheet.addEventListener('pointercancel', onUp);
   }
 
   function openAddWishlist() {

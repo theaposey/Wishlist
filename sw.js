@@ -1,4 +1,4 @@
-const CACHE = 'wishlist-v85';
+const CACHE = 'wishlist-v86';
 const BASE = '/Wishlist';
 const SHELL = [BASE + '/index.html', BASE + '/manifest.json', BASE + '/sw.js', BASE + '/icon.png', BASE + '/install.html'];
 
