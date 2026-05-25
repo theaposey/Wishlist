@@ -572,11 +572,10 @@
 
     /* ─── List view rows ─── */
     .list-view { width: 100%; }
-    .swipe-row-wrap { position: relative; overflow: hidden; }
-    .swipe-action-bg {
-      position: absolute; inset: 0;
-      display: flex; align-items: stretch; justify-content: flex-end;
-    }
+    .swipe-row-wrap { overflow: hidden; }
+    .swipe-inner { display: flex; align-items: stretch; }
+    .swipe-inner > .list-row,
+    .swipe-inner > .note-row { flex: 0 0 100%; }
     .swipe-act-btn {
       width: 80px; display: flex; align-items: center; justify-content: center;
       font-family: inherit; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
@@ -1960,18 +1959,18 @@
     const brandLine = [item.brand, purchased ? 'Purchased' : null].filter(Boolean).join(' · ');
     return `
       <div class="swipe-row-wrap" onpointerdown="swipeRowStart(event,'${item.id}','delete')">
-        <div class="swipe-action-bg">
+        <div class="swipe-inner">
+          <div class="note-row ${purchased ? 'note-row-purchased' : ''} ${s.newlyAddedId === item.id ? 'item-row-new' : ''}" onclick="openItem('${item.id}')">
+            <div class="note-thumb">${thumbH}</div>
+            <div class="note-info">
+              <p class="note-name">${esc(item.name)}</p>
+              ${brandLine ? `<p class="note-meta">${esc(brandLine)}</p>` : ''}
+              ${dateStr ? `<p class="note-date">${dateStr}</p>` : ''}
+            </div>
+            ${item.price ? `<span class="note-price">${money(item.price)}</span>` : ''}
+          </div>
           <button class="swipe-act-btn swipe-act-wl-purchase" onclick="swipePurchaseItem('${item.id}')">Purchased</button>
           <button class="swipe-act-btn swipe-act-delete" onclick="swipeDeleteItem('${item.id}')">Delete</button>
-        </div>
-        <div class="note-row ${purchased ? 'note-row-purchased' : ''} ${s.newlyAddedId === item.id ? 'item-row-new' : ''}" onclick="openItem('${item.id}')">
-          <div class="note-thumb">${thumbH}</div>
-          <div class="note-info">
-            <p class="note-name">${esc(item.name)}</p>
-            ${brandLine ? `<p class="note-meta">${esc(brandLine)}</p>` : ''}
-            ${dateStr ? `<p class="note-date">${dateStr}</p>` : ''}
-          </div>
-          ${item.price ? `<span class="note-price">${money(item.price)}</span>` : ''}
         </div>
       </div>`;
   }
@@ -4810,7 +4809,7 @@
 
   function _closeOpenSwipe() {
     if (!_openSwipeWrap) return;
-    const inner = _openSwipeWrap.querySelector('.list-row');
+    const inner = _openSwipeWrap.querySelector('.swipe-inner');
     if (inner) {
       inner.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
       inner.style.transform = '';
@@ -4838,7 +4837,7 @@
       return;
     }
 
-    const inner = wrap.querySelector('.list-row, .note-row');
+    const inner = wrap.querySelector('.swipe-inner');
     const startX = e.clientX;
     const startY = e.clientY;
     const SNAP = 160;                                   // px — width of both buttons combined
@@ -5338,19 +5337,19 @@
     const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
     return `
       <div class="swipe-row-wrap" onpointerdown="swipeRowStart(event,'${item.id}')">
-        <div class="swipe-action-bg">
+        <div class="swipe-inner">
+          <div class="list-row ${purchased ? 'list-row-purchased' : ''} ${s.newlyAddedId === item.id ? 'item-row-new' : ''}" data-idx="${idx}" ${clickAttr}>
+            ${s.wlItemEditMode ? `<span class="list-drag-handle" onpointerdown="event.stopPropagation();listDragStart(event,${idx})">⠿</span>` : ''}
+            <div class="list-thumb">${thumbH}</div>
+            <div class="list-info">
+              <p class="list-name">${esc(item.name)}</p>
+              <p class="list-meta">${pad(d)} · ${purchased ? 'Purchased' : item.serious ? 'Serious' : 'Watching'}</p>
+              ${item.price && savedAmount(item) && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
+            </div>
+            ${item.price ? `<span class="list-price">${money(item.price)}</span>` : ''}
+          </div>
           <button class="swipe-act-btn swipe-act-archive" onclick="swipeArchiveItem('${item.id}')">Archive</button>
           <button class="swipe-act-btn swipe-act-purchase" onclick="swipePurchaseItem('${item.id}')">Purchase</button>
-        </div>
-        <div class="list-row ${purchased ? 'list-row-purchased' : ''} ${s.newlyAddedId === item.id ? 'item-row-new' : ''}" data-idx="${idx}" ${clickAttr}>
-          ${s.wlItemEditMode ? `<span class="list-drag-handle" onpointerdown="event.stopPropagation();listDragStart(event,${idx})">⠿</span>` : ''}
-          <div class="list-thumb">${thumbH}</div>
-          <div class="list-info">
-            <p class="list-name">${esc(item.name)}</p>
-            <p class="list-meta">${pad(d)} · ${purchased ? 'Purchased' : item.serious ? 'Serious' : 'Watching'}</p>
-            ${item.price && savedAmount(item) && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
-          </div>
-          ${item.price ? `<span class="list-price">${money(item.price)}</span>` : ''}
         </div>
       </div>`;
   }
