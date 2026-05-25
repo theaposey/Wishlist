@@ -28,6 +28,9 @@
   <meta name="twitter:image" content="/icon.svg" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <title>The Wishlist</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,7 +43,7 @@
     }
 
     body {
-      font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
     }
 
     /* ─── App root ─── */
@@ -88,21 +91,142 @@
     .h-right { text-align: right; }
     .h-muted { color: #bbb !important; }
 
+    /* ─── Home screen header ─── */
+    .home-screen-hdr {
+      padding: calc(env(safe-area-inset-top, 44px) + 14px) 20px 6px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .home-big-title {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: #000;
+    }
+    .home-profile-btn {
+      width: 32px; height: 32px;
+      background: #efefef;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 4px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ─── Home nav (left pill tabs + right FAB) ─── */
+    .home-nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      flex-shrink: 0;
+    }
+    .home-tab-pill {
+      display: flex;
+      border-radius: 50px;
+      background: var(--accent);
+      border: none;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(46,69,255,0.3);
+    }
+    .home-tab-btn {
+      width: 48px; height: 48px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; background: none; border: none; font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      opacity: 0.5;
+      transition: opacity 0.14s ease;
+    }
+    .home-tab-btn.active { opacity: 1; }
+    .home-tab-btn svg { display: block; }
+    .home-fab-btn {
+      width: 48px; height: 48px;
+      background: var(--accent);
+      border: none;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+      box-shadow: 0 2px 12px rgba(46,69,255,0.3);
+    }
+    .home-fab-btn:active { transform: scale(0.91); opacity: 0.85; }
+
+    /* ─── Home wishlist editorial rows ─── */
+    .home-wl-row {
+      display: flex; align-items: stretch;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      background: #fff;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      min-height: 110px;
+    }
+    .home-wl-row:active { background: #fafafa; }
+    .home-wl-row-img {
+      width: 42vw; max-width: 175px; flex-shrink: 0;
+      overflow: hidden; background: #f5f5f5;
+    }
+    .home-wl-row-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .home-wl-row-info {
+      flex: 1; min-width: 0;
+      padding: 14px 16px 14px 16px;
+      display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .home-wl-row-meta {
+      font-size: 11px; color: #aaa; margin-bottom: 6px;
+      text-transform: none; letter-spacing: 0;
+    }
+    .home-wl-row-name {
+      font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
+      color: #000;
+    }
+    .home-wl-row-desc {
+      font-size: 12px; color: #999; margin-top: 5px; line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; font-weight: 400;
+    }
+    .home-wl-row-edit-btn {
+      position: absolute; top: 10px; right: 10px;
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border: none; background: none; cursor: pointer; color: #bbb;
+      -webkit-tap-highlight-color: transparent; font-size: 18px; line-height: 1;
+      letter-spacing: 1px;
+    }
+    .home-wl-row-img .wl-collage { width: 100%; height: 100%; }
+    .home-wl-row-img .wl-collage img { object-fit: cover; background: #f5f5f5; }
+
     /* ─── Bottom nav ─── */
     .bottom-nav {
       display: flex;
-      border-top: 1px solid #f0f0f0;
-      background: #fff;
       flex-shrink: 0;
+      margin: 6px 14px;
+      margin-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      border-radius: 50px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(40px) saturate(160%);
+      -webkit-backdrop-filter: blur(40px) saturate(160%);
+      border: none;
+      box-shadow:
+        0 0 0 0.5px rgba(0,0,0,0.05),
+        0 2px 18px rgba(0,0,0,0.09),
+        0 1px 4px rgba(0,0,0,0.06),
+        inset 0 1.5px 0 rgba(255,255,255,1),
+        inset 0 -0.5px 0 rgba(0,0,0,0.04);
+      overflow: hidden;
     }
     .nav-tab {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      /* balance top/bottom so labels appear centered in the full bar including safe area */
-      padding-top: calc(10px + env(safe-area-inset-bottom, 0px) * 0.4);
-      padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px) * 0.6);
+      padding: 11px 0 10px;
       gap: 4px;
       cursor: pointer;
       background: none;
@@ -113,7 +237,7 @@
       font-size: 9px;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: #ccc;
+      color: #aaa;
     }
     .nav-tab.active span { color: #000; }
     .nav-dot { width: 4px; height: 4px; background: #000; border-radius: 50%; }
@@ -200,7 +324,7 @@
       justify-content: center;
       overflow: hidden;
     }
-    .card-image img { width: 100%; height: 100%; object-fit: contain; }
+    .card-image img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
     .card-image .ph {
       font-size: 9px;
       letter-spacing: 0.08em;
@@ -239,20 +363,28 @@
       position: fixed;
       left: 50%;
       transform: translateX(-50%);
-      width: 58px;
-      height: 58px;
-      background: var(--accent);
+      width: 54px;
+      height: 54px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(40px) saturate(160%);
+      -webkit-backdrop-filter: blur(40px) saturate(160%);
       border: none;
+      box-shadow:
+        0 0 0 0.5px rgba(0,0,0,0.05),
+        0 2px 18px rgba(0,0,0,0.09),
+        0 1px 4px rgba(0,0,0,0.06),
+        inset 0 1.5px 0 rgba(255,255,255,1),
+        inset 0 -0.5px 0 rgba(0,0,0,0.04);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       z-index: 200;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.18);
       -webkit-tap-highlight-color: transparent;
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
     }
-    .fab:active { background: #6ad46a; }
+    .fab:active { transform: translateX(-50%) scale(0.91); box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
     .fab svg { display: block; }
 
     /* ─── Shared wishlist footer ─── */
@@ -263,8 +395,8 @@
     }
 
     /* ─── Wishlist folder cards ─── */
-    .folder-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; }
-    .folder-count { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
+    .folder-label { font-size: 12px; letter-spacing: 0; font-weight: 600; color: #000; }
+    .folder-count { font-size: 11px; letter-spacing: 0; text-transform: none; color: #aaa; margin-top: 2px; }
     .folder-initial {
       font-size: 32px;
       font-weight: 700;
@@ -411,19 +543,21 @@
       background: #fff;
     }
     .wl-name-big {
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-transform: none;
       display: block;
+      line-height: 1.1;
     }
     .wl-count-sm {
-      font-size: 9px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: #bbb;
+      font-size: 12px;
+      letter-spacing: 0;
+      text-transform: none;
+      color: #aaa;
       display: block;
-      margin-top: 2px;
+      margin-top: 3px;
+      font-weight: 400;
     }
     .view-toggle { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
     .view-btn {
@@ -484,11 +618,11 @@
       width: 48px; height: 48px;
       flex-shrink: 0; overflow: hidden; background: #fff;
     }
-    .list-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .list-thumb img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
     .list-thumb .ph { font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase; color: #d0d0d0; padding: 4px; text-align: center; line-height: 1.4; }
     .list-info { flex: 1; min-width: 0; }
     .list-name {
-      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000;
     }
     .list-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
@@ -497,6 +631,105 @@
     .list-row-purchased .list-name { color: #ccc; }
     .list-row-purchased .list-meta { color: #ddd; }
     .list-row-purchased .list-price { color: #ddd; }
+
+    /* ─── Notes-style item rows (wishlist detail) ─── */
+    .note-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 16px;
+      cursor: pointer; background: #fff; -webkit-tap-highlight-color: transparent;
+    }
+    .note-row:active { opacity: 0.72; }
+    .note-thumb {
+      width: 72px; height: 72px; flex-shrink: 0;
+      overflow: hidden; border-radius: 14px; background: #fff;
+    }
+    .note-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: multiply; }
+    .note-thumb-ph { width: 100%; height: 100%; background: #ebebeb; border-radius: 14px; }
+    .note-info { flex: 1; min-width: 0; }
+    .note-name {
+      font-size: 17px; font-weight: 600; letter-spacing: -0.02em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000;
+      line-height: 1.2;
+    }
+    .note-meta {
+      font-size: 14px; font-weight: 400; letter-spacing: 0;
+      color: #888; margin-top: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      text-transform: none;
+    }
+    .note-date {
+      font-size: 12px; font-weight: 400; color: #bbb; margin-top: 2px;
+      text-transform: none; letter-spacing: 0;
+    }
+    .note-price {
+      font-size: 13px; font-weight: 400; letter-spacing: 0;
+      color: #888; flex-shrink: 0;
+    }
+    .note-row-purchased .note-thumb img { opacity: 0.35; }
+    .note-row-purchased .note-name { color: #aaa; }
+    .note-row-purchased .note-meta { color: #bbb; }
+    .note-row-purchased .note-price { color: #ccc; }
+    @keyframes noteShimmer {
+      0% { background-position: -300px 0; }
+      100% { background-position: calc(300px + 100%) 0; }
+    }
+    .note-skel {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+      background-size: 600px 100%;
+      animation: noteShimmer 1.4s ease-in-out infinite;
+      border-radius: 1px; display: block;
+    }
+    .note-thumb-skel { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 600px 100%; animation: noteShimmer 1.4s ease-in-out infinite; }
+
+    /* ─── Pinned URL input bar (wishlist detail) ─── */
+    @keyframes wlBarIn {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .wl-url-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 18px;
+      margin: 6px 14px;
+      margin-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      border-radius: 40px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(40px) saturate(160%);
+      -webkit-backdrop-filter: blur(40px) saturate(160%);
+      border: none;
+      box-shadow:
+        0 0 0 0.5px rgba(0,0,0,0.05),
+        0 2px 18px rgba(0,0,0,0.09),
+        0 1px 4px rgba(0,0,0,0.06),
+        inset 0 1.5px 0 rgba(255,255,255,1),
+        inset 0 -0.5px 0 rgba(0,0,0,0.04);
+      flex-shrink: 0;
+      animation: wlBarIn 0.26s cubic-bezier(0.4,0,0.2,1) both;
+    }
+    .wl-url-input {
+      flex: 1; border: none; outline: none;
+      font-family: inherit; font-size: 13px;
+      letter-spacing: 0; color: #000;
+      background: none; caret-color: var(--accent);
+      min-width: 0;
+    }
+    .wl-url-input::placeholder { color: #ccc; }
+
+    /* ─── Compose / add button (wishlist detail) ─── */
+    .wl-compose-btn {
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      right: 20px;
+      width: 50px; height: 50px;
+      background: var(--accent);
+      border: none;
+      box-shadow: 0 2px 12px rgba(46,69,255,0.35);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 100;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+    .wl-compose-btn:active { transform: scale(0.90); opacity: 0.85; }
 
     /* ─── Change cover panel ─── */
     .cover-panel {
@@ -717,25 +950,130 @@
       color: #000;
     }
 
-    /* ─── Item detail ─── */
-    .detail-image {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #fff;
-      flex-shrink: 0;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* ─── Item detail — new editorial layout ─── */
+    .item-detail-scroll {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch; background: #fff; position: relative;
     }
-    .detail-image img { width: 100%; height: 100%; object-fit: contain; }
+    .item-detail-img-wrap {
+      width: 100%; aspect-ratio: 1/1; background: #fff;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      position: relative; flex-shrink: 0;
+    }
+    .item-detail-img-wrap img { width: 88%; height: 88%; object-fit: contain; mix-blend-mode: multiply; }
+    .item-detail-img-wrap .ph-lg {
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #d0d0d0; padding: 40px; text-align: center;
+    }
+    .item-detail-hdr {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px 0;
+      pointer-events: none;
+    }
+    .item-detail-btn {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(40px) saturate(160%);
+      -webkit-backdrop-filter: blur(40px) saturate(160%);
+      border: none;
+      box-shadow: 0 0 0 0.5px rgba(0,0,0,0.05), 0 2px 14px rgba(0,0,0,0.09), inset 0 1.5px 0 rgba(255,255,255,1), inset 0 -0.5px 0 rgba(0,0,0,0.04);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; pointer-events: auto; font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s ease;
+    }
+    .item-detail-btn:active { transform: scale(0.91); }
+    .item-detail-title {
+      font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
+      line-height: 1.15; color: #000;
+      padding: 16px 20px 4px; text-align: center;
+    }
+    .item-detail-status {
+      font-size: 13px; letter-spacing: 0; color: #aaa;
+      padding: 0 20px 14px; font-weight: 400; text-align: center;
+    }
+    .item-meta-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 20px; border-bottom: 1px solid #f2f2f2;
+      min-height: 50px;
+    }
+    .item-meta-label {
+      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #aaa; width: 88px; flex-shrink: 0; line-height: 1.4;
+    }
+    .item-meta-value {
+      flex: 1; font-size: 15px; color: #000; text-align: right;
+      font-weight: 400; line-height: 1.4;
+    }
+    .item-meta-value a { color: #000; text-decoration: underline; text-underline-offset: 3px; }
+    .item-detail-actions {
+      padding: 20px 20px 12px; display: flex; flex-direction: column; gap: 10px;
+    }
+
+    /* ─── Item bottom sheet ─── */
+    @keyframes itemSheetIn {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    @keyframes itemSheetOut {
+      from { transform: translateY(0); }
+      to   { transform: translateY(100%); }
+    }
+    .item-sheet-backdrop {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.28);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      animation: fadeIn 0.22s ease both;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes itemRowIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .item-row-new { animation: itemRowIn 0.28s ease-out both; }
+    @keyframes wlHeaderMetaIn {
+      from { max-height: 0; opacity: 0; }
+      to   { max-height: 200px; opacity: 1; }
+    }
+    .wl-header-meta-reveal {
+      overflow: hidden;
+      animation: wlHeaderMetaIn 0.38s cubic-bezier(0.22,1,0.36,1) 0.22s both;
+    }
+    .item-sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 301;
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      max-height: 92dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: itemSheetIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+      box-shadow: 0 -4px 40px rgba(0,0,0,0.12);
+    }
+    .item-sheet-handle {
+      width: 36px; height: 4px;
+      background: #ddd; border-radius: 2px;
+      margin: 10px auto 0; flex-shrink: 0;
+    }
+    .item-sheet-scroll {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* keep old classes for shared item detail which hasn't been redesigned */
+    .detail-image {
+      width: 100%; aspect-ratio: 1/1; background: #fff; flex-shrink: 0;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+    .detail-image img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
     .detail-image .ph-lg {
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #d0d0d0;
-      padding: 40px;
-      text-align: center;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #d0d0d0; padding: 40px; text-align: center;
     }
     .detail-body { padding: 18px 20px 48px; }
     .detail-days { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #bbb; margin-bottom: 5px; }
@@ -841,7 +1179,7 @@
       overflow: hidden;
       display: flex; align-items: center; justify-content: center;
     }
-    .archive-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .archive-thumb img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
     .archive-thumb .ph { font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #ccc; text-align: center; padding: 4px; line-height: 1.4; }
     .archive-info { flex: 1; min-width: 0; }
     .archive-reason { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; margin-bottom: 2px; }
@@ -924,7 +1262,7 @@
       position: relative; flex-shrink: 0;
       cursor: pointer;
     }
-    .form-image-area img { width: 100%; height: 100%; object-fit: contain; }
+    .form-image-area img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
     .form-image-area .ph-lg { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #d0d0d0; padding: 40px; text-align: center; }
     .form-image-btn-row {
       position: absolute; bottom: 10px; left: 0; right: 0;
@@ -997,58 +1335,57 @@
 
     /* ─── New wishlist — editorial creation ─── */
     .new-wl-page {
-      flex: 1; padding: 36px 28px 60px;
+      flex: 1; padding: 28px 28px 60px;
       display: flex; flex-direction: column;
       overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
-    .new-wl-title-wrap { position: relative; margin-bottom: 24px; }
+    .new-wl-title-wrap { position: relative; margin-bottom: 20px; }
     .new-wl-title-input {
-      font-size: 38px; font-weight: 700; letter-spacing: 0.06em;
-      text-transform: uppercase; text-align: center;
+      font-size: 38px; font-weight: 700; letter-spacing: -0.02em;
+      text-transform: none; text-align: left;
       border: none; outline: none; background: none; color: #000;
       width: 100%; font-family: inherit; line-height: 1.15;
       padding: 0; caret-color: #000;
-      transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.4,0,0.2,1);
+      transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.4,0,0.2,1);
     }
     .new-wl-title-input.nwl-done {
-      opacity: 0; transform: translateY(-6px); pointer-events: none;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.18s ease;
     }
     .new-wl-title-input::placeholder { color: #e0e0e0; }
     .new-wl-title-ghost {
       position: absolute; top: 0; left: 0; right: 0;
       font-size: 38px; font-weight: 700; letter-spacing: -0.02em;
-      text-transform: uppercase; line-height: 1.15; color: #000;
-      text-align: center; opacity: 0; transform: translateY(8px);
-      transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1),
-                  transform 0.75s cubic-bezier(0.16,1,0.3,1),
-                  letter-spacing 1s cubic-bezier(0.16,1,0.3,1);
+      text-transform: none; line-height: 1.15; color: #000;
+      text-align: center; opacity: 0; transform: translateX(-32%);
+      transition: opacity 0.12s ease,
+                  transform 0.52s cubic-bezier(0.4,0,0.2,1);
       pointer-events: none; cursor: text;
     }
     .new-wl-title-ghost.nwl-show {
-      opacity: 1; transform: translateY(0); letter-spacing: 0.06em;
+      opacity: 1; transform: translateX(0);
       pointer-events: auto;
     }
     .new-wl-url-wrap {
-      opacity: 0; transform: translateY(12px); pointer-events: none;
-      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16,1,0.3,1);
+      opacity: 0; transform: translateY(10px); pointer-events: none;
+      transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1);
     }
     .new-wl-url-wrap.nwl-show {
       opacity: 1; transform: translateY(0); pointer-events: auto;
     }
     .new-wl-url-input {
-      font-size: 15px; letter-spacing: 0.01em;
-      border: none; border-bottom: 1px solid #ebebeb;
-      outline: none; background: none; color: #000;
-      width: 100%; font-family: inherit; padding: 10px 0;
-      caret-color: #000;
+      font-size: 16px; letter-spacing: 0.01em;
+      border: none; outline: none; background: none; color: #000;
+      width: 100%; font-family: inherit; padding: 8px 0;
+      caret-color: #000; text-align: left;
     }
-    .new-wl-url-input::placeholder { color: #ccc; }
+    .new-wl-url-input::placeholder { color: #d0d0d0; }
 
     /* ─── Wishlist detail — editorial header ─── */
     .wl-editorial-header { padding: 20px 24px 12px; text-align: center; }
     .wl-editorial-title {
-      font-size: 38px; font-weight: 700; letter-spacing: 0.06em;
-      text-transform: uppercase; line-height: 1.1; color: #000;
+      font-size: 32px; font-weight: 700; letter-spacing: -0.02em;
+      text-transform: none; line-height: 1.1; color: #000;
       border: none; outline: none; background: none;
       font-family: inherit; width: 100%; text-align: center;
       padding: 0; display: block;
@@ -1217,16 +1554,34 @@
     /* ─── Boards gallery ─── */
     .boards-grid {
       display: grid; grid-template-columns: 1fr 1fr;
-      gap: 1px; background: #f0f0f0;
+      gap: 12px; padding: 14px;
     }
     .board-card {
       background: #fff; cursor: pointer;
-      aspect-ratio: 1; overflow: hidden;
+      overflow: hidden;
+      border-radius: 14px;
       position: relative;
       -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
     }
     .board-card:active { opacity: 0.8; }
-    .board-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .board-card img { width: 100%; height: auto; display: block; }
+    .board-card-empty { aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; }
+    .board-card-share-btn {
+      position: absolute; top: 8px; right: 8px;
+      width: 30px; height: 30px;
+      background: rgba(0,0,0,0.38); border: none; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .board-card-del-btn {
+      position: absolute; top: 8px; right: 8px;
+      width: 28px; height: 28px;
+      background: none; border: none; cursor: pointer;
+      font-size: 16px; letter-spacing: 1px; color: #bbb; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
     .board-card-meta {
       position: absolute; bottom: 0; left: 0; right: 0;
       padding: 8px 10px;
@@ -1239,7 +1594,7 @@
 
     /* ─── Board editor ─── */
     .board-editor-layout { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .be-canvas-wrap { flex: 1; position: relative; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+    .be-canvas-wrap { width: 100%; aspect-ratio: 3/4; flex-shrink: 0; max-height: 58vh; position: relative; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
     .be-canvas { position: absolute; inset: 0; background: #fff; }
     .be-sticker { position: absolute; touch-action: none; -webkit-tap-highlight-color: transparent; }
     .be-sticker img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; -webkit-user-drag: none; }
@@ -1346,6 +1701,8 @@
     removingBg: false,
     sharedItemIdx: 0,
     wlSlideDir: null,   // 'right' | 'left' | null — direction for sub-tab slide animation
+    pendingItems: [],  // in-flight inline fetches: [{id, wid, url}]
+    wlAddBarOpen: false, // whether the URL input bar is expanded in wishlist detail
   };
 
   let longPressTimer = null;
@@ -1414,7 +1771,13 @@
     if (s.overlay && s.overlay !== 'change-cover') {
       document.getElementById('app').insertAdjacentHTML('beforeend', buildOverlay());
     }
+    // Apply smart crop to any already-loaded thumb images (cache hit = no onload fires)
     setTimeout(() => {
+      document.querySelectorAll('.note-thumb img').forEach(img => {
+        if (img.complete && img.naturalWidth && !img.style.objectViewBox) {
+          smartCropThumb(img);
+        }
+      });
       if (s.screen === 'add-item' && s.addStep === 'url') {
         document.getElementById('url-field')?.focus();
       }
@@ -1470,6 +1833,55 @@
       </nav>`;
   }
 
+  function homeNav(active) {
+    // left: icon-only pill (blue)  |  right: + FAB (blue)
+    const tabs = [
+      { id:'wishlists', svg:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="4.5" x2="16" y2="4.5"/><line x1="2" y1="9" x2="16" y2="9"/><line x1="2" y1="13.5" x2="16" y2="13.5"/></svg>' },
+      { id:'boards',    svg:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="6" height="9"/><rect x="10" y="2" width="6" height="4.5"/><rect x="10" y="8.5" width="6" height="7.5"/><rect x="2" y="13" width="6" height="3"/></svg>' },
+    ];
+    return `
+      <div class="home-nav-wrap">
+        <div class="home-tab-pill">
+          ${tabs.map(t => `
+            <button class="home-tab-btn ${active===t.id?'active':''}" onclick="navTab('${t.id}')" aria-label="${t.id}">
+              ${t.svg}
+            </button>`).join('')}
+        </div>
+        <button class="home-fab-btn" onclick="${active==='boards'?'openBoardEditor(null)':'openAddWishlist()'}" aria-label="Add">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+            <line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/>
+          </svg>
+        </button>
+      </div>`;
+  }
+
+  function homeWlRow(wl, idx) {
+    const count = watchingItems(wl.id).length;
+    const totalVal = totalWatchingValue(wl.id);
+    const thumb = wishlistCollage(wl.id);
+    const deleteBtn = s.wlEditMode
+      ? `<div class="list-delete-btn" onclick="confirmDeleteWishlist('${wl.id}')">×</div>` : '';
+    const dragAttrs = s.wlEditMode
+      ? `draggable="true" ondragstart="wlDragStart(event,${idx})" ondragover="wlDragOver(event,${idx})" ondragleave="wlDragLeave(event)" ondrop="wlDrop(event,${idx})" ondragend="wlDragEnd(event)"` : '';
+    const clickAttr = s.wlEditMode ? '' : `onclick="openWl('${wl.id}')"`;
+    const meta = [count + (count===1?' item':' items'), totalVal ? money(totalVal) : ''].filter(Boolean).join(' · ');
+    const editBtn = !s.wlEditMode
+      ? `<button class="home-wl-row-edit-btn" onclick="event.stopPropagation();openWlEditSheet('${wl.id}')" aria-label="Edit wishlist">···</button>`
+      : '';
+    const descLine = wl.description ? `<p class="home-wl-row-desc">${esc(wl.description)}</p>` : '';
+    return `
+      <div class="home-wl-row ${s.wlEditMode?'card-editing':''}" ${clickAttr} ${dragAttrs}>
+        ${deleteBtn}
+        <div class="home-wl-row-img">${thumb}</div>
+        <div class="home-wl-row-info">
+          <p class="home-wl-row-meta">${meta}</p>
+          <p class="home-wl-row-name">${esc(wl.name)}</p>
+          ${descLine}
+        </div>
+        ${editBtn}
+      </div>`;
+  }
+
   function subTabBar(active) {
     // active = 'wishlists' | 'items' | 'archive'
     const tabs = ['wishlists','items','archive'];
@@ -1485,7 +1897,7 @@
 
   function fab(action, hasNav=true) {
     const bottom = hasNav
-      ? 'calc(env(safe-area-inset-bottom, 0px) + 52px)'
+      ? 'calc(env(safe-area-inset-bottom, 0px) + 72px)'
       : 'calc(env(safe-area-inset-bottom, 0px) + 14px)';
     return `<button class="fab" style="bottom:${bottom}" onclick="${action}" aria-label="Add">
       <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round">
@@ -1527,6 +1939,41 @@
           ${purchased ? `<p class="card-purchased-tag">Purchased</p>` : ''}
           ${item.serious && !purchased ? `<p class="card-purchased-tag">Serious</p>` : ''}
           ${item.price && !purchased ? `<p class="card-price">${money(item.price)}</p>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function noteItemRow(item) {
+    const purchased = item.status === 'purchased';
+    const thumbH = item.img
+      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" onload="smartCropThumb(this)" />`
+      : `<div class="note-thumb-ph"></div>`;
+    const deleteBtn = s.wlItemEditMode
+      ? `<div class="item-delete-btn" onclick="removeItem(event,'${item.id}')">×</div>` : '';
+    const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
+    const d = item.addedAt ? days(item.addedAt) : null;
+    const dateStr = d === null ? '' : d === 0 ? 'Added today' : d === 1 ? 'Added yesterday' : `Added ${d}d ago`;
+    const brandLine = [item.brand, purchased ? 'Purchased' : null].filter(Boolean).join(' · ');
+    return `
+      <div class="note-row ${purchased ? 'note-row-purchased' : ''}" style="position:relative" ${clickAttr}>
+        ${deleteBtn}
+        <div class="note-thumb">${thumbH}</div>
+        <div class="note-info">
+          <p class="note-name">${esc(item.name)}</p>
+          ${brandLine ? `<p class="note-meta">${esc(brandLine)}</p>` : ''}
+          ${dateStr ? `<p class="note-date">${dateStr}</p>` : ''}
+        </div>
+        ${item.price ? `<span class="note-price">${money(item.price)}</span>` : ''}
+      </div>`;
+  }
+
+  function notePendingRow(p) {
+    return `
+      <div class="note-row">
+        <div class="note-thumb note-thumb-skel"></div>
+        <div class="note-info">
+          <span class="note-skel" style="width:55%;height:14px;margin-bottom:6px"></span>
+          <span class="note-skel" style="width:30%;height:12px"></span>
         </div>
       </div>`;
   }
@@ -1590,10 +2037,10 @@
           ondragleave="wlDragLeave(event)"
           ondrop="wlDrop(event,${idx})"
           ondragend="wlDragEnd(event)">
-          <div class="wl-delete-btn" onclick="deleteWishlist('${wl.id}')">−</div>
+          <div class="wl-delete-btn" onclick="confirmDeleteWishlist('${wl.id}')">−</div>
           <div class="card-image" style="overflow:hidden">${thumbH}</div>
           <div class="card-meta">
-            <p class="folder-label">${esc(wl.name.toUpperCase())}</p>
+            <p class="folder-label">${esc(wl.name)}</p>
             <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
           </div>
         </div>`;
@@ -1608,7 +2055,7 @@
         onpointerleave="wlLongPressCancel()">
         <div class="card-image" style="overflow:hidden">${thumbH}</div>
         <div class="card-meta">
-          <p class="folder-label">${esc(wl.name.toUpperCase())}</p>
+          <p class="folder-label">${esc(wl.name)}</p>
           <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
         </div>
       </div>`;
@@ -1619,7 +2066,7 @@
     const totalVal = totalWatchingValue(wl.id);
     const thumb = wishlistCollage(wl.id);
     const deleteBtn = s.wlEditMode
-      ? `<div class="list-delete-btn" onclick="deleteWishlist('${wl.id}')">×</div>` : '';
+      ? `<div class="list-delete-btn" onclick="confirmDeleteWishlist('${wl.id}')">×</div>` : '';
     const dragAttrs = s.wlEditMode
       ? `draggable="true"
          ondragstart="wlDragStart(event,${idx})"
@@ -1634,7 +2081,7 @@
         ${s.wlEditMode ? `<span class="list-drag-handle">⠿</span>` : ''}
         <div class="list-thumb" style="overflow:hidden">${thumb}</div>
         <div class="list-info">
-          <p class="list-name">${esc(wl.name.toUpperCase())}</p>
+          <p class="list-name">${esc(wl.name)}</p>
           <p class="list-meta">${count} ${count===1?'Item':'Items'}${totalVal ? ` · ${money(totalVal)}` : ''}</p>
         </div>
       </div>`;
@@ -1925,7 +2372,7 @@
           <div class="wl-sticky-top">
             <div class="wl-name-row">
               <div style="flex:1;min-width:0;margin-right:12px">
-                <span class="wl-name-big">${esc(wl.name.toUpperCase())}</span>
+                <span class="wl-name-big">${esc(wl.name)}</span>
                 <span class="wl-count-sm">${watchCount} Watching</span>
               </div>
               <div class="view-toggle">
@@ -1955,6 +2402,9 @@
         </div>
       </div>
       <div class="shared-footer">
+        ${shareData?.perm === 'edit'
+          ? `<button onclick="importSharedWishlist()" style="width:100%;padding:16px;background:#000;color:#fff;border:none;font-family:inherit;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:14px">Import &amp; Edit</button>`
+          : ''}
         <p style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#bbb">Saved with The Wishlist</p>
       </div>
       <div class="safe-bottom"></div>`;
@@ -2036,6 +2486,42 @@
     render();
   }
 
+  function importSharedWishlist() {
+    if (!shareData) return;
+    const { wl, items: sItems } = shareData;
+    const newWlId = 'w' + genId();
+    const newWl = {
+      id: newWlId,
+      name: wl.name || 'Imported Wishlist',
+      coverImg: wl.coverImg || null,
+      description: wl.description || '',
+    };
+    wishlists = [...wishlists, newWl];
+    const newItems = sItems.map(item => ({
+      id: 'i' + genId(),
+      wid: newWlId,
+      name: item.name || '',
+      brand: item.brand || null,
+      tags: item.tags || [],
+      url: item.url || null,
+      img: item.img || null,
+      note: item.note || null,
+      price: item.price || null,
+      saved: item.saved || 0,
+      serious: item.serious || false,
+      addedAt: item.addedAt || Date.now(),
+      status: 'watching',
+      reason: null,
+    }));
+    items = [...newItems, ...items];
+    saveData();
+    shareData = null;
+    s.currentWid = newWlId;
+    s.screen = 'wishlist-detail';
+    render();
+    showToast('Wishlist imported — it\'s yours now.');
+  }
+
   // ── Share encoding: compact keys + deflate compression ──────────
   // New format: 'z' + URL-safe base64 of deflate-compressed compact JSON
   // Legacy format: plain base64 JSON (still decoded for backward compat)
@@ -2044,6 +2530,7 @@
       v: 2,
       w: { n: payload.wl.name, c: payload.wl.coverImg || '' },
       ...(payload.senderName ? { s: payload.senderName } : {}),
+      ...(payload.perm && payload.perm !== 'view' ? { p: payload.perm } : {}),
       i: payload.items.map(i => ({
         n: i.name, b: i.brand || '', m: i.img || '',
         p: i.price || '', u: i.url || '',
@@ -2075,6 +2562,7 @@
     if (obj.w) return {  // v2 compact format
       wl: { name: obj.w.n || '', coverImg: obj.w.c || '' },
       senderName: obj.s || '',
+      perm: obj.p || 'view',
       items: (obj.i || []).map(i => ({
         name: i.n || '', brand: i.b || '', img: i.m || '',
         price: i.p || '', url: i.u || '',
@@ -2105,37 +2593,39 @@
     const allWatching = watchingItems();
     const hasLists = wishlists.length > 0;
     const uncategorized = allWatching.filter(i => !i.wid);
+    const subtitle = hasLists
+      ? `${wishlists.length} ${wishlists.length===1?'list':'lists'} · ${allWatching.length} items`
+      : '';
     return `
-      <div class="safe-top"></div>
-      ${subTabBar('wishlists')}
-      ${hasLists ? `
-      <div class="metric-strip">
-        <div class="metric-cell">
-          <p class="metric-label">Wishlists</p>
-          <p class="metric-value">${wishlists.length}</p>
+      <div class="home-screen-hdr">
+        <div>
+          <p class="home-big-title">Lists</p>
+          ${subtitle ? `<p style="font-size:13px;color:#aaa;margin-top:5px;font-weight:400">${subtitle}</p>` : ''}
         </div>
-        <div class="metric-cell">
-          <p class="metric-label">Items Watching</p>
-          <p class="metric-value">${allWatching.length}</p>
-        </div>
-      </div>` : ''}
-      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
+        <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="7" r="3.5"/>
+            <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
+          </svg>
+        </button>
+      </div>
+      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll" style="padding-top:10px">
         ${hasLists
-          ? `<div class="grid">${wishlists.map((wl, idx) => wishlistCard(wl, idx)).join('')}</div>`
+          ? wishlists.map((wl, idx) => homeWlRow(wl, idx)).join('')
           : `<div class="empty-state">
                <p class="empty-hero">nothing<br/>here<br/>yet</p>
-               <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap + to create your first wishlist</p>
+               <p style="margin-top:20px;font-size:13px;color:#ccc;font-weight:400">Tap + to create your first list</p>
              </div>`}
         ${uncategorized.length ? `
-          <div class="section-title-row" style="border-top:1px solid #f4f4f4">
-            <p class="section-title">Unorganized Items</p>
+          <div class="section-title-row" style="border-top:1px solid #f4f4f4;margin:8px 16px 0">
+            <p class="section-title">Unorganized</p>
           </div>
           <div style="display:flex;overflow-x:auto;scrollbar-width:none;gap:1px;background:#fff">
             ${uncategorized.map(item => `<div style="flex:0 0 48vw;max-width:200px">${itemCard(item)}</div>`).join('')}
           </div>` : ''}
+        <div class="safe-bottom"></div>
       </div>
-      ${fab("openAddWishlist()")}
-      ${nav('wishlists')}`;
+      ${homeNav('wishlists')}`;
   }
 
   function screenWlDetail() {
@@ -2145,7 +2635,7 @@
     const allTags = [...new Set(allWItems.flatMap(i => i.tags || []))].sort();
     const activeTags = s.wlDetailFilterTags;
     const wItems = activeTags.length
-      ? allWItems.filter(i => activeTags.every(t => (i.tags||[]).includes(t)))
+      ? allWItems.filter(i => activeTags.some(t => (i.tags||[]).includes(t)))
       : allWItems;
     const watchCount = watchingItems(wl.id).length;
     const totalValue = totalWatchingValue(wl.id);
@@ -2155,30 +2645,17 @@
     const coverPanel = s.overlay === 'change-cover' && s.currentWid === wl.id
       ? buildChangeCoverPanel(wl) : '';
 
-    // Cover: full-width editorial image when a board is set (read-only, set by board save)
-    const coverHtml = cover ? `
-      <div style="width:100%;aspect-ratio:1;overflow:hidden;flex-shrink:0;position:relative">
-        <img src="${esc(cover)}" alt="${esc(wl.name)}"
-          style="width:100%;height:100%;object-fit:cover;display:block" />
-      </div>` : '';
+    const coverHtml = '';
 
     return `
       <div class="safe-top"></div>
       <header>
         ${s.wlItemEditMode
-          ? `<button class="h-left" style="color:#c0392b" onclick="deleteWishlist('${wl.id}')">Delete</button>`
+          ? `<button class="h-left" style="color:#c0392b" onclick="confirmDeleteWishlist('${wl.id}')">Delete</button>`
           : `<button class="h-left" onclick="navTo('wishlists')">←</button>`}
         <div style="display:flex;align-items:center;gap:14px">
-          ${s.wlItemEditMode ? `
-          <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="openWishlistMoodboard('${wl.id}')" title="Moodboard">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="1" y="1" width="5.5" height="8"/>
-              <rect x="8.5" y="1" width="5.5" height="4.5"/>
-              <rect x="8.5" y="7.5" width="5.5" height="6.5"/>
-              <rect x="1" y="11" width="5.5" height="3"/>
-            </svg>
-          </button>` : `
-          <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="shareWishlist('${wl.id}')" title="Share">
+          ${s.wlItemEditMode ? `` : `
+          <button class="h-muted" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center" onclick="openWlShare('${wl.id}')" title="Share">
             <svg width="15" height="16" viewBox="0 0 15 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="7.5" y1="1" x2="7.5" y2="10"/>
               <polyline points="4.5,4 7.5,1 10.5,4"/>
@@ -2198,21 +2675,22 @@
                  value="${esc(wl.name)}" maxlength="50" autocorrect="off"
                  onblur="renameWishlist('${wl.id}',this.value)"
                  onkeydown="if(event.key==='Enter'){this.blur()}" />`
-            : `<p class="wl-editorial-title">${esc(wl.name.toUpperCase())}</p>`}
-          <textarea class="wl-editorial-desc" id="wl-desc-input" rows="1"
-            placeholder="Write a description"
-            onblur="updateWlDescription('${wl.id}')"
-            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
-          >${esc(wl.description || '')}</textarea>
+            : `<p class="wl-editorial-title" onclick="openWlEditSheet('${wl.id}')" style="cursor:pointer">${esc(wl.name)}</p>`}
+          <div class="${s.wlJustAdded === wl.id ? 'wl-header-meta-reveal' : ''}">
+            <textarea class="wl-editorial-desc" id="wl-desc-input" rows="1"
+              placeholder="Write a description"
+              onblur="updateWlDescription('${wl.id}')"
+              oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+            >${esc(wl.description || '')}</textarea>
+            <p class="wl-stats-line">${watchCount} ${watchCount===1?'item':'items'}${totalValue ? ` · ${money(totalValue)}` : ''}</p>
+          </div>
         </div>
-        <p class="wl-stats-line">${watchCount} ${watchCount===1?'item':'items'}${totalValue ? ` · ${money(totalValue)}` : ''}</p>
         ${(() => {
-          if (!wl.boardId) return '';
+          if (!wl.boardId || s.wlItemEditMode) return '';
           const mb = boards.find(b => b.id === wl.boardId);
           if (!mb?.img) return '';
-          return `<div class="wl-moodboard-preview"${s.wlItemEditMode ? ` onclick="openWishlistMoodboard('${wl.id}')"` : ''}>
+          return `<div class="wl-moodboard-preview">
             <img src="${esc(mb.img)}" alt="Moodboard" />
-            ${s.wlItemEditMode ? '<span class="wl-moodboard-edit-pill">Edit Board</span>' : ''}
           </div>`;
         })()}
         ${allTags.length ? `
@@ -2221,20 +2699,12 @@
             <button class="tag-filter-pill ${activeTags.includes(t)?'active':''}" onclick="toggleWlDetailFilter('${esc(t)}')">${esc(t)}</button>
           `).join('')}
         </div>` : ''}
-        ${!s.wlItemEditMode ? `
-        <div style="padding:0 14px 8px">
-          <input type="url" id="wl-add-url" placeholder="Paste a link..."
-            style="width:100%;border:none;outline:none;font-family:inherit;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;background:none;caret-color:#000;padding:4px 0"
-            onpaste="wlDetailHandlePaste('${wl.id}')"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();wlDetailSubmitUrl('${wl.id}')}" />
-        </div>` : ''}
-        ${s.wlViewMode === 'list'
-          ? `<div class="list-view">${wItems.map((item,idx) => itemListRow(item,idx)).join('')}</div>`
-          : `<div class="grid">${wItems.map(item => wlDetailCard(item)).join('')}</div>`}
-        ${allWItems.length === 0 ? `
-          <div style="padding:32px 28px;text-align:center">
+        ${s.pendingItems.filter(p => p.wid === wl.id).map(p => notePendingRow(p)).join('')}
+        ${wItems.map(item => noteItemRow(item)).join('')}
+        ${allWItems.length === 0 && s.pendingItems.filter(p => p.wid === wl.id).length === 0 ? `
+          <div style="padding:48px 28px;text-align:center">
             <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#e0e0e0">
-              Paste a link above to add your first item
+              Paste a link below to add your first item
             </p>
           </div>` : ''}
         ${allWItems.length > 0 && wItems.length === 0 ? `
@@ -2245,13 +2715,31 @@
           </div>` : ''}
         ${s.wlItemEditMode ? `
           <div style="padding:40px 28px 32px;border-top:1px solid #f4f4f4;margin-top:24px">
-            <button onclick="deleteWishlist('${wl.id}')"
+            <button onclick="confirmDeleteWishlist('${wl.id}')"
               style="background:none;border:none;font-family:inherit;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;cursor:pointer;padding:0">
               Delete Wishlist
             </button>
           </div>` : ''}
-        <div class="safe-bottom"></div>
+        ${allWItems.length > 0 && !s.wlItemEditMode ? `
+          <div style="min-height:80px;cursor:text" onclick="openWlAddBar('${wl.id}')"></div>` : ''}
+        <div style="height:16px"></div>
       </div>
+      ${!s.wlItemEditMode ? (
+        (allWItems.length === 0 || s.wlAddBarOpen) ? `
+        <div class="wl-url-bar">
+          <input class="wl-url-input" id="wl-add-url" type="url"
+            placeholder="Paste a link to add an item..."
+            onpaste="wlDetailHandlePaste('${wl.id}')"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();wlInlineAdd('${wl.id}')}"
+            onblur="closeWlAddBar()" />
+        </div>` : `
+        <button class="wl-compose-btn" onclick="openWlAddBar('${wl.id}')">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+            <line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/>
+          </svg>
+        </button>`
+      ) : ''}
+      <div class="safe-bottom"></div>
       ${coverPanel}`;
   }
 
@@ -2300,7 +2788,7 @@
     const itemsSaved = totalSaved();
     const allTags = [...new Set(all.flatMap(i => i.tags || []))].sort();
     const active = s.itemsFilterTags;
-    const filtered = active.length ? all.filter(i => active.every(t => (i.tags||[]).includes(t))) : all;
+    const filtered = active.length ? all.filter(i => active.some(t => (i.tags||[]).includes(t))) : all;
     return `
       <div class="safe-top"></div>
       ${subTabBar('items')}
@@ -2391,32 +2879,37 @@
   // ═══════════════════════════════════════════
 
   function screenBoards() {
+    const subtitle = boards.length > 0 ? `${boards.length} ${boards.length===1?'board':'boards'}` : '';
     return `
-      <div class="safe-top"></div>
-      <header>
-        <span class="h-left">Boards</span>
-        <button class="h-right h-muted" onclick="openBoardEditor(null)">New</button>
-      </header>
-      <div class="scroll-area">
+      <div class="home-screen-hdr">
+        <div>
+          <p class="home-big-title">Boards</p>
+          ${subtitle ? `<p style="font-size:13px;color:#aaa;margin-top:5px;font-weight:400">${subtitle}</p>` : ''}
+        </div>
+        <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="7" r="3.5"/>
+            <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
+          </svg>
+        </button>
+      </div>
+      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll" style="padding-top:10px">
         ${boards.length === 0 ? `
           <div class="empty-state">
             <p class="empty-hero">no<br/>boards<br/>yet</p>
-            <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap New to create your first board</p>
-            <button class="empty-cta" onclick="openBoardEditor(null)">Create Board</button>
+            <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap + to create your first board</p>
           </div>`
         : `<div class="boards-grid">
             ${boards.map(b => `
               <div class="board-card" onclick="openBoardEditor('${b.id}')">
                 ${b.img
-                  ? `<img src="${esc(b.img)}" alt="${esc(b.name)}" />`
-                  : `<div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center"><span style="font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#ccc">No Preview</span></div>`}
-                <div class="board-card-meta">
-                  <p class="board-card-name">${esc(b.name.toUpperCase())}</p>
-                </div>
+                  ? `<img src="${esc(b.img)}" alt="" />`
+                  : `<div class="board-card-empty"><span style="font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#ccc">Empty</span></div>`}
+                <button class="board-card-del-btn" onclick="confirmDeleteBoard(event,'${b.id}')" aria-label="Delete board">···</button>
               </div>`).join('')}
           </div>`}
       </div>
-      ${nav('boards')}`;
+      ${homeNav('boards')}`;
   }
 
   function boardStickerHtml(st, idx) {
@@ -2430,7 +2923,6 @@
         onpointerdown="boardStickerDown(event,${idx})">
         ${imgH}
         <div class="be-sticker-resize" onpointerdown="boardResizeDown(event,${idx})"></div>
-        ${st.img ? `<div class="be-sticker-rmbg" onpointerdown="event.stopPropagation()" onclick="removeStickerBg(${idx})">BG</div>` : ''}
       </div>`;
   }
 
@@ -2441,7 +2933,7 @@
       <div class="safe-top"></div>
       <header>
         <button class="h-left h-muted" onclick="cancelBoardEdit()">←</button>
-        <span style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#000">${esc(_boardName)}</span>
+        <span></span>
         <button class="h-right" onclick="saveBoardFinal()">Done</button>
       </header>
       <div class="board-editor-layout">
@@ -2553,7 +3045,7 @@
             <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Start saving items to see your patterns</p>
           </div>
         </div>
-        ${nav('stats')}`;
+        ${homeNav('stats')}`;
     }
 
     return `
@@ -2604,7 +3096,7 @@
 
         </div>
       </div>
-      ${nav('stats')}`;
+      ${homeNav('stats')}`;
   }
 
   function screenProfile() {
@@ -2612,7 +3104,7 @@
     return `
       <div class="safe-top"></div>
       <header>
-        <span class="h-left">Profile</span>
+        <button class="h-left" onclick="navTab('wishlists')">←</button>
         <span class="h-right h-muted"></span>
       </header>
       <div class="scroll-area">
@@ -2636,7 +3128,7 @@
             <button onclick="s.overlay=null;render()" style="flex:1;background:none;border:1px solid #e0e0e0;font-family:inherit;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:14px;cursor:pointer">Cancel</button>
           </div>
         </div>` : ''}
-      ${nav('profile')}`;
+      ${homeNav('wishlists')}`;
   }
 
   function openEditName() {
@@ -2656,100 +3148,69 @@
     render();
   }
 
-  function screenItemDetail() {
+  function itemSheetContent() {
     const item = getItem(s.currentIid);
-    if (!item) return screenWishlists();
-    const wl = getWl(item.wid);
-    const d = days(item.addedAt);
+    if (!item) return '';
     const purchased = item.status === 'purchased';
-    const fromLabel = s.fromScreen === 'items' ? '← Items'
-      : s.fromScreen === 'archive' ? '← Archive'
-      : s.fromScreen === 'wishlists' ? '← Wishlist'
-      : `← ${wl?.name || 'Back'}`;
-    const backAct = s.fromScreen === 'items' ? "navTo('items')"
-      : s.fromScreen === 'archive' ? "navTo('archive')"
-      : s.fromScreen === 'wishlists' ? "navTo('wishlists')"
-      : `openWl('${item.wid}')`;
+    const d = item.addedAt ? days(item.addedAt) : 0;
+    const dateStr = d === 0 ? 'Added today' : d === 1 ? 'Added yesterday' : `Added ${d} days ago`;
+
     const imgH = item.img
       ? `<img src="${item.img}" alt="${esc(item.name)}" />`
       : `<div class="ph-lg">${esc(item.name)}</div>`;
-    const urlH = item.url
-      ? `<a class="detail-url" href="${item.url}" target="_blank">${item.url.replace(/^https?:\/\//,'')}</a>`
-      : '';
-    const noteH = item.note
-      ? `<p class="detail-section-label">Note</p><p class="detail-note">${esc(item.note)}</p>`
-      : '';
-    const priceH = item.price
-      ? `<p class="detail-section-label">Price</p><p class="detail-price-val">${money(item.price)}</p>`
-      : '';
-    const savingsH = item.price
-      ? `<p class="detail-section-label">Savings</p>
-         <div class="metric-strip" style="border-top:1px solid #f4f4f4;border-bottom:none;margin-top:8px">
-           <div class="metric-cell">
-             <p class="metric-label">Saved</p>
-             <p class="metric-value">${money(savedAmount(item))}</p>
-           </div>
-           <div class="metric-cell">
-             <p class="metric-label">Left</p>
-             <p class="metric-value">${money(gapAmount(item))}</p>
-           </div>
-         </div>
-         <div class="detail-progress"><div class="detail-progress-fill" style="width:${progressPct(item)}%"></div></div>
-         <p class="detail-subnote">${progressPct(item)}% of the way there</p>
-         ${s.overlay === 'quick-save' && s.currentIid === item.id
-           ? `<div class="quick-save-row">
-                <input class="quick-save-input" id="quick-save-input" type="number"
-                  placeholder="0.00" min="0" step="any"
-                  onkeydown="if(event.key==='Enter') commitQuickSave('${item.id}')" />
-                <button class="quick-save-btn" onclick="commitQuickSave('${item.id}')">Add</button>
-                <button class="btn-text" style="padding:0;font-size:9px" onclick="closeOverlay()">Cancel</button>
-              </div>`
-           : `<button class="quick-save-trigger" onclick="openQuickSave('${item.id}')">+ Add to Savings</button>`}`
-      : '';
-    const tagsH = item.tags && item.tags.length
-      ? `<p class="detail-section-label">Tags</p>
-         <div class="tag-pill-wrap" style="margin-top:4px">
-           ${item.tags.map(t => `<span class="tag-pill-display">${esc(t)}</span>`).join('')}
-         </div>`
-      : '';
-    const seriousnessH = `<p class="detail-section-label">Intent</p><p class="detail-price-val">${item.serious ? 'Serious' : 'Casual'}</p>`;
-    return `
-      <div class="safe-top"></div>
-      <header>
-        <button class="h-left" onclick="${backAct}">${fromLabel}</button>
-        <button class="h-right h-muted" onclick="openEditItem('${item.id}')">Edit</button>
-      </header>
-      <div class="scroll-area">
-        <div class="detail-image">${imgH}</div>
-        <div class="detail-body">
-          <p class="detail-days">${pad(d)} — ${purchased ? 'Purchased' : 'Watching'}</p>
-          ${item.brand ? `<p class="detail-brand">${esc(item.brand.toUpperCase())}</p>` : ''}
-          <p class="detail-name">${esc(item.name)}</p>
-          ${urlH}
-          ${priceH}
-          ${savingsH}
-          ${tagsH}
-          ${seriousnessH}
-          ${noteH}
-          <p class="detail-section-label">Added</p>
-          <p class="detail-added">${fmtDate(item.addedAt)}</p>
-          <div class="detail-actions">
-            ${item.url ? `
-            <a class="btn btn-outline btn-link-cta" href="${item.url}" target="_blank" rel="noopener">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
-                <path d="M4.5 1.5H1.5v8h8V6.5"/><path d="M6.5 1.5H9.5v3"/><line x1="9.5" y1="1.5" x2="5" y2="6"/>
-              </svg>
-              Open Link
-            </a>` : ''}
-            ${!item.wid && !purchased && wishlists.length ? `
-              <button class="btn btn-outline" onclick="openMoveToWishlist('${item.id}')">+ Add to a Wishlist</button>` : ''}
-            ${purchased
-              ? `<button class="btn btn-black" onclick="addBackToWishlist('${item.id}')">Add Back to Wishlist</button>`
-              : `<button class="btn btn-black" onclick="markPurchased('${item.id}')">Purchased</button>
-                 <button class="btn btn-text" onclick="archiveItem('${item.id}')">Archive</button>`}
-          </div>
-        </div>
+
+    const metaRow = (label, valueHtml) => `
+      <div class="item-meta-row">
+        <span class="item-meta-label">${label}</span>
+        <div class="item-meta-value">${valueHtml}</div>
       </div>`;
+
+    const tagsHtml = item.tags && item.tags.length
+      ? item.tags.map(t => `<span style="display:inline-block;background:#f2f2f2;border-radius:20px;padding:4px 12px;font-size:13px;color:#000;margin-left:6px">${esc(t)}</span>`).join('')
+      : '';
+
+    return `
+      <div class="item-detail-img-wrap">
+        ${imgH}
+        <div class="item-detail-hdr">
+          <button class="item-detail-btn" onclick="closeItemSheet()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
+            </svg>
+          </button>
+          <button class="item-detail-btn" onclick="openEditItem('${item.id}')">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11.5 2.5a1.5 1.5 0 012.1 2.1L7 11l-3 .5.5-3L11.5 2.5z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <p class="item-detail-title">${esc(item.name)}</p>
+      <p class="item-detail-status">${purchased ? 'Purchased' : dateStr}</p>
+
+      ${item.brand ? metaRow('Brand', esc(item.brand)) : ''}
+      ${item.price ? metaRow('Price', money(item.price)) : ''}
+      ${item.url ? metaRow('Link', `<a href="${esc(item.url)}" target="_blank" rel="noopener">${item.url.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]}</a>`) : ''}
+      ${tagsHtml ? metaRow('Tags', tagsHtml) : ''}
+      ${item.note ? metaRow('Note', `<span style="white-space:normal;font-size:14px">${esc(item.note)}</span>`) : ''}
+
+      <div class="item-detail-actions">
+        ${!item.wid && !purchased && wishlists.length ? `
+          <button class="btn btn-outline" onclick="openMoveToWishlist('${item.id}')">+ Add to a Wishlist</button>` : ''}
+        ${purchased
+          ? `<button class="btn btn-black" onclick="addBackToWishlist('${item.id}')">Add Back to Wishlist</button>`
+          : `<button class="btn btn-text" onclick="archiveItem('${item.id}')">Remove</button>`}
+      </div>
+      <div style="height:max(env(safe-area-inset-bottom,0px),20px)"></div>`;
+  }
+
+  function screenItemDetail() {
+    // Item detail is now always a slide-up sheet — this is a fallback only
+    const item = getItem(s.currentIid);
+    if (!item) return screenWishlists();
+    return `<div class="safe-top"></div>
+      <div class="item-detail-scroll">${itemSheetContent()}</div>`;
   }
 
   function screenAddWishlist() {
@@ -2762,14 +3223,14 @@
       <div class="new-wl-page">
         <div class="new-wl-title-wrap">
           <input class="new-wl-title-input" id="wl-name-input" type="text"
-            placeholder="List Title" maxlength="50" autocorrect="off" autocapitalize="words"
+            placeholder="List title" maxlength="50" autocorrect="off" autocapitalize="words"
             oninput="newWlSyncGhost()"
             onkeydown="if(event.key==='Enter'){event.preventDefault();newWlConfirmTitle()}" />
           <p class="new-wl-title-ghost" id="new-wl-title-ghost" onclick="newWlUnconfirmTitle()"></p>
         </div>
         <div class="new-wl-url-wrap" id="new-wl-url-wrap">
           <input class="new-wl-url-input" id="new-wl-url-field" type="url"
-            placeholder="Enter URL to add a product"
+            placeholder="Paste a link..."
             onpaste="newWlHandlePaste()"
             onkeydown="if(event.key==='Enter'){event.preventDefault();saveWishlist()}" />
         </div>
@@ -2904,8 +3365,7 @@
                 </div>`;
             })()}
           </div>
-          <div style="display:flex;gap:16px">
-            <div class="form-group" style="flex:1">
+          <div class="form-group">
               <label class="form-label">Price</label>
               <div class="currency-field" style="width:100%">
                 <span class="currency-symbol">$</span>
@@ -2914,25 +3374,6 @@
                   data-cents="${Math.round(parseFloat(f.price||0)*100)}"
                   onkeydown="currencyKeydown(event,'f-price')" readonly onfocus="this.removeAttribute('readonly')" />
               </div>
-            </div>
-            <div class="form-group" style="flex:1">
-              <label class="form-label">Saved So Far</label>
-              <div class="currency-field" style="width:100%">
-                <span class="currency-symbol">$</span>
-                <input class="currency-input" id="f-saved" type="text" inputmode="numeric"
-                  value="${(Math.round(parseFloat(f.saved||0)*100)/100).toFixed(2)}"
-                  data-cents="${Math.round(parseFloat(f.saved||0)*100)}"
-                  onkeydown="currencyKeydown(event,'f-saved')" readonly onfocus="this.removeAttribute('readonly')" />
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Intent</label>
-            <input type="hidden" id="f-serious" value="${f.serious ? 'serious' : 'casual'}" />
-            <div class="intent-pill-row">
-              <button type="button" class="intent-pill ${f.serious ? '' : 'active'}" id="intent-casual" onclick="setAddIntent('casual')">Casual</button>
-              <button type="button" class="intent-pill ${f.serious ? 'active' : ''}" id="intent-serious" onclick="setAddIntent('serious')">Serious</button>
-            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Note</label>
@@ -2965,6 +3406,136 @@
   }
 
   function buildOverlay() {
+    if (s.overlay === 'confirm-delete-wl') {
+      const wl = getWl(s.pendingDeleteWlId);
+      const name = wl ? wl.name : 'this wishlist';
+      return `
+        <div class="item-sheet-backdrop" onclick="s.overlay=null;render()" style="z-index:310"></div>
+        <div class="item-sheet" style="z-index:311;max-height:50dvh">
+          <div class="item-sheet-handle"></div>
+          <div style="padding:28px 24px 8px;text-align:center">
+            <p style="font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:10px">Delete "${esc(name)}"?</p>
+            <p style="font-size:14px;color:#999;line-height:1.5;margin-bottom:28px">All items in this wishlist will be deleted permanently and cannot be undone.</p>
+            <button onclick="deleteWishlist('${s.pendingDeleteWlId}')"
+              style="width:100%;background:#e33;color:#fff;border:none;font-family:inherit;font-size:15px;font-weight:600;padding:16px;border-radius:12px;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent">
+              Delete
+            </button>
+            <button onclick="s.overlay=null;render()"
+              style="width:100%;background:none;border:none;font-family:inherit;font-size:14px;color:#aaa;padding:10px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+              Cancel
+            </button>
+          </div>
+          <div style="height:max(env(safe-area-inset-bottom,0px),16px)"></div>
+        </div>`;
+    }
+    if (s.overlay === 'confirm-delete-board') {
+      return `
+        <div class="item-sheet-backdrop" onclick="s.overlay=null;render()" style="z-index:310"></div>
+        <div class="item-sheet" style="z-index:311;max-height:50dvh">
+          <div class="item-sheet-handle"></div>
+          <div style="padding:28px 24px 8px;text-align:center">
+            <p style="font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:10px">Delete board?</p>
+            <p style="font-size:14px;color:#999;line-height:1.5;margin-bottom:28px">This will be deleted forever and cannot be undone.</p>
+            <button onclick="deleteBoard('${s.pendingDeleteBoardId}')"
+              style="width:100%;background:#e33;color:#fff;border:none;font-family:inherit;font-size:15px;font-weight:600;padding:16px;border-radius:12px;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent">
+              Delete
+            </button>
+            <button onclick="s.overlay=null;render()"
+              style="width:100%;background:none;border:none;font-family:inherit;font-size:14px;color:#aaa;padding:10px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+              Cancel
+            </button>
+          </div>
+          <div style="height:max(env(safe-area-inset-bottom,0px),16px)"></div>
+        </div>`;
+    }
+    if (s.overlay === 'wl-share') {
+      const wl = getWl(s.currentWid);
+      if (!wl) return '';
+      const perm = s.wlSharePerm || 'view';
+      const pill = (id, label) => `
+        <button onclick="s.wlSharePerm='${id}';render()"
+          style="flex:1;padding:14px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border:2px solid ${perm===id?'#000':'#e8e8e8'};background:${perm===id?'#000':'#fff'};color:${perm===id?'#fff':'#000'};-webkit-tap-highlight-color:transparent">
+          ${label}
+        </button>`;
+      return `
+        <div class="item-sheet-backdrop" onclick="closeWlShare()" style="z-index:310"></div>
+        <div class="item-sheet" style="z-index:311;max-height:70dvh">
+          <div class="item-sheet-handle"></div>
+          <div class="item-sheet-scroll" style="padding:24px 20px">
+            <p style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin-bottom:20px">Permission</p>
+            <div style="display:flex;gap:10px;margin-bottom:16px">
+              ${pill('view','View Only')}
+              ${pill('edit','Can Edit')}
+            </div>
+            <p style="font-size:12px;color:#bbb;margin-bottom:24px;line-height:1.5">
+              ${perm==='view'
+                ? 'Recipient can browse items but cannot add or remove anything.'
+                : 'Recipient can add items from your wishlist to their own.'}
+            </p>
+            <button onclick="confirmShareWishlist('${wl.id}')"
+              style="width:100%;background:var(--accent);color:#fff;border:none;font-family:inherit;font-size:15px;font-weight:600;padding:16px;border-radius:12px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+              Send
+            </button>
+            <button onclick="closeWlShare()"
+              style="width:100%;background:none;border:none;font-family:inherit;font-size:14px;color:#aaa;padding:12px;cursor:pointer;margin-top:4px;-webkit-tap-highlight-color:transparent">
+              Cancel
+            </button>
+          </div>
+          <div style="height:max(env(safe-area-inset-bottom,0px),16px)"></div>
+        </div>`;
+    }
+    if (s.overlay === 'wl-edit') {
+      const wl = getWl(s.currentWid);
+      if (!wl) return '';
+      return `
+        <div class="item-sheet-backdrop" onclick="closeWlEditSheet()" style="z-index:310"></div>
+        <div class="item-sheet" style="z-index:311;max-height:80dvh" id="wl-edit-sheet">
+          <div class="item-sheet-handle"></div>
+          <div class="item-sheet-scroll" style="padding:20px 20px 0">
+            <p style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin-bottom:8px">Name</p>
+            <input id="wl-edit-name" type="text" value="${esc(wl.name)}" maxlength="50"
+              autocorrect="off" autocapitalize="words"
+              style="width:100%;font-size:22px;font-weight:700;letter-spacing:-0.02em;border:none;border-bottom:2px solid #000;padding:6px 0 10px;outline:none;background:none;font-family:inherit;color:#000;margin-bottom:22px"
+              onkeydown="if(event.key==='Enter')this.blur()" />
+            <p style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin-bottom:8px">Description</p>
+            <textarea id="wl-edit-desc" rows="3"
+              placeholder="Add a description…"
+              style="width:100%;border:none;border-bottom:1px solid #e8e8e8;padding:6px 0 10px;outline:none;background:none;font-family:inherit;font-size:16px;color:#000;resize:none;margin-bottom:22px;line-height:1.5"
+            >${esc(wl.description || '')}</textarea>
+            <input type="file" id="wl-edit-cover-file" accept="image/*" capture="environment"
+              style="display:none" onchange="handleWlEditCoverFile(this,'${wl.id}')" />
+            <button onclick="document.getElementById('wl-edit-cover-file').click()"
+              style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 0;border:none;border-bottom:1px solid #f0f0f0;background:none;font-family:inherit;font-size:16px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+              <span style="display:flex;align-items:center;gap:10px">
+                ${wl.coverImg ? `<span style="width:36px;height:36px;border-radius:6px;overflow:hidden;display:inline-flex;flex-shrink:0"><img src="${esc(wl.coverImg)}" style="width:100%;height:100%;object-fit:cover" /></span>` : `<span style="width:36px;height:36px;border-radius:6px;background:#f0f0f0;display:inline-flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="16" height="12" rx="2"/><circle cx="10" cy="11" r="3"/><path d="M7 5l1.5-2h3L13 5"/></svg></span>`}
+                <span>Cover Image</span>
+              </span>
+              <svg width="8" height="13" viewBox="0 0 8 13" fill="none" stroke="#aaa" stroke-width="1.8" stroke-linecap="round"><polyline points="1.5,1.5 6.5,6.5 1.5,11.5"/></svg>
+            </button>
+          </div>
+          <div style="padding:16px 20px 0;display:flex;gap:10px">
+            <button onclick="saveWlEdit('${wl.id}')"
+              style="flex:1;background:#000;color:#fff;border:none;font-family:inherit;font-size:14px;font-weight:600;padding:14px;cursor:pointer;border-radius:10px">Save</button>
+            <button onclick="closeWlEditSheet()"
+              style="flex:1;background:#f2f2f2;color:#000;border:none;font-family:inherit;font-size:14px;font-weight:500;padding:14px;cursor:pointer;border-radius:10px">Cancel</button>
+          </div>
+          <div style="padding:8px 20px 0">
+            <button onclick="deleteWlFromSheet('${wl.id}')"
+              style="width:100%;background:none;border:none;font-family:inherit;font-size:13px;color:#e33;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+              Delete Wishlist
+            </button>
+          </div>
+          <div style="height:max(env(safe-area-inset-bottom,0px),20px)"></div>
+        </div>`;
+    }
+    if (s.overlay === 'item-sheet') {
+      return `
+        <div class="item-sheet-backdrop" id="item-sheet-backdrop" onclick="closeItemSheet()"></div>
+        <div class="item-sheet" id="item-sheet">
+          <div class="item-sheet-handle"></div>
+          <div class="item-sheet-scroll">${itemSheetContent()}</div>
+        </div>`;
+    }
     if (s.overlay === 'delete') {
       const item = getItem(s.currentIid);
       const words = item ? item.name.split(' ').slice(0,3).join('\n') : 'This Item';
@@ -3041,9 +3612,6 @@
     } else if (tab === 'boards') {
       s.screen = 'boards';
       render();
-    } else if (tab === 'stats') {
-      s.screen = 'stats';
-      render();
     } else if (tab === 'profile') {
       s.screen = 'profile';
       render();
@@ -3069,21 +3637,27 @@
     s.screen = 'wishlist-detail';
     s.overlay = null;
     s.wlItemEditMode = false;
+    s.wlAddBarOpen = false;
     render();
   }
 
   function openItem(iid) {
     const item = getItem(iid);
     s.currentIid = iid;
-    s.fromScreen = s.screen === 'wishlist-detail' ? 'wishlist-detail'
-      : s.screen === 'items' ? 'items'
-      : s.screen === 'archive' ? 'archive'
-      : s.screen === 'wishlists' ? 'wishlists'
-      : 'wishlist-detail';
+    s.fromScreen = s.screen;
     s.fromWid = item?.wid || null;
-    s.screen = 'item-detail';
-    s.overlay = null;
+    s.overlay = 'item-sheet';
     render();
+  }
+
+  function closeItemSheet() {
+    const sheet = document.getElementById('item-sheet');
+    const backdrop = document.getElementById('item-sheet-backdrop');
+    if (sheet) {
+      sheet.style.animation = 'itemSheetOut 0.26s cubic-bezier(0.4, 0, 1, 1) both';
+      if (backdrop) backdrop.style.animation = 'fadeIn 0.22s ease reverse both';
+    }
+    setTimeout(() => { s.overlay = null; render(); }, 240);
   }
 
   function openAddWishlist() {
@@ -3156,13 +3730,16 @@
   }
 
   function cancelAdd() {
-    s.overlay = null;
     if (s.addIsEdit) {
-      s.screen = 'item-detail';
+      s.screen = s.fromScreen || 'wishlist-detail';
+      if (s.fromWid) s.currentWid = s.fromWid;
+      s.overlay = 'item-sheet';
     } else if (s.addWid) {
+      s.overlay = null;
       s.screen = 'wishlist-detail';
       s.currentWid = s.addWid;
     } else {
+      s.overlay = null;
       s.screen = s.fromScreen === 'items' ? 'items' : 'wishlists';
     }
     render();
@@ -3624,6 +4201,7 @@
         s.addForm.price = mlPrice ? String(mlPrice).replace(/[^0-9.]/g, '') : '';
         s.addStep = 'form';
         render();
+        autoRemoveBgIfWhite();
         // Backfill price from ALL proxies in parallel — first one that returns a price wins
         (async () => {
           try {
@@ -3665,6 +4243,7 @@
         s.addForm.price = parsed.price;
         s.addStep = 'form';
         render();
+        autoRemoveBgIfWhite();
       }
     } catch {
       clearTimeout(masterTimer);
@@ -3675,6 +4254,7 @@
       s.addForm.price = '';
       s.addStep = 'form';
       render();
+      autoRemoveBgIfWhite();
       showToast(fallback?.name
         ? 'Site blocked auto-fetch — check name and add image.'
         : "Couldn't fetch — fill in manually.");
@@ -3703,7 +4283,7 @@
   function newWlSyncGhost() {
     const v = document.getElementById('wl-name-input')?.value || '';
     const g = document.getElementById('new-wl-title-ghost');
-    if (g) g.textContent = v.toUpperCase();
+    if (g) g.textContent = v;
   }
 
   function newWlConfirmTitle() {
@@ -3711,7 +4291,7 @@
     if (!input?.value.trim()) return;
     const ghost = document.getElementById('new-wl-title-ghost');
     const urlWrap = document.getElementById('new-wl-url-wrap');
-    ghost.textContent = input.value.trim().toUpperCase();
+    ghost.textContent = input.value.trim();
     input.classList.add('nwl-done');
     requestAnimationFrame(() => requestAnimationFrame(() => {
       ghost.classList.add('nwl-show');
@@ -3747,25 +4327,13 @@
     wishlists.push(newWl);
     saveData();
 
-    if (url) {
-      try { new URL(url); } catch { /* invalid — ignore, just open detail */ }
-      if (/^https?:\/\//.test(url)) {
-        s.addWid = newWl.id;
-        s.fromScreen = 'wishlist-detail';
-        s.addStep = 'url';
-        s.addIsEdit = false;
-        s.addForm = { url, name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'',
-          wid: newWl.id, serious:false, showImgEdit:false, showTagInput:false, tagQuery:'', showNewWl:false };
-        s.screen = 'add-item';
-        s.overlay = null;
-        render();
-        fetchUrl();
-        return;
-      }
-    }
     s.currentWid = newWl.id;
     s.screen = 'wishlist-detail';
     render();
+
+    if (url && /^https?:\/\//.test(url)) {
+      wlInlineAdd(newWl.id, url);
+    }
   }
 
   function newWlHandlePaste() {
@@ -3777,26 +4345,152 @@
     }, 60);
   }
 
+  function openWlAddBar(wid) {
+    s.wlAddBarOpen = true;
+    render();
+    setTimeout(() => document.getElementById('wl-add-url')?.focus(), 50);
+  }
+
+  function closeWlAddBar() {
+    setTimeout(() => {
+      const val = document.getElementById('wl-add-url')?.value?.trim();
+      if (val) return; // don't close if something is typed
+      s.wlAddBarOpen = false;
+      render();
+    }, 200);
+  }
+
   function wlDetailHandlePaste(wid) {
     setTimeout(() => {
       const url = document.getElementById('wl-add-url')?.value.trim();
-      if (url && /^https?:\/\//.test(url)) wlDetailSubmitUrl(wid);
+      if (url && /^https?:\/\//.test(url)) wlInlineAdd(wid);
     }, 60);
   }
 
   function wlDetailSubmitUrl(wid) {
-    const rawUrl = document.getElementById('wl-add-url')?.value.trim();
+    wlInlineAdd(wid);
+  }
+
+  async function wlInlineAdd(wid, presetUrl) {
+    const inputEl = document.getElementById('wl-add-url');
+    const rawUrl = presetUrl || inputEl?.value.trim() || '';
     if (!rawUrl || !/^https?:\/\//.test(rawUrl)) return;
-    s.addWid = wid;
-    s.fromScreen = 'wishlist-detail';
-    s.addStep = 'url';
-    s.addIsEdit = false;
-    s.addForm = { url: rawUrl, name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'',
-      wid: wid || '', serious:false, showImgEdit:false, showTagInput:false, tagQuery:'', showNewWl:false };
-    s.screen = 'add-item';
-    s.overlay = null;
+    const url = cleanUrl(rawUrl);
+
+    const pendingId = 'p' + genId();
+    s.pendingItems = [...s.pendingItems, { id: pendingId, wid, url }];
+    if (inputEl) inputEl.value = '';
     render();
-    fetchUrl();
+    setTimeout(() => document.getElementById('wl-add-url')?.focus(), 50);
+
+    try {
+      const domain = new URL(url).hostname.replace(/^www\./, '');
+      if (typeof gtag === 'function') gtag('event', 'url_lookup', { domain });
+    } catch {}
+
+    const abort = new AbortController();
+    const masterTimer = setTimeout(() => abort.abort(), 14000);
+    let fetched = null;
+
+    try {
+      const mlPromise = fetch(
+        `https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false&audio=false&video=false&iframe=false`,
+        { signal: abort.signal }
+      ).then(async r => {
+        const ml = await r.json();
+        if (ml.status !== 'success') throw new Error('ml-fail');
+        if (isBlockedPage('', ml.data.title || '')) throw new Error('blocked');
+        return { source: 'ml', data: ml.data };
+      });
+
+      const proxyFetch = (p) => p.then(res => {
+        const parsed = parseOgFromHtml(res.html, url);
+        return { source: 'html', parsed };
+      });
+
+      const htmlProxies = [
+        proxyFetch(fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: abort.signal }).then(r => r.json()).then(j => ({ html: j.contents || '' }))),
+        proxyFetch(fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, { signal: abort.signal }).then(r => { if (!r.ok) throw new Error('err'); return r.text(); }).then(h => ({ html: h }))),
+        proxyFetch(fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, { signal: abort.signal }).then(r => { if (!r.ok) throw new Error('err'); return r.text(); }).then(h => ({ html: h }))),
+        proxyFetch(fetch(`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`, { signal: abort.signal }).then(r => r.text()).then(h => ({ html: h }))),
+      ];
+
+      const result = await Promise.any([mlPromise, Promise.any(htmlProxies)]);
+      clearTimeout(masterTimer);
+
+      if (result.source === 'ml') {
+        const ml = result.data;
+        const urlMeta = parseUrlFallback(url);
+        let name = cleanTitle(ml.title || '');
+        let brand = urlMeta?.brand || '';
+        if (brand) {
+          const bl = brand.toLowerCase(), nl = name.toLowerCase();
+          if (nl.startsWith(bl)) name = name.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
+        }
+        if (!name || /^\d+$/.test(name)) name = urlMeta?.name || name;
+        const mlPrice = ml.price?.amount ?? ml.price ?? '';
+        fetched = {
+          name: name || urlMeta?.name || new URL(url).hostname.replace(/^www\./,''),
+          brand: brand || '',
+          img: ml.image?.url || ml.screenshot?.url || urlMeta?.img || null,
+          price: mlPrice ? String(mlPrice).replace(/[^0-9.]/g, '') : '',
+        };
+      } else {
+        const { parsed } = result;
+        const urlMeta = parseUrlFallback(url);
+        const brand = parsed.brand || urlMeta?.brand || '';
+        let name = parsed.title;
+        if (brand) {
+          const bl = brand.toLowerCase(), nl = name.toLowerCase();
+          if (nl.startsWith(bl)) name = name.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
+        }
+        fetched = {
+          name: name || urlMeta?.name || new URL(url).hostname.replace(/^www\./,''),
+          brand: brand || '',
+          img: parsed.image || urlMeta?.img || null,
+          price: parsed.price || '',
+        };
+      }
+    } catch {
+      clearTimeout(masterTimer);
+      const fallback = parseUrlFallback(url);
+      fetched = {
+        name: fallback?.name || (() => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'Item'; } })(),
+        brand: fallback?.brand || '',
+        img: fallback?.img || null,
+        price: '',
+      };
+    }
+
+    s.pendingItems = s.pendingItems.filter(p => p.id !== pendingId);
+    const newItem = {
+      id: 'i' + genId(), wid: wid || null,
+      name: fetched.name || 'Item',
+      brand: fetched.brand || null,
+      tags: [], url,
+      img: fetched.img || null,
+      note: '',
+      price: fetched.price ? parseFloat(fetched.price) : null,
+      saved: 0, serious: false,
+      addedAt: Date.now(), status: 'watching', reason: null,
+    };
+    const wasFirstInWl = wid && items.filter(i => i.wid === wid && i.status === 'watching').length === 0;
+    items = [newItem, ...items];
+    saveData();
+    if (wasFirstInWl) {
+      s.wlJustAdded = wid;
+      setTimeout(() => { s.wlJustAdded = null; }, 1200);
+    }
+    render();
+    setTimeout(() => document.getElementById('wl-add-url')?.focus(), 50);
+
+    if (newItem.img) {
+      removeImageBackground(newItem.img).then(cleaned => {
+        items = items.map(i => i.id === newItem.id ? { ...i, img: cleaned } : i);
+        saveData();
+        render();
+      }).catch(() => {});
+    }
   }
 
   function setAddIntent(value) {
@@ -3834,7 +4528,10 @@
         img: img || i.img,
       } : i);
       saveData();
-      s.screen = 'item-detail';
+      // Return to the sheet overlay instead of navigating to full-screen item-detail
+      s.screen = s.fromScreen || 'wishlist-detail';
+      if (s.fromWid) s.currentWid = s.fromWid;
+      s.overlay = 'item-sheet';
       render();
 
     } else {
@@ -3847,8 +4544,16 @@
         serious,
         addedAt: Date.now(), status: 'watching', reason: null,
       };
+      const _wid = newItem.wid;
+      const wasFirstInWl = _wid && items.filter(i => i.wid === _wid && i.status === 'watching').length === 0;
       items = [newItem, ...items];
       saveData();
+      s.newlyAddedId = newItem.id;
+      setTimeout(() => { s.newlyAddedId = null; }, 700);
+      if (wasFirstInWl) {
+        s.wlJustAdded = _wid;
+        setTimeout(() => { s.wlJustAdded = null; }, 1200);
+      }
       if (s.addWid) {
         s.currentWid = s.addWid;
         s.screen = 'wishlist-detail';
@@ -3870,19 +4575,19 @@
   function markPurchased(id) {
     items = items.map(i => i.id === id ? { ...i, status:'purchased', reason:null } : i);
     saveData();
-    s.screen = 'wishlist-detail';
+    s.overlay = null;
+    s.screen = s.fromScreen === 'items' ? 'items' : 'wishlist-detail';
     s.currentWid = s.fromWid || s.currentWid;
     render();
-
   }
 
   function addBackToWishlist(id) {
     items = items.map(i => i.id === id ? { ...i, status:'watching', reason:null } : i);
     saveData();
-    s.screen = 'wishlist-detail';
+    s.overlay = null;
+    s.screen = s.fromScreen === 'items' ? 'items' : 'wishlist-detail';
     s.currentWid = s.fromWid || s.currentWid;
     render();
-
   }
 
   function archiveItem(id) {
@@ -3890,10 +4595,10 @@
       ...i, status:'archived', reason:'let_go', archivedAt: Date.now(),
     } : i);
     saveData();
+    s.overlay = null;
     s.screen = s.fromScreen === 'items' ? 'items' : 'wishlist-detail';
     if (s.fromWid) s.currentWid = s.fromWid;
     render();
-
   }
 
   function openDeleteOverlay(id) {
@@ -3959,10 +4664,24 @@
     }
   }
 
+  function confirmRemoveItem(e, id) {
+    if (e) e.stopPropagation();
+    s.pendingDeleteId = id;
+    s.overlay = 'confirm-delete-item';
+    render();
+  }
+
   function removeItem(e, id) {
     if (e) e.stopPropagation();
     items = items.filter(i => i.id !== id);
     saveData();
+    s.overlay = null;
+    render();
+  }
+
+  function confirmDeleteWishlist(id) {
+    s.pendingDeleteWlId = id;
+    s.overlay = 'confirm-delete-wl';
     render();
   }
 
@@ -3974,6 +4693,8 @@
     s.currentWid = null;
     s.screen = 'wishlists';
     s.wlSubTab = 'wishlists';
+    s.overlay = null;
+    s.pendingDeleteWlId = null;
     saveData();
     render();
   }
@@ -4249,6 +4970,44 @@
   // COVER IMAGE
   // ═══════════════════════════════════════════
 
+  function openWlEditSheet(wid) {
+    s.currentWid = wid;
+    s.overlay = 'wl-edit';
+    render();
+    setTimeout(() => document.getElementById('wl-edit-name')?.focus(), 80);
+  }
+
+  function closeWlEditSheet() {
+    s.overlay = null;
+    render();
+  }
+
+  function deleteWlFromSheet(wid) {
+    confirmDeleteWishlist(wid);
+  }
+
+  function saveWlEdit(wid) {
+    const name = document.getElementById('wl-edit-name')?.value?.trim();
+    const desc = document.getElementById('wl-edit-desc')?.value?.trim();
+    if (!name) return;
+    wishlists = wishlists.map(w => w.id === wid ? { ...w, name, description: desc || '' } : w);
+    saveData();
+    s.overlay = null;
+    render();
+  }
+
+  function handleWlEditCoverFile(input, wid) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: e.target.result } : w);
+      saveData();
+      render();
+    };
+    reader.readAsDataURL(file);
+  }
+
   function openChangeCover(wid) {
     s.currentWid = wid;
     s.overlay = 'change-cover';
@@ -4295,8 +5054,69 @@
     reader.onload = e => {
       s.addForm.img = e.target.result;
       render();
+      autoRemoveBgIfWhite();
     };
     reader.readAsDataURL(file);
+  }
+
+  async function autoRemoveBgIfWhite() {
+    const src = s.addForm.img;
+    if (!src || s.removingBg) return;
+
+    try {
+      let imgSrc = src;
+
+      if (!src.startsWith('data:')) {
+        // External URL — fetch via proxy first
+        const proxies = [
+          'https://api.allorigins.win/raw?url=' + encodeURIComponent(src),
+          'https://corsproxy.io/?' + encodeURIComponent(src),
+        ];
+        let dataUrl = null;
+        for (const proxy of proxies) {
+          try {
+            const resp = await fetch(proxy, { signal: AbortSignal.timeout(7000) });
+            if (resp.ok) {
+              const blob = await resp.blob();
+              dataUrl = await new Promise((res, rej) => {
+                const reader = new FileReader();
+                reader.onload = () => res(reader.result);
+                reader.onerror = rej;
+                reader.readAsDataURL(blob);
+              });
+              break;
+            }
+          } catch {}
+        }
+        if (!dataUrl) return;
+        imgSrc = dataUrl;
+      }
+
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = imgSrc;
+      });
+
+      const S = 80;
+      const cv = document.createElement('canvas'); cv.width = S; cv.height = S;
+      const ctx = cv.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, S, S);
+      const { data } = ctx.getImageData(0, 0, S, S);
+
+      const sample = (x, y) => { const i=(y*S+x)*4; return { r:data[i], g:data[i+1], b:data[i+2], a:data[i+3] }; };
+      const corners = [
+        sample(0,0), sample(S-1,0), sample(0,S-1), sample(S-1,S-1),
+        sample(Math.floor(S/2),0), sample(Math.floor(S/2),S-1),
+        sample(0,Math.floor(S/2)), sample(S-1,Math.floor(S/2)),
+      ];
+
+      const isWhite = corners.every(p => p.a > 200 && p.r > 220 && p.g > 220 && p.b > 220);
+      if (!isWhite) return;
+
+      if (s.addForm.img === src) {
+        s.addForm.img = imgSrc;
+        await removeItemBackground();
+      }
+    } catch {}
   }
 
   async function removeItemBackground() {
@@ -4439,7 +5259,7 @@
           <button class="swipe-act-btn swipe-act-archive" onclick="swipeArchiveItem('${item.id}')">Archive</button>
           <button class="swipe-act-btn swipe-act-purchase" onclick="swipePurchaseItem('${item.id}')">Purchase</button>
         </div>
-        <div class="list-row ${purchased ? 'list-row-purchased' : ''}" data-idx="${idx}" ${clickAttr}>
+        <div class="list-row ${purchased ? 'list-row-purchased' : ''} ${s.newlyAddedId === item.id ? 'item-row-new' : ''}" data-idx="${idx}" ${clickAttr}>
           ${s.wlItemEditMode ? `<span class="list-drag-handle" onpointerdown="event.stopPropagation();listDragStart(event,${idx})">⠿</span>` : ''}
           <div class="list-thumb">${thumbH}</div>
           <div class="list-info">
@@ -4729,7 +5549,26 @@
     return null;
   }
 
-  async function shareWishlist(wid) {
+  function openWlShare(wid) {
+    s.currentWid = wid;
+    s.wlSharePerm = 'view';
+    s.overlay = 'wl-share';
+    render();
+  }
+
+  function closeWlShare() {
+    s.overlay = null;
+    render();
+  }
+
+  async function confirmShareWishlist(wid) {
+    const perm = s.wlSharePerm || 'view';
+    s.overlay = null;
+    render();
+    await shareWishlist(wid, perm);
+  }
+
+  async function shareWishlist(wid, perm = 'view') {
     const wl = getWl(wid);
     if (!wl) return;
     const wItems = watchingItems(wid);
@@ -4743,6 +5582,7 @@
     const payload = {
       v: 1,
       senderName,
+      perm: perm || 'view',
       wl: { name: wl.name, coverImg: wl.coverImg?.startsWith('http') ? wl.coverImg : '' },
       items: wItems.map(i => ({
         name: i.name, brand: i.brand || '',
@@ -4834,6 +5674,46 @@
     }
   }
 
+  // Auto-crop whitespace/transparent padding from product thumbnails
+  function smartCropThumb(imgEl) {
+    if (!imgEl?.complete || !imgEl.naturalWidth) return;
+    const tryAnalyze = (source) => {
+      try {
+        const S = 100;
+        const cv = document.createElement('canvas');
+        cv.width = S; cv.height = S;
+        const ctx = cv.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(source, 0, 0, S, S);
+        const { data } = ctx.getImageData(0, 0, S, S);
+        let x0=S, x1=0, y0=S, y1=0, found=false;
+        for (let y=0; y<S; y++) for (let x=0; x<S; x++) {
+          const i=(y*S+x)*4, a=data[i+3], r=data[i], g=data[i+1], b=data[i+2];
+          if (a < 20 || (r > 240 && g > 240 && b > 240)) continue;
+          if (x<x0) x0=x; if (x>x1) x1=x;
+          if (y<y0) y0=y; if (y>y1) y1=y;
+          found=true;
+        }
+        if (!found) return;
+        const P=5; // padding pixels in analysis space
+        x0=Math.max(0,x0-P); y0=Math.max(0,y0-P);
+        x1=Math.min(S-1,x1+P); y1=Math.min(S-1,y1+P);
+        const t=y0/S, r=(S-1-x1)/S, b=(S-1-y1)/S, l=x0/S;
+        if (Math.max(t,r,b,l) < 0.07) return; // not enough padding to bother
+        imgEl.style.objectViewBox=`inset(${(t*100).toFixed(1)}% ${(r*100).toFixed(1)}% ${(b*100).toFixed(1)}% ${(l*100).toFixed(1)}%)`;
+      } catch(e) {}
+    };
+    if (imgEl.src.startsWith('data:')) {
+      tryAnalyze(imgEl);
+    } else {
+      // Try CORS-enabled analysis for external URLs
+      const probe = new Image();
+      probe.crossOrigin = 'anonymous';
+      probe.onload = () => tryAnalyze(probe);
+      probe.onerror = () => {};
+      probe.src = imgEl.src + (imgEl.src.includes('?') ? '&' : '?') + '_crop=1';
+    }
+  }
+
   async function removeImageBackground(imgSrc) {
     let src = imgSrc;
     if (!src.startsWith('data:')) {
@@ -4918,6 +5798,92 @@
       if (btn) btn.textContent = 'BG';
       showToast('Could not remove background.');
     }
+  }
+
+  function openBoardShare(boardId) {
+    s.currentBoardId = boardId;
+    s.boardSharePerm = 'view';
+    s.overlay = 'board-share';
+    render();
+  }
+
+  function closeBoardShare() {
+    s.overlay = null;
+    render();
+  }
+
+  async function shareBoardFn(boardId) {
+    const board = boards.find(b => b.id === boardId);
+    if (!board) return;
+    const perm = s.boardSharePerm || 'view';
+    closeBoardShare();
+
+    if (perm === 'view') {
+      if (!board.img) { showToast('No image to share.'); return; }
+      try {
+        const blob = await (await fetch(board.img)).blob();
+        const file = new File([blob], 'board.jpg', { type: 'image/jpeg' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file] });
+        } else if (navigator.share) {
+          await navigator.share({ title: 'Board', url: location.href });
+        } else {
+          const a = document.createElement('a');
+          a.href = board.img; a.download = 'board.jpg'; a.click();
+          showToast('Image downloaded.');
+        }
+      } catch (e) { if (e.name !== 'AbortError') showToast('Could not share.'); }
+    } else {
+      const payload = {
+        perm: 'edit',
+        stickers: (board.stickers || []).map(st => {
+          const item = getItem(st.itemId);
+          return { img: item?.img?.startsWith('http') ? item.img : '', x: st.x, y: st.y, w: st.w, h: st.h };
+        })
+      };
+      const encoded = await encodeBoardShare(payload);
+      const url = location.href.split('#')[0] + '#board=' + encoded;
+      if (navigator.share) {
+        try { await navigator.share({ title: 'Board', url }); }
+        catch (e) { if (e.name !== 'AbortError') showToast('Could not share.'); }
+      } else {
+        try { await navigator.clipboard.writeText(url); showToast('Link copied.'); }
+        catch { showToast('Could not copy link.'); }
+      }
+    }
+  }
+
+  async function encodeBoardShare(payload) {
+    const json = JSON.stringify(payload);
+    if (typeof CompressionStream !== 'undefined') {
+      try {
+        const cs = new CompressionStream('deflate-raw');
+        const w = cs.writable.getWriter(); w.write(new TextEncoder().encode(json)); w.close();
+        const r = cs.readable.getReader(); const chunks = [];
+        while (true) { const { done, value } = await r.read(); if (done) break; chunks.push(value); }
+        const buf = new Uint8Array(chunks.reduce((s,c)=>s+c.length,0));
+        let off=0; for (const c of chunks) { buf.set(c,off); off+=c.length; }
+        return 'z' + btoa(String.fromCharCode(...buf)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+      } catch {}
+    }
+    return btoa(unescape(encodeURIComponent(json)));
+  }
+
+  async function decodeBoardShare(str) {
+    try {
+      if (str.startsWith('z') && typeof DecompressionStream !== 'undefined') {
+        const b64 = str.slice(1).replace(/-/g,'+').replace(/_/g,'/');
+        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        const ds = new DecompressionStream('deflate-raw');
+        const w = ds.writable.getWriter(); w.write(bytes); w.close();
+        const r = ds.readable.getReader(); const chunks = [];
+        while (true) { const { done, value } = await r.read(); if (done) break; chunks.push(value); }
+        const buf = new Uint8Array(chunks.reduce((s,c)=>s+c.length,0));
+        let off=0; for (const c of chunks) { buf.set(c,off); off+=c.length; }
+        return JSON.parse(new TextDecoder().decode(buf));
+      }
+      return JSON.parse(decodeURIComponent(escape(atob(str))));
+    } catch { return null; }
   }
 
   function openBoardEditor(boardId) {
@@ -5044,8 +6010,8 @@
     if (!item) return;
     const canvasEl = document.getElementById('be-canvas');
     const canvasW = canvasEl ? canvasEl.offsetWidth : 300;
-    const canvasH = canvasEl ? canvasEl.offsetHeight : 400;
-    const size = Math.round(Math.min(canvasW, canvasH) * 0.42);
+    const canvasH = canvasEl ? canvasEl.offsetHeight : Math.round(canvasW * 4/3);
+    const size = Math.round(canvasW * 0.42);
     const n = _boardStickers.length;
     const jitter = (n % 6) * 20;
     const sticker = {
@@ -5108,7 +6074,7 @@
     const st = _boardStickers[idx];
     const canvasEl = document.getElementById('be-canvas');
     const canvasW = canvasEl ? canvasEl.offsetWidth : 300;
-    const canvasH = canvasEl ? canvasEl.offsetHeight : 400;
+    const canvasH = canvasEl ? canvasEl.offsetHeight : Math.round(canvasW * 4/3);
     const el = canvasEl ? canvasEl.querySelector(`.be-sticker[data-idx="${idx}"]`) : null;
     if (!el) return;
     if (_boardDrag.type === 'move') {
@@ -5140,16 +6106,16 @@
 
     const canvasEl = document.getElementById('be-canvas');
     const canvasW = canvasEl ? canvasEl.offsetWidth : 300;
-    const canvasH = canvasEl ? canvasEl.offsetHeight : 300;
+    const canvasH = canvasEl ? canvasEl.offsetHeight : Math.round(canvasW * 4/3);
     const EXPORT = 750;
+    const EXPORT_H = Math.round(canvasH * EXPORT / canvasW);
     const scale = EXPORT / canvasW;
-    const exportH = Math.round(canvasH * scale);
 
     const canvas = document.createElement('canvas');
-    canvas.width = EXPORT; canvas.height = exportH;
+    canvas.width = EXPORT; canvas.height = EXPORT_H;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, EXPORT, exportH);
+    ctx.fillRect(0, 0, EXPORT, EXPORT_H);
 
     let hasCorsFail = false;
     for (const st of _boardStickers) {
@@ -5178,10 +6144,10 @@
       // Canvas tainted by external image — export without those
       hasCorsFail = true;
       const safeCanvas = document.createElement('canvas');
-      safeCanvas.width = EXPORT; safeCanvas.height = exportH;
+      safeCanvas.width = EXPORT; safeCanvas.height = EXPORT_H;
       const sCtx = safeCanvas.getContext('2d');
       sCtx.fillStyle = '#fff';
-      sCtx.fillRect(0, 0, EXPORT, exportH);
+      sCtx.fillRect(0, 0, EXPORT, EXPORT_H);
       for (const st of _boardStickers) {
         if (!st.img || !st.img.startsWith('data:')) {
           sCtx.fillStyle = '#e8e8e8';
@@ -5231,13 +6197,22 @@
       s.screen = 'boards';
     }
     render();
-    if (hasCorsFail) showToast('Tip: use Remove BG for cleaner exports');
+  }
+
+  function confirmDeleteBoard(e, boardId) {
+    if (e) e.stopPropagation();
+    s.pendingDeleteBoardId = boardId;
+    s.overlay = 'confirm-delete-board';
+    render();
   }
 
   function deleteBoard(boardId) {
     boards = boards.filter(b => b.id !== boardId);
     saveBoardData();
-    cancelBoardEdit();
+    s.overlay = null;
+    s.pendingDeleteBoardId = null;
+    if (s.screen === 'board-editor') cancelBoardEdit();
+    else render();
   }
 
   // ═══════════════════════════════════════════
@@ -5279,6 +6254,7 @@
         };
       } catch {}
       render();
+      autoRemoveBgIfWhite();
       return;
     }
 
@@ -5287,6 +6263,20 @@
       if (decoded?.wl && Array.isArray(decoded.items)) {
         shareData = decoded;
         s.screen = 'shared-wl';
+      }
+    }
+
+    if (hash.startsWith('#board=')) {
+      const decoded = await decodeBoardShare(hash.slice(7));
+      if (decoded?.stickers) {
+        history.replaceState(null, '', location.pathname + location.search);
+        _boardEditId = null;
+        _boardName = '';
+        _boardStickers = decoded.stickers.map(st => ({
+          itemId: null, img: st.img || '', name: '', x: st.x, y: st.y, w: st.w, h: st.h
+        }));
+        _boardDrag = null;
+        s.screen = 'board-editor';
       }
     }
 
@@ -5443,16 +6433,15 @@
     }, { passive: true });
   })();
 
-  // ─── Sub-tab horizontal swipe (Wishlists ↔ Items ↔ Archive) ─────
-  // Detects a horizontal drag anywhere on the main app when in the wishlists tab
-  // and switches between sub-tabs with a smooth slide animation.
+  // ─── Horizontal swipe for sub-tabs AND main nav tabs ─────
   (function initSubTabSwipe() {
     const SUB_TABS = ['wishlists', 'items', 'archive'];
-    const MIN_X = 48;   // minimum horizontal travel to trigger
+    const MAIN_TABS = ['wishlists', 'boards']; // swipe between home pages
+    const MIN_X = 48;
     let startX = 0, startY = 0, tracking = false, dragging = false;
 
     function isSubTabScreen() {
-      return SUB_TABS.includes(s.screen);
+      return SUB_TABS.includes(s.screen) || MAIN_TABS.includes(s.screen);
     }
 
     document.getElementById('app').addEventListener('touchstart', e => {
@@ -5483,11 +6472,26 @@
       const dx = t.clientX - startX;
       const dy = Math.abs(t.clientY - startY);
       if (Math.abs(dx) < MIN_X || dy > Math.abs(dx) * 0.6) return;
+      // Main nav swipe: wishlists ↔ stats
+      const mainIdx = MAIN_TABS.indexOf(s.screen);
+      if (mainIdx !== -1) {
+        if (dx < 0 && mainIdx < MAIN_TABS.length - 1) {
+          s.wlSlideDir = 'right';
+          navTab(MAIN_TABS[mainIdx + 1]);
+          s.wlSlideDir = null;
+        } else if (dx > 0 && mainIdx > 0) {
+          s.wlSlideDir = 'left';
+          navTab(MAIN_TABS[mainIdx - 1]);
+          s.wlSlideDir = null;
+        }
+        return;
+      }
+      // Sub-tab swipe: wishlists ↔ items ↔ archive
       const cur = SUB_TABS.indexOf(s.screen);
       if (dx < 0 && cur < SUB_TABS.length - 1) {
-        setWlSubTab(SUB_TABS[cur + 1]);  // swipe left → next tab
+        setWlSubTab(SUB_TABS[cur + 1]);
       } else if (dx > 0 && cur > 0) {
-        setWlSubTab(SUB_TABS[cur - 1]);  // swipe right → prev tab
+        setWlSubTab(SUB_TABS[cur - 1]);
       }
     }, { passive: true });
 
