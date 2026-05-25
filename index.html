@@ -618,7 +618,7 @@
       width: 48px; height: 48px;
       flex-shrink: 0; overflow: hidden; background: #fff;
     }
-    .list-thumb img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+    .list-thumb img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: multiply; }
     .list-thumb .ph { font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase; color: #d0d0d0; padding: 4px; text-align: center; line-height: 1.4; }
     .list-info { flex: 1; min-width: 0; }
     .list-name {
@@ -643,7 +643,7 @@
       width: 72px; height: 72px; flex-shrink: 0;
       overflow: hidden; border-radius: 14px; background: #fff;
     }
-    .note-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: multiply; }
+    .note-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; mix-blend-mode: multiply; }
     .note-thumb-ph { width: 100%; height: 100%; background: #ebebeb; border-radius: 14px; }
     .note-info { flex: 1; min-width: 0; }
     .note-name {
@@ -2261,7 +2261,8 @@
           <p class="name-prompt-label">Your name</p>
           <input class="name-prompt-input" id="name-prompt-input" type="text"
             placeholder="First name" autocomplete="given-name" autocorrect="off"
-            onkeydown="if(event.key==='Enter')confirmName()" />
+            onkeydown="if(event.key==='Enter')confirmName()"
+            onblur="confirmName()" />
         </div>
         <div class="name-prompt-actions">
           <button class="name-prompt-cta" onclick="confirmName()">Continue</button>
@@ -3122,7 +3123,8 @@
           <input id="edit-name-input" type="text" value="${esc(name)}"
             placeholder="First name" autocomplete="given-name" autocorrect="off"
             style="border:none;border-bottom:2px solid #000;font-size:22px;font-family:inherit;font-weight:600;padding:8px 0 10px;outline:none;background:none;color:#000;width:100%"
-            onkeydown="if(event.key==='Enter')saveEditName()" />
+            onkeydown="if(event.key==='Enter')saveEditName()"
+            onblur="saveEditName()" />
           <div style="display:flex;gap:12px;margin-top:32px">
             <button onclick="saveEditName()" style="flex:1;background:#000;color:#fff;border:none;font-family:inherit;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:14px;cursor:pointer">Save</button>
             <button onclick="s.overlay=null;render()" style="flex:1;background:none;border:1px solid #e0e0e0;font-family:inherit;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:14px;cursor:pointer">Cancel</button>
@@ -3225,7 +3227,8 @@
           <input class="new-wl-title-input" id="wl-name-input" type="text"
             placeholder="List title" maxlength="50" autocorrect="off" autocapitalize="words"
             oninput="newWlSyncGhost()"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();newWlConfirmTitle()}" />
+            onkeydown="if(event.key==='Enter'){event.preventDefault();newWlConfirmTitle()}"
+            onblur="newWlConfirmTitle()" />
           <p class="new-wl-title-ghost" id="new-wl-title-ghost" onclick="newWlUnconfirmTitle()"></p>
         </div>
         <div class="new-wl-url-wrap" id="new-wl-url-wrap">
