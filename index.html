@@ -970,7 +970,7 @@
     }
     .item-detail-hdr {
       position: absolute; top: 0; left: 0; right: 0; z-index: 20;
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: center; justify-content: flex-end;
       padding: 14px 16px 0;
       pointer-events: none;
     }
@@ -3178,11 +3178,6 @@
       <div class="item-detail-img-wrap">
         ${imgH}
         <div class="item-detail-hdr">
-          <button class="item-detail-btn" onclick="closeItemSheet()">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round">
-              <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
-            </svg>
-          </button>
           <button class="item-detail-btn" onclick="openEditItem('${item.id}')">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <path d="M11.5 2.5a1.5 1.5 0 012.1 2.1L7 11l-3 .5.5-3L11.5 2.5z"/>
