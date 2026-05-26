@@ -2738,6 +2738,7 @@
               placeholder="Paste a product link..."
               onpaste="wlDetailHandlePaste('${wl.id}')"
               onkeydown="if(event.key==='Enter'){event.preventDefault();wlInlineAdd('${wl.id}')}"
+              onfocus="_startKbSync()"
               onblur="closeWlAddBar()" />
           </div>
           <div class="wl-add-card-sep"></div>
@@ -4445,8 +4446,6 @@
     s.addWid = wid;
     s.wlAddBarOpen = true;
     render();
-    document.getElementById('wl-add-url')?.focus();
-    _startKbSync();
   }
 
   function openWlManual(wid) {
