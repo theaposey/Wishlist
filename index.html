@@ -2734,10 +2734,10 @@
               <path d="M8.5 6.5a3 3 0 0 0-4.24 0L2.5 8.26a3 3 0 0 0 4.24 4.24l.76-.76"/>
               <path d="M6.5 8.5a3 3 0 0 0 4.24 0l1.76-1.76a3 3 0 0 0-4.24-4.24l-.76.76"/>
             </svg>
-            <input class="wl-url-input" id="wl-add-url" type="url"
-              placeholder="Paste a product link..."
+            <input class="wl-url-input" id="wl-add-url" type="text"
+              placeholder="Paste a link or type an item name..."
               onpaste="wlDetailHandlePaste('${wl.id}')"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();wlInlineAdd('${wl.id}')}"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();wlInlineAddOrManual('${wl.id}')}"
               onfocus="_startKbSync()"
               onblur="closeWlAddBar()" />
           </div>
@@ -3248,8 +3248,8 @@
           <p class="new-wl-title-ghost" id="new-wl-title-ghost" onclick="newWlUnconfirmTitle()"></p>
         </div>
         <div class="new-wl-url-wrap" id="new-wl-url-wrap">
-          <input class="new-wl-url-input" id="new-wl-url-field" type="url"
-            placeholder="Paste a link..."
+          <input class="new-wl-url-input" id="new-wl-url-field" type="text"
+            placeholder="Paste a link or type an item name..."
             onpaste="newWlHandlePaste()"
             onkeydown="if(event.key==='Enter'){event.preventDefault();saveWishlist()}" />
         </div>
@@ -4396,18 +4396,27 @@
     const name = nameEl?.value.trim();
     if (!name) { nameEl?.focus(); return; }
     const urlEl = document.getElementById('new-wl-url-field');
-    const url = urlEl?.value.trim();
+    const val = urlEl?.value.trim();
 
     const newWl = { id: 'w' + genId(), name };
     wishlists.push(newWl);
     saveData();
 
     s.currentWid = newWl.id;
-    s.screen = 'wishlist-detail';
-    render();
 
-    if (url && /^https?:\/\//.test(url)) {
-      wlInlineAdd(newWl.id, url);
+    if (val && /^https?:\/\//.test(val)) {
+      s.screen = 'wishlist-detail';
+      render();
+      wlInlineAdd(newWl.id, val);
+    } else if (val) {
+      s.addWid = newWl.id;
+      s.addForm = { url: '', name: val, brand: '', tags: [], img: '', price: '', saved: '', note: '', wid: newWl.id, serious: false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false };
+      s.addStep = 'form';
+      s.screen = 'add-item';
+      render();
+    } else {
+      s.screen = 'wishlist-detail';
+      render();
     }
   }
 
@@ -4470,6 +4479,23 @@
       const url = document.getElementById('wl-add-url')?.value.trim();
       if (url && /^https?:\/\//.test(url)) wlInlineAdd(wid);
     }, 60);
+  }
+
+  function wlInlineAddOrManual(wid) {
+    const inputEl = document.getElementById('wl-add-url');
+    const val = inputEl?.value.trim() || '';
+    if (!val) return;
+    if (/^https?:\/\//.test(val)) {
+      wlInlineAdd(wid);
+    } else {
+      _stopKbSync();
+      s.wlAddBarOpen = false;
+      s.addWid = wid;
+      s.addForm = { url: '', name: val, brand: '', tags: [], img: '', price: '', saved: '', note: '', wid, serious: false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false };
+      s.addStep = 'form';
+      s.screen = 'add-item';
+      render();
+    }
   }
 
   function wlDetailSubmitUrl(wid) {
