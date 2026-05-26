@@ -686,31 +686,33 @@
     }
     .note-thumb-skel { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 600px 100%; animation: noteShimmer 1.4s ease-in-out infinite; }
 
-    /* ─── Pinned URL input bar (wishlist detail) ─── */
+    /* ─── Add item card (wishlist detail) ─── */
     @keyframes wlBarIn {
       from { transform: translateY(100%); opacity: 0; }
       to   { transform: translateY(0);    opacity: 1; }
     }
-    .wl-url-bar {
+    .wl-add-card {
       position: fixed;
       left: 14px; right: 14px;
       bottom: calc(10px + env(safe-area-inset-bottom, 0px));
       z-index: 200;
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 18px;
-      border-radius: 40px;
+      border-radius: 20px;
       background: rgba(255,255,255,0.97);
       backdrop-filter: blur(40px) saturate(160%);
       -webkit-backdrop-filter: blur(40px) saturate(160%);
-      border: none;
       box-shadow:
-        0 0 0 0.5px rgba(0,0,0,0.05),
-        0 2px 18px rgba(0,0,0,0.09),
-        0 1px 4px rgba(0,0,0,0.06),
-        inset 0 1.5px 0 rgba(255,255,255,1),
-        inset 0 -0.5px 0 rgba(0,0,0,0.04);
+        0 0 0 0.5px rgba(0,0,0,0.06),
+        0 4px 24px rgba(0,0,0,0.11),
+        0 1px 4px rgba(0,0,0,0.06);
       animation: wlBarIn 0.26s cubic-bezier(0.4,0,0.2,1) both;
+      overflow: hidden;
     }
+    .wl-add-card-url-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px;
+    }
+    .wl-add-card-url-icon { flex-shrink: 0; color: #bbb; }
+    .wl-url-bar { display: none; } /* legacy — kept so old refs don't break */
     .wl-url-input {
       flex: 1; border: none; outline: none;
       font-family: inherit; font-size: 13px;
@@ -719,6 +721,17 @@
       min-width: 0;
     }
     .wl-url-input::placeholder { color: #ccc; }
+    .wl-add-card-sep { height: 0.5px; background: rgba(0,0,0,0.07); margin: 0 16px; }
+    .wl-add-card-manual {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; border: none; background: none;
+      padding: 14px 16px; text-align: left;
+      font-family: inherit; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #888; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .wl-add-card-manual:active { background: rgba(0,0,0,0.03); }
+    .wl-add-card-manual-icon { flex-shrink: 0; color: #bbb; }
 
     /* ─── Compose / add button (wishlist detail) ─── */
     .wl-compose-btn {
@@ -1609,8 +1622,12 @@
     .be-sticker.be-selected .be-sticker-resize { display: block; }
     .be-panel { position: absolute; bottom: 0; left: 0; right: 0; background: #f5f5f5; border-radius: 16px 16px 0 0; overflow: hidden; display: flex; flex-direction: column; transition: height 0.38s cubic-bezier(0.32,0.72,0,1); }
     .be-panel.no-transition { transition: none !important; }
-    .be-panel-handle-wrap { flex-shrink: 0; display: flex; justify-content: center; padding: 10px 0 6px; cursor: grab; touch-action: none; }
+    .be-panel-top-row { flex-shrink: 0; display: flex; align-items: center; padding-right: 12px; }
+    .be-panel-handle-wrap { flex: 1; display: flex; justify-content: center; padding: 10px 0 6px; cursor: grab; touch-action: none; }
     .be-panel-handle { width: 36px; height: 4px; background: #d0d0d0; border-radius: 2px; }
+    .be-panel-del { width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.08); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; flex-shrink: 0; opacity: 0; pointer-events: none; transition: opacity 0.18s, background 0.15s, transform 0.15s; }
+    .be-panel-del.visible { opacity: 1; pointer-events: auto; }
+    .be-panel-del.drag-target { background: #c0392b; color: #fff; transform: scale(1.2); }
     .be-panel-grid { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; padding: 8px 16px 40px; scrollbar-width: none; }
     .be-panel-grid::-webkit-scrollbar { display: none; }
     .be-panel-empty { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #ccc; grid-column: 1/-1; padding: 20px 0; }
@@ -1618,10 +1635,6 @@
     .be-item-thumb:active { opacity: 0.65; }
     .be-item-thumb img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
     .be-item-thumb-name { font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase; color: #bbb; text-align: center; padding: 4px; line-height: 1.3; }
-    .be-action-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 16px 32px max(env(safe-area-inset-bottom),20px); display: flex; gap: 12px; justify-content: center; align-items: center; pointer-events: none; opacity: 0; transition: opacity 0.25s ease; z-index: 20; background: linear-gradient(transparent, rgba(255,255,255,0.97) 35%); }
-    .be-action-bar.visible { opacity: 1; pointer-events: auto; }
-    .be-action-del { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.06); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; flex-shrink: 0; }
-    .be-action-confirm { height: 50px; padding: 0 36px; border-radius: 25px; background: #000; color: #fff; border: none; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; touch-action: manipulation; }
     .wl-moodboard-preview { position: relative; cursor: pointer; margin: 4px 0 16px; }
     .wl-moodboard-preview img { width: 100%; display: block; }
     .wl-moodboard-edit-pill { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.55); color: #fff; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; padding: 5px 10px; }
@@ -2700,7 +2713,7 @@
         ${allWItems.length === 0 && s.pendingItems.filter(p => p.wid === wl.id).length === 0 ? `
           <div style="padding:48px 28px;text-align:center">
             <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#e0e0e0">
-              Paste a link below to add your first item
+              Paste a link or add manually below
             </p>
           </div>` : ''}
         ${allWItems.length > 0 && wItems.length === 0 ? `
@@ -2714,12 +2727,25 @@
         <div style="height:16px"></div>
       </div>
       ${(allWItems.length === 0 || s.wlAddBarOpen) ? `
-        <div class="wl-url-bar">
-          <input class="wl-url-input" id="wl-add-url" type="url"
-            placeholder="Paste a link to add an item..."
-            onpaste="wlDetailHandlePaste('${wl.id}')"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();wlInlineAdd('${wl.id}')}"
-            onblur="closeWlAddBar()" />
+        <div class="wl-add-card" id="wl-add-card">
+          <div class="wl-add-card-url-row">
+            <svg class="wl-add-card-url-icon" width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8.5 6.5a3 3 0 0 0-4.24 0L2.5 8.26a3 3 0 0 0 4.24 4.24l.76-.76"/>
+              <path d="M6.5 8.5a3 3 0 0 0 4.24 0l1.76-1.76a3 3 0 0 0-4.24-4.24l-.76.76"/>
+            </svg>
+            <input class="wl-url-input" id="wl-add-url" type="url"
+              placeholder="Paste a product link..."
+              onpaste="wlDetailHandlePaste('${wl.id}')"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();wlInlineAdd('${wl.id}')}"
+              onblur="closeWlAddBar()" />
+          </div>
+          <div class="wl-add-card-sep"></div>
+          <button class="wl-add-card-manual" onpointerdown="event.preventDefault();openWlManual('${wl.id}')">
+            <svg class="wl-add-card-manual-icon" width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7.5" y1="2" x2="7.5" y2="13"/><line x1="2" y1="7.5" x2="13" y2="7.5"/>
+            </svg>
+            Add Manually
+          </button>
         </div>` : `
         <button class="wl-compose-btn" onclick="openWlAddBar('${wl.id}')">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
@@ -2937,8 +2963,15 @@
           </div>
         </div>
         <div class="be-panel" id="be-panel" style="height:${panelH}px">
-          <div class="be-panel-handle-wrap" onpointerdown="bePanelDragStart(event)">
-            <div class="be-panel-handle"></div>
+          <div class="be-panel-top-row">
+            <div class="be-panel-handle-wrap" onpointerdown="bePanelDragStart(event)">
+              <div class="be-panel-handle"></div>
+            </div>
+            <button class="be-panel-del" id="be-action-del" onclick="beDeleteSelected()" onpointerdown="event.stopPropagation()">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="2,4 14,4"/><path d="M6,4V2h4v2"/><path d="M13,4l-1,10H4L3,4"/>
+              </svg>
+            </button>
           </div>
           <div class="be-panel-grid">
             ${allWatching.length
@@ -2950,14 +2983,6 @@
                 </div>`).join('')
               : `<p class="be-panel-empty">Add items to your wishlist first</p>`}
           </div>
-        </div>
-        <div class="be-action-bar" id="be-action-bar">
-          <button class="be-action-del" onclick="beDeleteSelected()">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="2,4 14,4"/><path d="M6,4V2h4v2"/><path d="M13,4l-1,10H4L3,4"/>
-            </svg>
-          </button>
-          <button class="be-action-confirm" onclick="beConfirmSelected()">Done</button>
         </div>
       </div>`;
   }
@@ -4415,10 +4440,18 @@
   }
 
   function openWlAddBar(wid) {
+    s.addWid = wid;
     s.wlAddBarOpen = true;
     render();
     document.getElementById('wl-add-url')?.focus();
     _startKbSync();
+  }
+
+  function openWlManual(wid) {
+    _stopKbSync();
+    s.wlAddBarOpen = false;
+    s.addWid = wid;
+    addManually();
   }
 
   function closeWlAddBar() {
@@ -5202,8 +5235,15 @@
         sample(0,Math.floor(S/2)), sample(S-1,Math.floor(S/2)),
       ];
 
-      const isWhite = corners.every(p => p.a > 200 && p.r > 220 && p.g > 220 && p.b > 220);
-      if (!isWhite) return;
+      // Skip if any edge pixel is transparent (e.g. already-cut-out PNG with thin edge)
+      if (corners.some(p => p.a < 200)) return;
+
+      // Solid background check: all edge pixels must be close to their average color
+      const avg = corners.reduce((a, p) => ({ r: a.r+p.r, g: a.g+p.g, b: a.b+p.b }), { r:0, g:0, b:0 });
+      avg.r /= corners.length; avg.g /= corners.length; avg.b /= corners.length;
+      const colorDist = p => Math.sqrt((p.r-avg.r)**2 + (p.g-avg.g)**2 + (p.b-avg.b)**2);
+      const isSolidBg = corners.every(p => colorDist(p) < 35);
+      if (!isSolidBg) return;
 
       if (s.addForm.img === src) {
         s.addForm.img = imgSrc;
@@ -6041,30 +6081,25 @@
     _boardActiveIdx = idx;
     const canvas = document.getElementById('be-canvas');
     if (canvas) canvas.querySelectorAll('.be-sticker').forEach((el, i) => el.classList.toggle('be-selected', i === idx));
-    setBoardPanel('hidden');
-    const bar = document.getElementById('be-action-bar');
-    if (bar) bar.classList.add('visible');
+    const delBtn = document.getElementById('be-action-del');
+    if (delBtn) delBtn.classList.add('visible');
   }
 
   function deselectBoardSticker() {
     _boardActiveIdx = -1;
     const canvas = document.getElementById('be-canvas');
     if (canvas) canvas.querySelectorAll('.be-sticker').forEach(el => el.classList.remove('be-selected'));
-    setBoardPanel('collapsed');
-    const bar = document.getElementById('be-action-bar');
-    if (bar) bar.classList.remove('visible');
+    const delBtn = document.getElementById('be-action-del');
+    if (delBtn) delBtn.classList.remove('visible');
   }
-
-  function beConfirmSelected() { deselectBoardSticker(); }
 
   function beDeleteSelected() {
     if (_boardActiveIdx < 0) return;
     const idx = _boardActiveIdx;
     _boardActiveIdx = -1;
     removeBoardSticker(idx);
-    setBoardPanel('collapsed');
-    const bar = document.getElementById('be-action-bar');
-    if (bar) bar.classList.remove('visible');
+    const delBtn = document.getElementById('be-action-del');
+    if (delBtn) delBtn.classList.remove('visible');
   }
 
   function beTapCanvas(e) {
@@ -6153,6 +6188,12 @@
       const newY = Math.max(-st.h * 0.5, Math.min(canvasH - st.h * 0.5, _boardDrag.origY + dy));
       st.x = newX; st.y = newY;
       el.style.left = newX + 'px'; el.style.top = newY + 'px';
+      const delBtn = document.getElementById('be-action-del');
+      if (delBtn) {
+        const r = delBtn.getBoundingClientRect();
+        const over = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+        delBtn.classList.toggle('drag-target', over);
+      }
     } else {
       const newW = Math.max(40, _boardDrag.origW + dx);
       const newH = Math.max(40, _boardDrag.origH + dy);
@@ -6163,11 +6204,20 @@
 
   function _onBoardUp() {
     if (!_boardDrag) return;
-    const { hasMoved, idx } = _boardDrag;
+    const { hasMoved, idx, type } = _boardDrag;
     _boardDrag = null;
     document.removeEventListener('pointermove', _onBoardMove);
     document.removeEventListener('pointerup', _onBoardUp);
     document.removeEventListener('pointercancel', _onBoardUp);
+    const delBtn = document.getElementById('be-action-del');
+    const overDelete = delBtn && delBtn.classList.contains('drag-target');
+    if (delBtn) delBtn.classList.remove('drag-target');
+    if (type === 'move' && hasMoved && overDelete) {
+      _boardActiveIdx = -1;
+      removeBoardSticker(idx);
+      if (delBtn) delBtn.classList.remove('visible');
+      return;
+    }
     if (!hasMoved) selectBoardSticker(idx);
   }
 
