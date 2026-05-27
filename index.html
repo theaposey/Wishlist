@@ -5280,21 +5280,26 @@
       }
       if (transparentCount / totalPixels > 0.05) return;
 
-      const corners = [
-        sample(0,0), sample(S-1,0), sample(0,S-1), sample(S-1,S-1),
-        sample(Math.floor(S/2),0), sample(Math.floor(S/2),S-1),
-        sample(0,Math.floor(S/2)), sample(S-1,Math.floor(S/2)),
-      ];
+      // Sample the full perimeter at intervals — more robust against JPEG compression artifacts
+      const edgeSamples = [];
+      for (let x = 0; x < S; x += 3) {
+        edgeSamples.push(sample(x, 0));
+        edgeSamples.push(sample(x, S-1));
+      }
+      for (let y = 3; y < S-3; y += 3) {
+        edgeSamples.push(sample(0, y));
+        edgeSamples.push(sample(S-1, y));
+      }
 
-      // Skip if any edge pixel is transparent (e.g. already-cut-out PNG with thin edge)
-      if (corners.some(p => p.a < 200)) return;
+      // Skip if any edge pixel is transparent (already-cut-out PNG)
+      if (edgeSamples.some(p => p.a < 200)) return;
 
-      // Solid background check: all edge pixels must be close to their average color
-      const avg = corners.reduce((a, p) => ({ r: a.r+p.r, g: a.g+p.g, b: a.b+p.b }), { r:0, g:0, b:0 });
-      avg.r /= corners.length; avg.g /= corners.length; avg.b /= corners.length;
+      // Solid background check: ≥80% of edge samples within color distance 45 of their average
+      const avg = edgeSamples.reduce((a, p) => ({ r: a.r+p.r, g: a.g+p.g, b: a.b+p.b }), { r:0, g:0, b:0 });
+      avg.r /= edgeSamples.length; avg.g /= edgeSamples.length; avg.b /= edgeSamples.length;
       const colorDist = p => Math.sqrt((p.r-avg.r)**2 + (p.g-avg.g)**2 + (p.b-avg.b)**2);
-      const isSolidBg = corners.every(p => colorDist(p) < 35);
-      if (!isSolidBg) return;
+      const consistent = edgeSamples.filter(p => colorDist(p) < 45).length;
+      if (consistent / edgeSamples.length < 0.80) return;
 
       if (s.addForm.img === src) {
         s.addForm.img = imgSrc;
