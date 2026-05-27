@@ -1983,7 +1983,7 @@
             ${item.price ? `<span class="note-price">${money(item.price)}</span>` : ''}
           </div>
           ${purchased
-            ? `<button class="swipe-act-btn swipe-act-restore" onclick="swipeRestoreItem('${item.id}')">Watching</button>`
+            ? `<button class="swipe-act-btn swipe-act-restore" onclick="swipeRestoreItem('${item.id}')">Add Back</button>`
             : `<button class="swipe-act-btn swipe-act-wl-purchase" onclick="swipePurchaseItem('${item.id}')">Purchased</button>`}
           <button class="swipe-act-btn swipe-act-delete" onclick="swipeDeleteItem('${item.id}')">Delete</button>
         </div>
