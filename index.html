@@ -1295,12 +1295,6 @@
       background: rgba(255,255,255,0.9); border: 1px solid #e0e0e0;
       padding: 5px 9px; cursor: pointer; font-family: inherit; color: #555;
     }
-    .form-removebg-btn {
-      font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
-      background: rgba(0,0,0,0.82); border: none;
-      padding: 5px 9px; cursor: pointer; font-family: inherit; color: #fff;
-    }
-    .form-removebg-btn:disabled { opacity: 0.5; cursor: default; }
     .form-image-url-row {
       padding: 10px 20px 0;
       border-bottom: 1px solid #f0f0f0;
@@ -3329,9 +3323,6 @@
     const selectedWid = f.wid || s.addWid || '';
     const imgBtns = f.img ? `
       <div class="form-image-btn-row">
-        <button class="form-removebg-btn" onclick="event.stopPropagation();removeItemBackground()" ${s.removingBg ? 'disabled' : ''}>
-          ${s.removingBg ? 'Removing...' : 'Remove BG'}
-        </button>
         <button class="form-image-change-btn" onclick="event.stopPropagation();document.getElementById('item-file-input').click()">Change Image</button>
       </div>` : '';
     return `
