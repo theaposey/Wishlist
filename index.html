@@ -4479,8 +4479,12 @@
 
   function wlDetailHandlePaste(wid) {
     setTimeout(() => {
-      const url = document.getElementById('wl-add-url')?.value.trim();
-      if (url && /^https?:\/\//.test(url)) wlInlineAdd(wid);
+      const inputEl = document.getElementById('wl-add-url');
+      const url = inputEl?.value.trim();
+      if (url && /^https?:\/\//.test(url)) {
+        inputEl.blur();
+        wlInlineAdd(wid);
+      }
     }, 60);
   }
 
