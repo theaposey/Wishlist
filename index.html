@@ -586,6 +586,7 @@
     .swipe-act-purchase { background: var(--accent); color: #000; }
     .swipe-act-delete { background: #c0392b; color: #fff; }
     .swipe-act-wl-purchase { background: #222; color: #fff; }
+    .swipe-act-restore { background: var(--accent); color: #fff; }
     .list-row {
       display: flex;
       align-items: center;
@@ -1981,7 +1982,9 @@
             </div>
             ${item.price ? `<span class="note-price">${money(item.price)}</span>` : ''}
           </div>
-          <button class="swipe-act-btn swipe-act-wl-purchase" onclick="swipePurchaseItem('${item.id}')">Purchased</button>
+          ${purchased
+            ? `<button class="swipe-act-btn swipe-act-restore" onclick="swipeRestoreItem('${item.id}')">Watching</button>`
+            : `<button class="swipe-act-btn swipe-act-wl-purchase" onclick="swipePurchaseItem('${item.id}')">Purchased</button>`}
           <button class="swipe-act-btn swipe-act-delete" onclick="swipeDeleteItem('${item.id}')">Delete</button>
         </div>
       </div>`;
@@ -4989,6 +4992,23 @@
     saveData();
     render();
     showUndoToast('Marked as purchased', () => {
+      items = items.map(i => i.id === itemId ? snapshot : i);
+      saveData();
+      render();
+    });
+  }
+
+  function swipeRestoreItem(itemId) {
+    _openSwipeWrap = null;
+    const item = getItem(itemId);
+    if (!item) { render(); return; }
+    const snapshot = { ...item };
+    items = items.map(i => i.id === itemId
+      ? { ...i, status: 'watching', reason: null, archivedAt: null }
+      : i);
+    saveData();
+    render();
+    showUndoToast('Moved back to watching', () => {
       items = items.map(i => i.id === itemId ? snapshot : i);
       saveData();
       render();
