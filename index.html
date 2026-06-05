@@ -918,7 +918,8 @@
       text-transform: uppercase; line-height: 0.88; color: #000; margin-bottom: 20px;
     }
     .name-prompt-sub { font-size: 11px; letter-spacing: 0.05em; color: #999; line-height: 1.8; text-transform: uppercase; }
-    .name-prompt-body { border-top: 1px solid #f0f0f0; padding: 32px 28px; }
+    .name-prompt-body { border-top: 1px solid #f0f0f0; padding: 32px 28px; display: flex; flex-direction: column; gap: 24px; }
+    .name-prompt-field {}
     .name-prompt-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; margin-bottom: 12px; }
     .name-prompt-input {
       width: 100%; border: none; border-bottom: 2px solid #000;
@@ -2266,20 +2267,29 @@
     try { localStorage.setItem('vtr_user_name', name.trim()); } catch(e) {}
   }
 
+  const SIGNUP_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzw0GAxLcssdIfux9t0J6XPZ2k3bC8TQhbDAQvWtDhBTASkbDhYyBsajG77VpYOQQyx/exec';
+
   function showNamePrompt() {
     document.getElementById('app').innerHTML = `
       <div class="name-prompt" id="name-prompt">
         <div class="name-prompt-hero">
-          <p class="ob-eyebrow">The Wishlist</p>
-          <h1 class="name-prompt-title">What's<br/>your<br/>name?</h1>
-          <p class="name-prompt-sub">So your wishlists feel<br/>personal when shared.</p>
+          <p class="ob-eyebrow">Alpha Version</p>
+          <h1 class="name-prompt-title">Wishlist</h1>
+          <p class="name-prompt-sub">You're using an early build.<br/>Leave your email and we'll let you know when the app hits the App Store — and we may reach out for your initial thoughts.</p>
         </div>
         <div class="name-prompt-body">
-          <p class="name-prompt-label">Your name</p>
-          <input class="name-prompt-input" id="name-prompt-input" type="text"
-            placeholder="First name" autocomplete="given-name" autocorrect="off"
-            onkeydown="if(event.key==='Enter')confirmName()"
-            onblur="confirmName()" />
+          <div class="name-prompt-field">
+            <p class="name-prompt-label">Your name</p>
+            <input class="name-prompt-input" id="name-prompt-input" type="text"
+              placeholder="First name" autocomplete="given-name" autocorrect="off"
+              onkeydown="if(event.key==='Enter')document.getElementById('email-prompt-input').focus()" />
+          </div>
+          <div class="name-prompt-field">
+            <p class="name-prompt-label">Email</p>
+            <input class="name-prompt-input" id="email-prompt-input" type="email"
+              placeholder="your@email.com" autocomplete="email" autocorrect="off" autocapitalize="off"
+              onkeydown="if(event.key==='Enter')confirmName()" />
+          </div>
         </div>
         <div class="name-prompt-actions">
           <button class="name-prompt-cta" onclick="confirmName()">Continue</button>
@@ -2293,9 +2303,18 @@
   }
 
   function confirmName() {
-    const el = document.getElementById('name-prompt-input');
-    const name = el ? el.value.trim() : '';
+    const nameEl = document.getElementById('name-prompt-input');
+    const emailEl = document.getElementById('email-prompt-input');
+    const name = nameEl ? nameEl.value.trim() : '';
+    const email = emailEl ? emailEl.value.trim() : '';
     if (name) saveUserName(name);
+    if ((name || email) && !localStorage.getItem('vtr_signed_up')) {
+      localStorage.setItem('vtr_signed_up', '1');
+      fetch(SIGNUP_SHEET_URL, {
+        method: 'POST',
+        body: JSON.stringify({ name, email }),
+      }).catch(() => {});
+    }
     render();
   }
 
@@ -2683,14 +2702,6 @@
         ${coverHtml}
         <div class="wl-editorial-header">
           <p class="wl-editorial-title" onclick="openWlEditSheet('${wl.id}')" style="cursor:pointer">${esc(wl.name)}</p>
-          <div class="${s.wlJustAdded === wl.id ? 'wl-header-meta-reveal' : ''}">
-            <textarea class="wl-editorial-desc" id="wl-desc-input" rows="1"
-              placeholder="Write a description"
-              onblur="updateWlDescription('${wl.id}')"
-              oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
-            >${esc(wl.description || '')}</textarea>
-            <p class="wl-stats-line">${watchCount} ${watchCount===1?'item':'items'}${totalValue ? ` · ${money(totalValue)}` : ''}</p>
-          </div>
         </div>
         ${(() => {
           if (!wl.boardId) return '';
@@ -3978,12 +3989,25 @@
         brand = slugToTitle(segs[0] || '');
         name  = slugToTitle(segs.slice(1).join('-'));
       }
+      // Coach: /products/{product-slug}/{SKU}.html
+      else if (host.includes('coach.com')) {
+        brand = 'Coach';
+        const pIdx = parts.indexOf('products');
+        if (pIdx >= 0) {
+          // Last segment is a SKU/color code (.html) — product slug is one before it
+          const slug = parts[pIdx + 1] || '';
+          name = slugToTitle(slug.replace(/\.html$/, ''));
+        }
+      }
       // Shopify: /products/{product-slug}
       else if (parts.includes('products')) {
         const pIdx = parts.indexOf('products');
-        // Skip gender/category segments — take the last path segment as the product
-        const slug = parts[parts.length - 1] || '';
-        name = slugToTitle(slug);
+        // If the last segment looks like a SKU (no hyphens, or just an alphanumeric code),
+        // prefer the segment right after 'products' as the product slug
+        const lastSeg = parts[parts.length - 1] || '';
+        const isSkuLike = /^[A-Z0-9]{4,10}(\.html)?$/i.test(lastSeg) && !lastSeg.includes('-');
+        const slug = isSkuLike ? (parts[pIdx + 1] || lastSeg) : lastSeg;
+        name = slugToTitle(slug.replace(/\.html$/, ''));
         // Infer brand from hostname, skipping common prefixes
         const SKIP_HOST = new Set(['www','shop','store','us','uk','ca','en']);
         const brandSeg = host.split('.').find(s => !SKIP_HOST.has(s) && s.length > 1);
@@ -4042,6 +4066,24 @@
           .filter(p => p[0]?.startsWith('http'))
           .sort((a, b) => (parseInt(b[1]) || 0) - (parseInt(a[1]) || 0))[0];
         if (best?.[0]) { image = best[0]; break; }
+      }
+    }
+    // Fallback: JSON-LD structured data (Product schema image)
+    if (!image) {
+      for (const el of doc.querySelectorAll('script[type="application/ld+json"]')) {
+        try {
+          const digImg = o => {
+            if (!o || typeof o !== 'object') return '';
+            if (typeof o.image === 'string' && o.image.startsWith('http')) return o.image;
+            if (Array.isArray(o.image) && o.image[0]?.startsWith?.('http')) return o.image[0];
+            if (o.image?.url?.startsWith?.('http')) return o.image.url;
+            if (o['@graph']) return digImg(o['@graph']);
+            if (Array.isArray(o)) { for (const x of o) { const r = digImg(x); if (r) return r; } }
+            return '';
+          };
+          const found = digImg(JSON.parse(el.textContent));
+          if (found) { image = found; break; }
+        } catch {}
       }
     }
     if (image && !image.startsWith('http')) {
@@ -4676,6 +4718,9 @@
       const _wid = newItem.wid;
       const wasFirstInWl = _wid && items.filter(i => i.wid === _wid && i.status === 'watching').length === 0;
       items = [newItem, ...items];
+      if (_wid && img) {
+        wishlists = wishlists.map(w => w.id === _wid ? { ...w, coverImg: img } : w);
+      }
       saveData();
       s.newlyAddedId = newItem.id;
       setTimeout(() => { s.newlyAddedId = null; }, 700);
@@ -4693,6 +4738,9 @@
       if (newItem.img) {
         removeImageBackground(newItem.img).then(cleaned => {
           items = items.map(i => i.id === newItem.id ? { ...i, img: cleaned } : i);
+          if (_wid) {
+            wishlists = wishlists.map(w => w.id === _wid ? { ...w, coverImg: cleaned } : w);
+          }
           saveData();
           render();
         }).catch(() => {});
@@ -5952,7 +6000,32 @@
       }
     }
     ctx.putImageData(imageData, 0, 0);
-    return canvas.toDataURL('image/png');
+
+    // Tight-crop to visible pixels
+    const rd = ctx.getImageData(0, 0, W, H).data;
+    let minX = W, maxX = 0, minY = H, maxY = 0;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        if (rd[(y * W + x) * 4 + 3] > 10) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (minX > maxX || minY > maxY) return canvas.toDataURL('image/png');
+
+    const cropW = maxX - minX + 1;
+    const cropH = maxY - minY + 1;
+    const pad = Math.round(Math.max(cropW, cropH) * 0.08);
+    const size = Math.max(cropW, cropH) + pad * 2;
+    const out = document.createElement('canvas');
+    out.width = size; out.height = size;
+    const octx = out.getContext('2d');
+    octx.drawImage(canvas, minX, minY, cropW, cropH,
+      Math.round((size - cropW) / 2), Math.round((size - cropH) / 2), cropW, cropH);
+    return out.toDataURL('image/png');
   }
 
 
@@ -6050,7 +6123,17 @@
       _boardName = board.name;
       _boardStickers = (board.stickers || []).map(st => {
         const item = getItem(st.itemId);
-        return { itemId: st.itemId, img: item?.img || '', name: item?.name || '', x: st.x, y: st.y, w: st.w, h: st.h };
+        const sticker = { itemId: st.itemId, img: item?.img || '', name: item?.name || '', x: st.x, y: st.y, w: st.w, h: st.h, aspect: st.w / st.h };
+        if (item?.img) {
+          const _img = new Image();
+          _img.onload = () => {
+            if (_img.naturalWidth && _img.naturalHeight) {
+              sticker.aspect = _img.naturalWidth / _img.naturalHeight;
+            }
+          };
+          _img.src = item.img;
+        }
+        return sticker;
       });
     } else {
       _boardEditId = null;
@@ -6177,7 +6260,20 @@
       x: Math.max(0, Math.min(canvasW - size, Math.round(canvasW / 2 - size / 2) + jitter - 60)),
       y: Math.max(0, Math.min(canvasH - size, Math.round(canvasH / 2 - size / 2) + jitter - 60)),
       w: size, h: size,
+      aspect: 1,
     };
+    if (item.img) {
+      const _img = new Image();
+      _img.onload = () => {
+        if (_img.naturalWidth && _img.naturalHeight) {
+          sticker.aspect = _img.naturalWidth / _img.naturalHeight;
+          sticker.h = Math.round(size / sticker.aspect);
+          const el = document.querySelector(`.be-sticker[data-idx="${_boardStickers.indexOf(sticker)}"]`);
+          if (el) el.style.height = sticker.h + 'px';
+        }
+      };
+      _img.src = item.img;
+    }
     const idx = _boardStickers.length;
     _boardStickers.push(sticker);
     if (canvasEl) {
@@ -6216,7 +6312,8 @@
     e.preventDefault();
     e.stopPropagation();
     const st = _boardStickers[idx];
-    _boardDrag = { type: 'resize', idx, startX: e.clientX, startY: e.clientY, origW: st.w, origH: st.h, hasMoved: false };
+    const aspect = st.aspect || (st.w / st.h);
+    _boardDrag = { type: 'resize', idx, startX: e.clientX, startY: e.clientY, origW: st.w, origH: st.h, aspect, hasMoved: false };
     document.addEventListener('pointermove', _onBoardMove, { passive: false });
     document.addEventListener('pointerup', _onBoardUp);
     document.addEventListener('pointercancel', _onBoardUp);
@@ -6249,7 +6346,7 @@
       }
     } else {
       const newW = Math.max(40, _boardDrag.origW + dx);
-      const newH = Math.max(40, _boardDrag.origH + dy);
+      const newH = Math.max(40, Math.round(newW / _boardDrag.aspect));
       st.w = newW; st.h = newH;
       el.style.width = newW + 'px'; el.style.height = newH + 'px';
     }
@@ -6274,6 +6371,15 @@
       return;
     }
     if (!hasMoved) selectBoardSticker(idx);
+  }
+
+  function drawImageContain(ctx, img, x, y, w, h) {
+    const ia = img.naturalWidth / img.naturalHeight;
+    const ba = w / h;
+    let dw, dh;
+    if (ia > ba) { dw = w; dh = w / ia; }
+    else          { dh = h; dw = h * ia; }
+    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
   }
 
   // ── Save board: compose to canvas, store PNG ──────────────────────
@@ -6305,7 +6411,7 @@
           i.onerror = rej;
           i.src = st.img;
         });
-        ctx.drawImage(img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
+        drawImageContain(ctx, img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
       } catch {
         hasCorsFail = true;
         ctx.fillStyle = '#e8e8e8';
@@ -6334,7 +6440,7 @@
           const img = await new Promise((res, rej) => {
             const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = st.img;
           });
-          sCtx.drawImage(img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
+          drawImageContain(sCtx, img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
         } catch {}
       }
       boardImg = safeCanvas.toDataURL('image/jpeg', 0.85);
@@ -6397,7 +6503,7 @@
           if (!st.img.startsWith('data:')) i.crossOrigin = 'anonymous';
           i.onload = () => res(i); i.onerror = rej; i.src = st.img;
         });
-        ctx.drawImage(img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
+        drawImageContain(ctx, img, st.x * scale, st.y * scale, st.w * scale, st.h * scale);
       } catch { /* skip tainted images */ }
     }
 
