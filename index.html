@@ -1542,6 +1542,7 @@
       background: #fff; color: #888; white-space: nowrap;
     }
     .tag-filter-pill.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .tag-filter-divider { width: 1px; height: 14px; background: #e0e0e0; flex-shrink: 0; margin: 0 2px; }
 
     /* ─── Overlay ─── */
     .overlay {
@@ -1574,10 +1575,8 @@
     .board-card {
       background: #fff; cursor: pointer;
       overflow: hidden;
-      border-radius: 14px;
       position: relative;
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
     }
     .board-card:active { opacity: 0.8; }
     .board-card img { width: 100%; height: auto; display: block; }
@@ -1606,6 +1605,12 @@
       font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
       color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+
+    /* ─── Board detail (preview) ─── */
+    .board-detail-screen { display: flex; flex-direction: column; flex: 1; min-height: 0; background: #fff; }
+    .board-detail-preview { width: 100%; aspect-ratio: 3/4; background: #fff; flex-shrink: 0; margin-top: 4px; }
+    .board-detail-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .board-detail-items-label { padding: 4px 24px 8px; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #ccc; }
 
     /* ─── Board editor ─── */
     .board-editor-layout { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -1715,6 +1720,8 @@
     removingBg: false,
     sharedItemIdx: 0,
     wlSlideDir: null,   // 'right' | 'left' | null — direction for sub-tab slide animation
+    currentBoardId: null, // board shown on the board-detail (preview) screen
+    boardSlideIn: false,  // true for one render when pushing into board-detail, to trigger the slide-in animation
     pendingItems: [],  // in-flight inline fetches: [{id, wid, url}]
     wlAddBarOpen: false, // whether the URL input bar is expanded in wishlist detail
   };
@@ -2341,6 +2348,7 @@
       case 'items':           return screenWlTab();
       case 'archive':         return screenWlTab();
       case 'boards':          return screenBoards();
+      case 'board-detail':    return screenBoardDetail();
       case 'board-editor':    return screenBoardEditor();
       case 'stats':           return screenStats();
       case 'profile':         return screenProfile();
@@ -2924,7 +2932,7 @@
           </div>`
         : `<div class="boards-grid">
             ${boards.map(b => `
-              <div class="board-card" onclick="openBoardEditor('${b.id}')">
+              <div class="board-card" onclick="openBoardDetail('${b.id}')">
                 ${b.img
                   ? `<img src="${esc(b.img)}" alt="" />`
                   : `<div class="board-card-empty"><span style="font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#ccc">Empty</span></div>`}
@@ -2933,6 +2941,31 @@
           </div>`}
       </div>
       ${homeNav('boards')}`;
+  }
+
+  function screenBoardDetail() {
+    const board = boards.find(b => b.id === s.currentBoardId);
+    if (!board) return screenBoards();
+    const boardItems = (board.stickers || []).map(st => getItem(st.itemId)).filter(Boolean);
+    const animClass = s.boardSlideIn ? ' wl-slide-from-right' : '';
+    return `
+      <div class="board-detail-screen${animClass}">
+        <div class="safe-top"></div>
+        <header>
+          <button class="h-left" onclick="navTo('boards')">←</button>
+          <button class="h-right" onclick="openBoardEditor('${board.id}',true)">Edit</button>
+        </header>
+        <div class="wl-detail-scroll">
+          ${board.img ? `<div class="board-detail-preview"><img src="${esc(board.img)}" alt="${esc(board.name)}" /></div>` : ''}
+          ${boardItems.length ? `
+            <p class="board-detail-items-label">${boardItems.length} ${boardItems.length===1?'item':'items'}</p>
+            ${boardItems.map(item => noteItemRow(item)).join('')}` : `
+            <div style="padding:40px 28px">
+              <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#ccc">No items in this board yet.</p>
+            </div>`}
+          <div style="height:16px"></div>
+        </div>
+      </div>`;
   }
 
   function boardStickerHtml(st, idx) {
@@ -2950,7 +2983,16 @@
   }
 
   function screenBoardEditor() {
-    const allWatching = _boardFromWid ? wishlistItems(_boardFromWid) : watchingItems();
+    const baseItems = _boardFromWid ? wishlistItems(_boardFromWid) : watchingItems();
+    const presentWids = new Set(baseItems.map(i => i.wid).filter(Boolean));
+    const wlOptions = _boardFromWid ? [] : wishlists.filter(w => presentWids.has(w.id));
+    const wlFiltered = (_bePanelFilterWids.length && !_boardFromWid)
+      ? baseItems.filter(i => _bePanelFilterWids.includes(i.wid))
+      : baseItems;
+    const allTags = [...new Set(wlFiltered.flatMap(i => i.tags || []))].sort();
+    const allWatching = _bePanelFilterTags.length
+      ? wlFiltered.filter(i => _bePanelFilterTags.some(t => (i.tags||[]).includes(t)))
+      : wlFiltered;
     const panelH = _bePanelH || Math.round(window.innerHeight * 0.42);
     return `
       <div class="safe-top"></div>
@@ -2976,6 +3018,16 @@
           <div class="be-panel-handle-wrap" onpointerdown="bePanelDragStart(event)">
             <div class="be-panel-handle"></div>
           </div>
+          ${wlOptions.length > 1 ? `
+          <div class="tag-filter-bar">
+            <button class="tag-filter-pill ${!_bePanelFilterWids.length?'active':''}" onclick="boardPanelFilterWid(null)">All</button>
+            <span class="tag-filter-divider"></span>
+            ${wlOptions.map(w => `<button class="tag-filter-pill ${_bePanelFilterWids.includes(w.id)?'active':''}" onclick="boardPanelFilterWid('${w.id}')">${esc(w.name)}</button>`).join('')}
+          </div>` : ''}
+          ${allTags.length ? `
+          <div class="tag-filter-bar">
+            ${allTags.map(t => `<button class="tag-filter-pill ${_bePanelFilterTags.includes(t)?'active':''}" onclick="boardPanelToggleTag('${esc(t)}')">${esc(t)}</button>`).join('')}
+          </div>` : ''}
           <div class="be-panel-grid">
             ${allWatching.length
               ? allWatching.map(item => `
@@ -2984,7 +3036,9 @@
                     ? `<img src="${esc(item.img)}" alt="" loading="lazy" />`
                     : `<div class="be-item-thumb-name">${esc(item.name.slice(0,16))}</div>`}
                 </div>`).join('')
-              : `<p class="be-panel-empty">Add items to your wishlist first</p>`}
+              : baseItems.length
+                ? `<p class="be-panel-empty">No items match the selected filters</p>`
+                : `<p class="be-panel-empty">Add items to your wishlist first</p>`}
           </div>
         </div>
         <div class="be-action-bar" id="be-action-bar">
@@ -3358,6 +3412,32 @@
             <label class="form-label">Name</label>
             <input class="form-input" id="f-name" type="text" value="${esc(f.name)}" maxlength="100" />
           </div>
+          ${(() => {
+            const guess = classifyItem({ name: f.name, brand: f.brand, tags: f.tags });
+            const activeCategory = f.category || guess.category || 'none';
+            const activeSubcategory = f.subcategory || guess.subcategory || 'none';
+            const categoryPills = `
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <div class="wl-picker">
+                  <button type="button" class="wl-picker-pill ${activeCategory==='none'?'active':''}" onclick="setFormCategory('none')">None</button>
+                  ${Object.entries(CATEGORY_TAXONOMY).map(([key, def]) => `
+                    <button type="button" class="wl-picker-pill ${activeCategory===key?'active':''}" onclick="setFormCategory('${key}')">${esc(def.label)}</button>
+                  `).join('')}
+                </div>
+              </div>`;
+            const subcategoryPills = activeCategory === 'fashion' ? `
+              <div class="form-group">
+                <label class="form-label">Subcategory</label>
+                <div class="wl-picker">
+                  <button type="button" class="wl-picker-pill ${activeSubcategory==='none'?'active':''}" onclick="setFormSubcategory('none')">None</button>
+                  ${CATEGORY_TAXONOMY.fashion.subcategories.map(sub => `
+                    <button type="button" class="wl-picker-pill ${activeSubcategory===sub?'active':''}" onclick="setFormSubcategory('${sub}')">${esc(SUBCATEGORY_LABELS[sub])}</button>
+                  `).join('')}
+                </div>
+              </div>` : '';
+            return categoryPills + subcategoryPills;
+          })()}
           <div class="form-group">
             <label class="form-label">Tags</label>
             ${(()=>{
@@ -3799,6 +3879,8 @@
       note: item.note || '',
       wid: item.wid || '',
       serious: !!item.serious,
+      category: item.category || '',
+      subcategory: item.subcategory || '',
       showImgEdit: false,
       showTagInput: false,
       tagQuery: '',
@@ -4033,6 +4115,50 @@
     return t;
   }
 
+  // ═══════════════════════════════════════════
+  // CATEGORY TAXONOMY
+  // ═══════════════════════════════════════════
+
+  const CATEGORY_TAXONOMY = {
+    fashion: { label: 'Fashion', subcategories: ['tops', 'dresses', 'skirts', 'pants', 'outerwear', 'shoes', 'bags', 'accessories'] },
+    beauty:  { label: 'Beauty',  subcategories: [] },
+    home:    { label: 'Home',    subcategories: [] },
+  };
+  const SUBCATEGORY_LABELS = {
+    tops: 'Tops', dresses: 'Dresses', skirts: 'Skirts', pants: 'Pants',
+    outerwear: 'Outerwear', shoes: 'Shoes', bags: 'Bags', accessories: 'Accessories',
+  };
+
+  // Keyword → subcategory, checked as whole words against the item's name/brand/tags.
+  // Site-specific category strings ("trousers", "denim") get normalized to our list.
+  const SUBCATEGORY_KEYWORDS = {
+    tops: ['top','tops','tee','t-shirt','tshirt','shirt','blouse','sweater','sweatshirt','hoodie','knit','knitwear','cardigan','tank','camisole','polo','turtleneck','jersey'],
+    dresses: ['dress','dresses','gown','sundress'],
+    skirts: ['skirt','skirts','miniskirt','midiskirt'],
+    pants: ['pant','pants','trouser','trousers','jean','jeans','legging','leggings','chino','chinos','shorts','jogger','joggers','sweatpant','sweatpants'],
+    outerwear: ['jacket','coat','outerwear','blazer','parka','vest','windbreaker','puffer','trench','anorak'],
+    shoes: ['shoe','shoes','sneaker','sneakers','boot','boots','heel','heels','sandal','sandals','loafer','loafers','flat','flats','mule','mules','footwear'],
+    bags: ['bag','bags','tote','backpack','clutch','purse','handbag','satchel','crossbody'],
+    accessories: ['belt','scarf','hat','cap','beanie','sunglasses','jewelry','jewellery','necklace','earring','earrings','ring','bracelet','wallet','glove','gloves','tie','watch','accessory','accessories'],
+  };
+  const CATEGORY_KEYWORDS = {
+    beauty: ['beauty','skincare','skin care','makeup','make-up','cosmetic','cosmetics','perfume','fragrance','cologne','serum','moisturizer','moisturiser','cleanser','lipstick','mascara','foundation','sunscreen','spf','shampoo','conditioner','lotion'],
+    home: ['home','furniture','decor','décor','candle','vase','bedding','duvet','pillow','throw','rug','kitchen','mug','plate','cookware','glassware','lamp','tableware'],
+  };
+
+  function classifyItem({ name = '', brand = '', tags = [] } = {}) {
+    const text = ` ${[name, brand, ...(tags || [])].join(' ')} `.toLowerCase();
+    const hasWord = (word) => new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(text);
+
+    for (const [cat, words] of Object.entries(CATEGORY_KEYWORDS)) {
+      if (words.some(hasWord)) return { category: cat, subcategory: null };
+    }
+    for (const [sub, words] of Object.entries(SUBCATEGORY_KEYWORDS)) {
+      if (words.some(hasWord)) return { category: 'fashion', subcategory: sub };
+    }
+    return { category: null, subcategory: null };
+  }
+
   function parseOgFromHtml(html, baseUrl) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const og = p => doc.querySelector(`meta[property="${p}"]`)?.content?.trim() || '';
@@ -4225,6 +4351,70 @@
     return { title, image, price: price.replace(/[^0-9.]/g, ''), brand: brand.trim() };
   }
 
+  // Shared by every "paste a link" entry point. Kicks off Microlink + 4 CORS-proxy
+  // HTML fetches for a URL, each normalized to a common { name, brand, img, price }
+  // shape. Callers merge fields across whichever of these resolve — no single
+  // source is treated as authoritative, so a proxy missing the image doesn't
+  // block another one from supplying it.
+  function buildMetaSources(url, abort) {
+    const urlMeta = parseUrlFallback(url);
+    const stripBrandPrefix = (name, brand) => {
+      if (!brand || !name) return name;
+      const b = brand.toLowerCase();
+      return name.toLowerCase().startsWith(b)
+        ? name.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim()
+        : name;
+    };
+    // Microlink: renders JS, handles Cloudflare/SSENSE/etc.
+    const normalizeMl = (ml) => {
+      let name = stripBrandPrefix(cleanTitle(ml.title || ''), urlMeta?.brand || '');
+      if (!name || /^\d+$/.test(name)) name = urlMeta?.name || name;
+      const img = ml.image?.url || ml.screenshot?.url || '';
+      const mlPrice = ml.price?.amount ?? ml.price ?? '';
+      return { name, brand: urlMeta?.brand || '', img, price: mlPrice ? String(mlPrice).replace(/[^0-9.]/g, '') : '' };
+    };
+    // Raw HTML og:tag parse via a CORS proxy
+    const normalizeHtml = (parsed) => {
+      const brand = parsed.brand || urlMeta?.brand || '';
+      return { name: stripBrandPrefix(parsed.title, brand), brand, img: parsed.image || '', price: parsed.price || '' };
+    };
+
+    const mlPromise = fetch(
+      `https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false&audio=false&video=false&iframe=false`,
+      { signal: abort.signal }
+    ).then(async r => {
+      const ml = await r.json();
+      if (ml.status !== 'success') throw new Error('ml-fail');
+      if (isBlockedPage('', ml.data.title || '')) throw new Error('blocked');
+      return normalizeMl(ml.data);
+    });
+
+    const proxyFetch = (fetchPromise) => fetchPromise.then(res => normalizeHtml(parseOgFromHtml(res.html, url)));
+
+    const htmlProxies = [
+      proxyFetch(
+        fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: abort.signal })
+          .then(r => r.json()).then(j => ({ html: j.contents || '' }))
+      ),
+      proxyFetch(
+        fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, { signal: abort.signal })
+          .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
+          .then(h => ({ html: h }))
+      ),
+      proxyFetch(
+        fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, { signal: abort.signal })
+          .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
+          .then(h => ({ html: h }))
+      ),
+      proxyFetch(
+        fetch(`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`, { signal: abort.signal })
+          .then(r => r.text()).then(h => ({ html: h }))
+      ),
+    ];
+
+    return { urlMeta, allSources: [mlPromise, ...htmlProxies] };
+  }
+
   async function fetchUrl() {
     const urlEl = document.getElementById('url-field');
     const rawUrl = urlEl ? urlEl.value.trim() : s.addForm.url;
@@ -4233,6 +4423,7 @@
     const url = cleanUrl(rawUrl);
 
     s.addForm.url = url;
+    s.addForm.name = ''; s.addForm.brand = ''; s.addForm.img = ''; s.addForm.price = '';
     s.addStep = 'fetching';
     render();
 
@@ -4244,132 +4435,92 @@
 
     const abort = new AbortController();
     const masterTimer = setTimeout(() => abort.abort(), 14000);
+    const { urlMeta, allSources } = buildMetaSources(url, abort);
 
-    try {
-      // Microlink: renders JS, handles Cloudflare/SSENSE/etc.
-      const mlPromise = fetch(
-        `https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false&audio=false&video=false&iframe=false`,
-        { signal: abort.signal }
-      ).then(async r => {
-        const ml = await r.json();
-        if (ml.status !== 'success') throw new Error('ml-fail');
-        const mlTitle = ml.data.title || '';
-        if (isBlockedPage('', mlTitle)) throw new Error('blocked');
-        return { source: 'ml', data: ml.data };
-      });
+    let formShown = false;
+    let bgTriggered = false;
+    let gotAny = false;
 
-      // HTML proxies run in parallel — first unblocked result wins
-      const proxyFetch = (fetchPromise) => fetchPromise.then(res => {
-        const parsed = parseOgFromHtml(res.html, url); // throws on blocked pages
-        return { source: 'html', parsed };
-      });
-
-      const htmlProxies = [
-        proxyFetch(
-          fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: abort.signal })
-            .then(r => r.json()).then(j => ({ html: j.contents || '' }))
-        ),
-        proxyFetch(
-          fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, { signal: abort.signal })
-            .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
-            .then(h => ({ html: h }))
-        ),
-        proxyFetch(
-          fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, { signal: abort.signal })
-            .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
-            .then(h => ({ html: h }))
-        ),
-        proxyFetch(
-          fetch(`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`, { signal: abort.signal })
-            .then(r => r.text()).then(h => ({ html: h }))
-        ),
-      ];
-
-      const result = await Promise.any([mlPromise, Promise.any(htmlProxies)]);
-      clearTimeout(masterTimer);
-
-      if (result.source === 'ml') {
-        const ml = result.data;
-        // Try to extract brand from URL — more reliable than parsing from Microlink title
-        const urlMeta = parseUrlFallback(url);
-        let cleanedTitle = cleanTitle(ml.title || '');
-        let brand = urlMeta?.brand || '';
-        // If brand found from URL, strip it from the front of the title to get clean product name
-        if (brand) {
-          const brandLower = brand.toLowerCase();
-          const titleLower = cleanedTitle.toLowerCase();
-          if (titleLower.startsWith(brandLower)) {
-            cleanedTitle = cleanedTitle.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
-          }
+    // Once the form is on screen, patch fields directly in the DOM instead of doing
+    // a full re-render, so a slower source filling in a gap doesn't wipe out
+    // anything the user has already typed in the meantime.
+    const patchField = (field, value) => {
+      if (field === 'img') {
+        if (s.addForm.img) return false;
+        liveUpdateImg(value);
+        return true;
+      }
+      if (field === 'price') {
+        const el = document.getElementById('f-price');
+        if (el && el.dataset.cents && el.dataset.cents !== '0') return false;
+        s.addForm.price = value;
+        if (el) {
+          const cents = Math.round(parseFloat(value || 0) * 100);
+          el.value = (cents / 100).toFixed(2);
+          el.dataset.cents = String(cents);
         }
-        // If Microlink title is empty or just a numeric product ID, use URL-derived name
-        if (!cleanedTitle || /^\d+$/.test(cleanedTitle)) cleanedTitle = urlMeta?.name || cleanedTitle;
-        s.addForm.name  = cleanedTitle;
-        s.addForm.brand = brand || s.addForm.brand || '';
-        s.addForm.img   = ml.image?.url || ml.screenshot?.url || urlMeta?.img || '';
-        // Microlink sometimes returns price data directly
-        const mlPrice = ml.price?.amount ?? ml.price ?? '';
-        s.addForm.price = mlPrice ? String(mlPrice).replace(/[^0-9.]/g, '') : '';
+        return true;
+      }
+      const el = document.getElementById(field === 'name' ? 'f-name' : 'f-brand');
+      if (el && el.value.trim() !== '') return false;
+      s.addForm[field] = value;
+      if (el) el.value = value;
+      return true;
+    };
+
+    // First source to report a given field wins; later sources only fill in
+    // whatever's still missing (image from one proxy, price from another, etc).
+    const applyResult = (data) => {
+      let changed = false;
+      ['name', 'brand', 'img', 'price'].forEach(field => {
+        if (!data[field]) return;
+        if (!formShown) {
+          if (!s.addForm[field]) { s.addForm[field] = data[field]; changed = true; }
+        } else if (patchField(field, data[field])) {
+          changed = true;
+        }
+      });
+      if (!changed) return;
+      gotAny = true;
+      if (!formShown) {
+        formShown = true;
         s.addStep = 'form';
         render();
-        autoRemoveBgIfWhite();
-        // Backfill price from ALL proxies in parallel — first one that returns a price wins
-        (async () => {
-          try {
-            const enc = encodeURIComponent(url);
-            const tryProxy = (promise) => promise.then(({ html }) => {
-              const { price } = parseOgFromHtml(html, url);
-              if (!price) throw new Error('no price');
-              return price;
-            });
-            const price = await Promise.any([
-              tryProxy(fetch(`https://api.allorigins.win/get?url=${enc}`).then(r => r.json()).then(j => ({ html: j.contents || '' }))),
-              tryProxy(fetch(`https://corsproxy.io/?${enc}`).then(r => { if (!r.ok) throw new Error('err'); return r.text(); }).then(h => ({ html: h }))),
-              tryProxy(fetch(`https://api.codetabs.com/v1/proxy?quest=${enc}`).then(r => { if (!r.ok) throw new Error('err'); return r.text(); }).then(h => ({ html: h }))),
-              tryProxy(fetch(`https://thingproxy.freeboard.io/fetch/${enc}`).then(r => r.text()).then(h => ({ html: h }))),
-            ]);
-            if (price) {
-              s.addForm.price = price;
-              const el = document.getElementById('f-price');
-              if (el) el.value = price;
-            }
-          } catch {}
-        })();
-      } else {
-        const { parsed } = result;
-        // Supplement with URL-based brand extraction if HTML parse didn't find one
-        const urlMeta = parseUrlFallback(url);
-        const brand = parsed.brand || urlMeta?.brand || '';
-        let name = parsed.title;
-        if (brand) {
-          const brandLower = brand.toLowerCase();
-          const nameLower = name.toLowerCase();
-          if (nameLower.startsWith(brandLower)) {
-            name = name.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
-          }
-        }
-        s.addForm.name  = name;
-        s.addForm.brand = brand || s.addForm.brand || '';
-        s.addForm.img   = parsed.image || urlMeta?.img || '';
-        s.addForm.price = parsed.price;
-        s.addStep = 'form';
-        render();
+      }
+      if (s.addForm.img && !bgTriggered) {
+        bgTriggered = true;
         autoRemoveBgIfWhite();
       }
-    } catch {
-      clearTimeout(masterTimer);
-      const fallback = parseUrlFallback(url);
-      s.addForm.name  = fallback?.name  || '';
-      s.addForm.brand = fallback?.brand || '';
-      s.addForm.img   = fallback?.img   || '';
+    };
+
+    allSources.forEach(p => p.then(applyResult).catch(() => {}));
+    await Promise.allSettled(allSources);
+    clearTimeout(masterTimer);
+
+    if (!gotAny) {
+      s.addForm.name  = urlMeta?.name  || '';
+      s.addForm.brand = urlMeta?.brand || '';
+      s.addForm.img   = urlMeta?.img   || '';
       s.addForm.price = '';
       s.addStep = 'form';
       render();
       autoRemoveBgIfWhite();
-      showToast(fallback?.name
+      showToast(urlMeta?.name
         ? 'Site blocked auto-fetch — check name and add image.'
         : "Couldn't fetch — fill in manually.");
+      return;
     }
+
+    // Every source failed to find one or more fields — fall back to whatever
+    // can be derived from the URL itself for the remaining gaps.
+    ['name', 'brand'].forEach(field => {
+      if (s.addForm[field] || !urlMeta?.[field]) return;
+      s.addForm[field] = urlMeta[field];
+      const el = document.getElementById(field === 'name' ? 'f-name' : 'f-brand');
+      if (el && el.value.trim() === '') el.value = urlMeta[field];
+    });
+    if (!s.addForm.img && urlMeta?.img) liveUpdateImg(urlMeta.img);
+    if (!bgTriggered && s.addForm.img) { bgTriggered = true; autoRemoveBgIfWhite(); }
   }
 
   function toggleImgEdit() {
@@ -4561,88 +4712,27 @@
 
     const abort = new AbortController();
     const masterTimer = setTimeout(() => abort.abort(), 14000);
-    let fetched = null;
+    const { urlMeta, allSources } = buildMetaSources(url, abort);
+    const hostname = (() => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'Item'; } })();
 
-    try {
-      const mlPromise = fetch(
-        `https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false&audio=false&video=false&iframe=false`,
-        { signal: abort.signal }
-      ).then(async r => {
-        const ml = await r.json();
-        if (ml.status !== 'success') throw new Error('ml-fail');
-        if (isBlockedPage('', ml.data.title || '')) throw new Error('blocked');
-        return { source: 'ml', data: ml.data };
-      });
-
-      const proxyFetch = (p) => p.then(res => {
-        const parsed = parseOgFromHtml(res.html, url);
-        return { source: 'html', parsed };
-      });
-
-      const htmlProxies = [
-        proxyFetch(fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, { signal: abort.signal }).then(r => r.json()).then(j => ({ html: j.contents || '' }))),
-        proxyFetch(fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, { signal: abort.signal }).then(r => { if (!r.ok) throw new Error('err'); return r.text(); }).then(h => ({ html: h }))),
-        proxyFetch(fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, { signal: abort.signal }).then(r => { if (!r.ok) throw new Error('err'); return r.text(); }).then(h => ({ html: h }))),
-        proxyFetch(fetch(`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`, { signal: abort.signal }).then(r => r.text()).then(h => ({ html: h }))),
-      ];
-
-      const result = await Promise.any([mlPromise, Promise.any(htmlProxies)]);
-      clearTimeout(masterTimer);
-
-      if (result.source === 'ml') {
-        const ml = result.data;
-        const urlMeta = parseUrlFallback(url);
-        let name = cleanTitle(ml.title || '');
-        let brand = urlMeta?.brand || '';
-        if (brand) {
-          const bl = brand.toLowerCase(), nl = name.toLowerCase();
-          if (nl.startsWith(bl)) name = name.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
-        }
-        if (!name || /^\d+$/.test(name)) name = urlMeta?.name || name;
-        const mlPrice = ml.price?.amount ?? ml.price ?? '';
-        fetched = {
-          name: name || urlMeta?.name || new URL(url).hostname.replace(/^www\./,''),
-          brand: brand || '',
-          img: ml.image?.url || ml.screenshot?.url || urlMeta?.img || null,
-          price: mlPrice ? String(mlPrice).replace(/[^0-9.]/g, '') : '',
-        };
-      } else {
-        const { parsed } = result;
-        const urlMeta = parseUrlFallback(url);
-        const brand = parsed.brand || urlMeta?.brand || '';
-        let name = parsed.title;
-        if (brand) {
-          const bl = brand.toLowerCase(), nl = name.toLowerCase();
-          if (nl.startsWith(bl)) name = name.slice(brand.length).replace(/^[\s,\-–—]+/, '').trim();
-        }
-        fetched = {
-          name: name || urlMeta?.name || new URL(url).hostname.replace(/^www\./,''),
-          brand: brand || '',
-          img: parsed.image || urlMeta?.img || null,
-          price: parsed.price || '',
-        };
-      }
-    } catch {
-      clearTimeout(masterTimer);
-      const fallback = parseUrlFallback(url);
-      fetched = {
-        name: fallback?.name || (() => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return 'Item'; } })(),
-        brand: fallback?.brand || '',
-        img: fallback?.img || null,
-        price: '',
-      };
-    }
+    // Create the item as soon as any single source resolves, so the add still feels
+    // instant — then keep listening below for the rest to arrive and backfill
+    // whatever that first source was missing (image, price, etc).
+    let fetched = await Promise.any(allSources).catch(() => null);
+    if (!fetched) fetched = { name: urlMeta?.name || '', brand: urlMeta?.brand || '', img: urlMeta?.img || '', price: '' };
 
     s.pendingItems = s.pendingItems.filter(p => p.id !== pendingId);
+    const guess = classifyItem({ name: fetched.name, brand: fetched.brand });
     const newItem = {
       id: 'i' + genId(), wid: wid || null,
-      name: fetched.name || 'Item',
+      name: fetched.name || hostname || 'Item',
       brand: fetched.brand || null,
       tags: [], url,
       img: fetched.img || null,
       note: '',
       price: fetched.price ? parseFloat(fetched.price) : null,
       saved: 0, serious: false,
+      category: guess.category, subcategory: guess.subcategory,
       addedAt: Date.now(), status: 'watching', reason: null,
     };
     const wasFirstInWl = wid && items.filter(i => i.wid === wid && i.status === 'watching').length === 0;
@@ -4661,6 +4751,36 @@
         saveData();
         render();
       }).catch(() => {});
+    }
+
+    // Backfill whatever the winning source missed (most often image or price)
+    // from whichever of the other sources come back.
+    const settled = await Promise.allSettled(allSources);
+    clearTimeout(masterTimer);
+    const values = settled.filter(r => r.status === 'fulfilled').map(r => r.value);
+    const current = getItem(newItem.id);
+    if (current) {
+      const patch = {};
+      if (!current.img) {
+        const withImg = values.find(v => v.img);
+        if (withImg) patch.img = withImg.img;
+      }
+      if (current.price == null) {
+        const withPrice = values.find(v => v.price);
+        if (withPrice) patch.price = parseFloat(withPrice.price);
+      }
+      if (Object.keys(patch).length) {
+        items = items.map(i => i.id === newItem.id ? { ...i, ...patch } : i);
+        saveData();
+        render();
+        if (patch.img) {
+          removeImageBackground(patch.img).then(cleaned => {
+            items = items.map(i => i.id === newItem.id ? { ...i, img: cleaned } : i);
+            saveData();
+            render();
+          }).catch(() => {});
+        }
+      }
     }
   }
 
@@ -4685,6 +4805,14 @@
     const serious = document.getElementById('f-serious')?.value === 'serious';
     const img = s.addForm.img || null;
 
+    // Whatever the user explicitly picked in the Category/Subcategory pills wins;
+    // otherwise fall back to the auto-detected guess from name/brand/tags.
+    const catGuess = classifyItem({ name, brand, tags });
+    let category = s.addForm.category || catGuess.category || null;
+    if (category === 'none') category = null;
+    let subcategory = category === 'fashion' ? (s.addForm.subcategory || catGuess.subcategory || null) : null;
+    if (subcategory === 'none') subcategory = null;
+
     if (s.addIsEdit) {
       items = items.map(i => i.id === s.currentIid ? {
         ...i,
@@ -4697,6 +4825,8 @@
         wid: wid || null,
         serious,
         img: img || i.img,
+        category,
+        subcategory,
       } : i);
       saveData();
       // Return to the sheet overlay instead of navigating to full-screen item-detail
@@ -4713,6 +4843,7 @@
         price: price ? parseFloat(price) : null,
         saved: saved ? parseFloat(saved) : 0,
         serious,
+        category, subcategory,
         addedAt: Date.now(), status: 'watching', reason: null,
       };
       const _wid = newItem.wid;
@@ -4753,7 +4884,7 @@
     items = items.map(i => i.id === id ? { ...i, status:'purchased', reason:null } : i);
     saveData();
     s.overlay = null;
-    s.screen = s.fromScreen === 'items' ? 'items' : 'wishlist-detail';
+    s.screen = s.fromScreen === 'items' ? 'items' : s.fromScreen === 'board-detail' ? 'board-detail' : 'wishlist-detail';
     s.currentWid = s.fromWid || s.currentWid;
     render();
   }
@@ -4762,7 +4893,7 @@
     items = items.map(i => i.id === id ? { ...i, status:'watching', reason:null } : i);
     saveData();
     s.overlay = null;
-    s.screen = s.fromScreen === 'items' ? 'items' : 'wishlist-detail';
+    s.screen = s.fromScreen === 'items' ? 'items' : s.fromScreen === 'board-detail' ? 'board-detail' : 'wishlist-detail';
     s.currentWid = s.fromWid || s.currentWid;
     render();
   }
@@ -4773,7 +4904,7 @@
     } : i);
     saveData();
     s.overlay = null;
-    s.screen = s.fromScreen === 'items' ? 'items' : 'wishlist-detail';
+    s.screen = s.fromScreen === 'items' ? 'items' : s.fromScreen === 'board-detail' ? 'board-detail' : 'wishlist-detail';
     if (s.fromWid) s.currentWid = s.fromWid;
     render();
   }
@@ -4794,6 +4925,7 @@
     if (s.addIsEdit) {
       s.addIsEdit = false;
       s.screen = s.fromScreen === 'items' ? 'items'
+        : s.fromScreen === 'board-detail' ? 'board-detail'
         : item?.wid ? 'wishlist-detail'
         : 'wishlists';
       if (item?.wid) s.currentWid = item.wid;
@@ -4801,6 +4933,7 @@
       s.screen = s.fromScreen === 'items' ? 'items'
         : s.fromScreen === 'archive' ? 'archive'
         : s.fromScreen === 'stats' ? 'stats'
+        : s.fromScreen === 'board-detail' ? 'board-detail'
         : 'wishlist-detail';
       if (s.fromWid) s.currentWid = s.fromWid;
     }
@@ -5665,6 +5798,21 @@
   }
 
   // ═══════════════════════════════════════════
+  // CATEGORY PICKER (FORM)
+  // ═══════════════════════════════════════════
+
+  function setFormCategory(cat) {
+    s.addForm.category = cat;
+    s.addForm.subcategory = '';
+    render();
+  }
+
+  function setFormSubcategory(sub) {
+    s.addForm.subcategory = sub;
+    render();
+  }
+
+  // ═══════════════════════════════════════════
   // WISHLIST PICKER (FORM)
   // ═══════════════════════════════════════════
 
@@ -5881,9 +6029,12 @@
   let _boardEditId = null;
   let _boardDrag = null;    // active drag state
   let _boardFromWid = null; // set when opened from a wishlist
+  let _boardFromDetail = false; // set when opened via Edit from the board-detail preview screen
   let _bePanelH = 0;
   let _bePanelDrag = null;
   let _boardActiveIdx = -1;
+  let _bePanelFilterWids = [];   // wishlist ids to filter the "add item" panel by, empty = all
+  let _bePanelFilterTags = [];   // active tag filters for the "add item" panel
 
   function openWishlistMoodboard(wid) {
     const wl = wishlists.find(w => w.id === wid);
@@ -6115,7 +6266,19 @@
     } catch { return null; }
   }
 
-  function openBoardEditor(boardId) {
+  function openBoardDetail(boardId) {
+    const board = boards.find(b => b.id === boardId);
+    if (!board) return;
+    s.currentBoardId = boardId;
+    s.boardSlideIn = true;
+    s.screen = 'board-detail';
+    s.overlay = null;
+    render();
+    s.boardSlideIn = false;
+  }
+
+  function openBoardEditor(boardId, fromDetail) {
+    _boardFromDetail = !!fromDetail;
     if (boardId) {
       const board = boards.find(b => b.id === boardId);
       if (!board) return;
@@ -6141,6 +6304,8 @@
       _boardStickers = [];
     }
     _boardDrag = null;
+    _bePanelFilterWids = [];
+    _bePanelFilterTags = [];
     s.screen = 'board-editor';
     render();
   }
@@ -6154,9 +6319,32 @@
       s.screen = 'wishlist-detail';
       s.currentWid = _boardFromWid;
       _boardFromWid = null;
+    } else if (_boardFromDetail) {
+      s.screen = 'board-detail';
+      _boardFromDetail = false;
     } else {
       s.screen = 'boards';
     }
+    render();
+  }
+
+  // ── Panel item filters ──────────────────────────────────────────────
+  function boardPanelFilterWid(wid) {
+    if (wid === null) {
+      _bePanelFilterWids = [];
+    } else {
+      _bePanelFilterWids = _bePanelFilterWids.includes(wid)
+        ? _bePanelFilterWids.filter(w => w !== wid)
+        : [..._bePanelFilterWids, wid];
+    }
+    _bePanelFilterTags = [];
+    render();
+  }
+
+  function boardPanelToggleTag(tag) {
+    _bePanelFilterTags = _bePanelFilterTags.includes(tag)
+      ? _bePanelFilterTags.filter(t => t !== tag)
+      : [..._bePanelFilterTags, tag];
     render();
   }
 
@@ -6475,6 +6663,10 @@
       s.screen = 'wishlist-detail';
       s.currentWid = _boardFromWid;
       _boardFromWid = null;
+    } else if (_boardFromDetail) {
+      s.screen = 'board-detail';
+      s.currentBoardId = board.id;
+      _boardFromDetail = false;
     } else {
       s.screen = 'boards';
     }
@@ -6657,12 +6849,15 @@
     const MIN_X = 72;  // px horizontal travel to trigger
     let startX = 0, startY = 0, tracking = false, dragging = false;
 
-    const SWIPEABLE = new Set(['wishlist-detail','item-detail','shared-item','add-item','add-wishlist']);
+    const SWIPEABLE = new Set(['wishlist-detail','board-detail','item-detail','shared-item','add-item','add-wishlist']);
 
     function swipeBack() {
       switch (s.screen) {
         case 'wishlist-detail':
           navTo('wishlists');
+          break;
+        case 'board-detail':
+          navTo('boards');
           break;
         case 'item-detail': {
           const item = getItem(s.currentIid);
