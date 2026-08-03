@@ -245,7 +245,7 @@
     .nav-tab.active span { color: #000; }
     .nav-dot { width: 4px; height: 4px; background: #000; border-radius: 50%; }
 
-    /* ─── Sub-tab bar (Wishlists / Items / Archive) ─── */
+    /* ─── Sub-tab bar (Items / Category / Lists) ─── */
     .sub-tab-bar {
       display: flex;
       border-bottom: 1px solid #f0f0f0;
@@ -541,10 +541,6 @@
       justify-content: space-between;
       flex-shrink: 0;
     }
-    .wl-top-metrics {
-      border-bottom: 1px solid #f4f4f4;
-      background: #fff;
-    }
     .wl-name-big {
       font-size: 26px;
       font-weight: 700;
@@ -582,7 +578,6 @@
       border: none; cursor: pointer; flex-shrink: 0; padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
-    .swipe-act-archive { background: #222; color: #fff; }
     .swipe-act-purchase { background: var(--accent); color: #000; }
     .swipe-act-delete { background: #c0392b; color: #fff; }
     .swipe-act-wl-purchase { background: #222; color: #fff; }
@@ -1113,51 +1108,6 @@
     .detail-price-val { font-size: 13px; letter-spacing: 0.06em; color: #000; }
     .detail-added { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; }
     .detail-actions { margin-top: 24px; padding-top: 20px; border-top: 1px solid #f2f2f2; display: flex; flex-direction: column; gap: 10px; }
-    .metric-strip {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      border-bottom: 1px solid #f4f4f4;
-    }
-    .metric-cell {
-      padding: 14px 16px 16px;
-      border-right: 1px solid #f4f4f4;
-      position: relative;
-    }
-    .metric-cell:nth-child(2n) { border-right: none; }
-    .metric-progress {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      height: 2px; background: #efefef; overflow: hidden;
-    }
-    .metric-progress-fill { height: 100%; background: var(--accent); }
-    .metric-label {
-      font-size: 9px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: #bbb;
-      margin-bottom: 6px;
-    }
-    .metric-value {
-      font-size: 12px;
-      letter-spacing: 0.05em;
-      color: #000;
-    }
-    .mini-progress {
-      width: 100%;
-      height: 2px;
-      background: #efefef;
-      margin-top: 6px;
-      overflow: hidden;
-    }
-    .mini-progress-fill { height: 100%; background: var(--accent); }
-    .detail-progress {
-      width: 100%;
-      height: 4px;
-      background: #efefef;
-      margin-top: 10px;
-      overflow: hidden;
-    }
-    .detail-progress-fill { height: 100%; background: var(--accent); }
     .detail-subnote {
       font-size: 9px;
       letter-spacing: 0.12em;
@@ -1184,33 +1134,6 @@
     .btn-ghost { background: none; border: 1px solid #e0e0e0; color: #888; }
     .btn-text { background: none; color: #bbb; text-decoration: underline; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 0; cursor: pointer; font-family: inherit; border: none; width: 100%; }
     .btn-link-cta { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
-
-    /* ─── Archive list ─── */
-    .archive-row {
-      display: flex;
-      gap: 14px;
-      padding: 14px 20px;
-      border-bottom: 1px solid #f4f4f4;
-      align-items: flex-start;
-    }
-    .archive-thumb {
-      width: 56px; height: 56px;
-      background: #fff;
-      flex-shrink: 0;
-      overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .archive-thumb img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
-    .archive-thumb .ph { font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #ccc; text-align: center; padding: 4px; line-height: 1.4; }
-    .archive-info { flex: 1; min-width: 0; }
-    .archive-reason { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; margin-bottom: 2px; }
-    .archive-name { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
-    .archive-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; }
-    .archive-btns { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
-    .archive-btn { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; background: none; border: 1px solid #e0e0e0; padding: 5px 9px; cursor: pointer; font-family: inherit; color: #555; }
-    .archive-btn.ghost { color: #ccc; border-color: #f0f0f0; }
-    .archive-empty { padding: 60px 28px; display: flex; flex-direction: column; gap: 6px; }
-    .archive-empty p { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; }
 
     /* ─── Profile ─── */
     .profile-body { flex: 1; display: flex; flex-direction: column; padding: 36px 28px; }
@@ -1667,11 +1590,24 @@
   let availableTags = [];
   let shareData = null; // set when viewing a shared wishlist URL
 
+  // A save that silently fails (most commonly: localStorage quota exceeded,
+  // since images are stored as data URLs) looks fine in the current session
+  // but reverts on next load — items/images appear to "disappear". Surface it
+  // instead of swallowing it. Debounced so a persistent quota failure doesn't
+  // spam a toast on every subsequent save attempt.
+  let _lastStorageWarnAt = 0;
+  function warnStorageFailure() {
+    const now = Date.now();
+    if (now - _lastStorageWarnAt < 15000) return;
+    _lastStorageWarnAt = now;
+    showToast("Couldn't save — storage is full. Try removing some images.");
+  }
+
   function saveData() {
     try {
       localStorage.setItem('vitrine_wishlists', JSON.stringify(wishlists));
       localStorage.setItem('vitrine_items', JSON.stringify(items));
-    } catch(e) {}
+    } catch(e) { warnStorageFailure(); }
   }
 
   function loadData() {
@@ -1690,7 +1626,8 @@
   }
 
   function saveBoardData() {
-    try { localStorage.setItem('vitrine_boards', JSON.stringify(boards)); } catch(e) {}
+    try { localStorage.setItem('vitrine_boards', JSON.stringify(boards)); }
+    catch(e) { warnStorageFailure(); }
   }
 
   // ═══════════════════════════════════════════
@@ -1715,7 +1652,6 @@
     wlViewMode: 'list',    // view mode inside a wishlist detail
     itemsViewMode: 'grid',
     itemsFilterTags: [],
-    archiveViewMode: 'grid',
     categoryFilters: [],    // active category keys in the Category view; empty = All
     categorySubFilters: [], // active fashion subcategory keys; empty = All (only shown when 'fashion' is selected)
     addForm: { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid:'', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false },
@@ -1749,17 +1685,10 @@
   const totalWatchingValue = (wid=null) => sumPrice(watchingItems(wid));
   const seriousWatchingValue = (wid=null) => sumPrice(seriousWatchingItems(wid));
   const casualWatchingValue = (wid=null) => sumPrice(casualWatchingItems(wid));
-  const letGoItems = () => archivedItems().filter(i => i.reason === 'let_go');
-  const letGoValue = () => sumPrice(letGoItems());
   const savedAmount = item => Math.max(0, Number(item?.saved) || 0);
   const totalSaved = (wid=null) => watchingItems(wid).reduce((sum, i) => sum + savedAmount(i), 0);
   const totalLeft = (wid=null) => Math.max(0, totalWatchingValue(wid) - totalSaved(wid));
   const gapAmount = item => Math.max((Number(item?.price) || 0) - savedAmount(item), 0);
-  const progressPct = item => {
-    const price = Number(item?.price) || 0;
-    if (!price) return 0;
-    return Math.max(0, Math.min(100, Math.round((savedAmount(item) / price) * 100)));
-  };
 
   const watchingItems = (wid=null) => items
     .filter(i => i.status === 'watching' && (wid ? i.wid === wid : true))
@@ -1773,9 +1702,6 @@
       const bo = b.order ?? b.addedAt;
       return bo - ao;
     });
-  const archivedItems = () => items
-    .filter(i => i.status === 'archived')
-    .sort((a,b) => (b.archivedAt||0)-(a.archivedAt||0));
   const getItem = id => items.find(i => i.id === id);
   const getWl = id => wishlists.find(w => w.id === id);
   const wlCover = wid => {
@@ -1861,6 +1787,7 @@
     const tabs = [
       { id:'wishlists', svg:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="4.5" x2="16" y2="4.5"/><line x1="2" y1="9" x2="16" y2="9"/><line x1="2" y1="13.5" x2="16" y2="13.5"/></svg>' },
       { id:'boards',    svg:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="6" height="9"/><rect x="10" y="2" width="6" height="4.5"/><rect x="10" y="8.5" width="6" height="7.5"/><rect x="2" y="13" width="6" height="3"/></svg>' },
+      { id:'stats',     svg:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="15" x2="3" y2="9"/><line x1="9" y1="15" x2="9" y2="4"/><line x1="15" y1="15" x2="15" y2="11"/></svg>' },
     ];
     return `
       <div class="home-nav-wrap">
@@ -1906,8 +1833,7 @@
   }
 
   // Shared header for the three home sub-tabs (Items / Category / Lists) —
-  // big title + an Archive shortcut (things you purchased or let go live there
-  // now, outside the main toggle) + the Profile icon.
+  // big title + the Profile icon.
   function homeHeader(title, subtitle) {
     return `
       <div class="home-screen-hdr">
@@ -1916,11 +1842,6 @@
           ${subtitle ? `<p style="font-size:13px;color:#aaa;margin-top:5px;font-weight:400">${esc(subtitle)}</p>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <button class="home-profile-btn" onclick="navTo('archive')" title="Archive">
-            <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="3" width="14" height="3.5"/><path d="M3,6.5v7a1,1 0 0 0 1,1h10a1,1 0 0 0 1,-1v-7"/><line x1="7.2" y1="9.5" x2="10.8" y2="9.5"/>
-            </svg>
-          </button>
           <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="10" cy="7" r="3.5"/>
@@ -1956,7 +1877,6 @@
   }
 
   function itemCard(item, idx=0) {
-    const d = days(item.addedAt);
     const purchased = item.status === 'purchased';
     const imgH = item.img
       ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
@@ -1980,12 +1900,10 @@
       <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} ${dragAttrs} ${lpAttrs} style="position:relative">
         ${deleteBtn}
         <div class="card-image">${imgH}</div>
-        ${item.price && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
         <div class="card-meta">
-          <div class="card-prefix"><span class="card-days">${pad(d)}</span></div>
           ${item.brand ? `<p class="card-days" style="letter-spacing:0.12em">${esc(item.brand.toUpperCase())}</p>` : ''}
           <p class="card-name">${esc(item.name)}</p>
-          ${purchased ? `<p class="card-purchased-tag">Purchased</p>` : ''}
+          ${purchased ? `<p class="card-purchased-tag">Owned</p>` : ''}
           ${item.serious && !purchased ? `<p class="card-purchased-tag">Serious</p>` : ''}
           ${item.price && !purchased ? `<p class="card-price">${money(item.price)}</p>` : ''}
         </div>
@@ -1997,24 +1915,21 @@
     const thumbH = item.img
       ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
       : `<div class="note-thumb-ph"></div>`;
-    const d = item.addedAt ? days(item.addedAt) : null;
-    const dateStr = d === null ? '' : d === 0 ? 'Added today' : d === 1 ? 'Added yesterday' : `Added ${d}d ago`;
-    const brandLine = [item.brand, purchased ? 'Purchased' : null].filter(Boolean).join(' · ');
+    const brandLine = [item.brand, purchased ? 'Owned' : null].filter(Boolean).join(' · ');
     return `
-      <div class="swipe-row-wrap" onpointerdown="swipeRowStart(event,'${item.id}','delete')">
+      <div class="swipe-row-wrap" onpointerdown="swipeRowStart(event,'${item.id}')">
         <div class="swipe-inner">
           <div class="note-row ${purchased ? 'note-row-purchased' : ''} ${s.newlyAddedId === item.id ? 'item-row-new' : ''}" onclick="openItem('${item.id}')">
             <div class="note-thumb">${thumbH}</div>
             <div class="note-info">
               <p class="note-name">${esc(item.name)}</p>
               ${brandLine ? `<p class="note-meta">${esc(brandLine)}</p>` : ''}
-              ${dateStr ? `<p class="note-date">${dateStr}</p>` : ''}
             </div>
             ${item.price ? `<span class="note-price">${money(item.price)}</span>` : ''}
           </div>
           ${purchased
             ? `<button class="swipe-act-btn swipe-act-restore" onclick="swipeRestoreItem('${item.id}')">Add Back</button>`
-            : `<button class="swipe-act-btn swipe-act-wl-purchase" onclick="swipePurchaseItem('${item.id}')">Purchased</button>`}
+            : `<button class="swipe-act-btn swipe-act-wl-purchase" onclick="swipePurchaseItem('${item.id}')">Owned</button>`}
           <button class="swipe-act-btn swipe-act-delete" onclick="swipeDeleteItem('${item.id}')">Delete</button>
         </div>
       </div>`;
@@ -2045,11 +1960,10 @@
       <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} style="position:relative">
         ${deleteBtn}
         <div class="card-image">${imgH}</div>
-        ${item.price && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
         <div class="card-meta">
           ${brandPrice ? `<p class="wl-card-brand-price">${esc(brandPrice)}</p>` : ''}
           <p class="wl-card-name">${esc(item.name)}</p>
-          ${purchased ? `<p class="card-purchased-tag">Purchased</p>` : ''}
+          ${purchased ? `<p class="card-purchased-tag">Owned</p>` : ''}
         </div>
       </div>`;
   }
@@ -2375,7 +2289,6 @@
       case 'wishlist-detail': return screenWlDetail();
       case 'items':           return screenWlTab();
       case 'category':        return screenWlTab();
-      case 'archive':         return screenArchive();
       case 'boards':          return screenBoards();
       case 'board-detail':    return screenBoardDetail();
       case 'board-editor':    return screenBoardEditor();
@@ -2406,7 +2319,6 @@
   // ═══════════════════════════════════════════
 
   function sharedItemCard(item, idx) {
-    const d = item.addedAt ? Math.floor((Date.now() - new Date(item.addedAt)) / 86400000) : 0;
     const imgH = item.img
       ? `<img src="${esc(item.img)}" alt="${esc(item.name)}" loading="lazy" />`
       : `<div class="ph">${esc(item.name)}</div>`;
@@ -2414,7 +2326,6 @@
       <div class="card" onclick="openSharedItem(${idx})">
         <div class="card-image">${imgH}</div>
         <div class="card-meta">
-          <div class="card-prefix"><span class="card-days">${pad(d)}</span></div>
           ${item.brand ? `<p class="card-days" style="letter-spacing:0.12em">${esc(item.brand.toUpperCase())}</p>` : ''}
           <p class="card-name">${esc(item.name)}</p>
           ${item.price ? `<p class="card-price">${money(item.price)}</p>` : ''}
@@ -2427,7 +2338,6 @@
     const { wl, items: sItems, senderName } = shareData;
     const cover = wl.coverImg && wl.coverImg.startsWith('http') ? wl.coverImg : '';
     const watchCount = sItems.length;
-    const totalValue = sItems.reduce((sum, i) => sum + (parseFloat(i.price) || 0), 0);
     const headerTitle = senderName
       ? `${esc(senderName.toUpperCase())}'S WISHLIST`
       : 'SHARED WISHLIST';
@@ -2447,7 +2357,7 @@
             <div class="wl-name-row">
               <div style="flex:1;min-width:0;margin-right:12px">
                 <span class="wl-name-big">${esc(wl.name)}</span>
-                <span class="wl-count-sm">${watchCount} Watching</span>
+                <span class="wl-count-sm">${watchCount} ${watchCount===1?'Item':'Items'}</span>
               </div>
               <div class="view-toggle">
                 <button class="view-btn ${s.wlViewMode==='grid'?'active':''}" onclick="setWlView('grid')" title="Grid">
@@ -2456,16 +2366,6 @@
                 <button class="view-btn ${s.wlViewMode==='list'?'active':''}" onclick="setWlView('list')" title="List">
                   <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
                 </button>
-              </div>
-            </div>
-            <div class="metric-strip wl-top-metrics">
-              <div class="metric-cell">
-                <p class="metric-label">Watching</p>
-                <p class="metric-value">${watchCount} ${watchCount===1?'Item':'Items'}</p>
-              </div>
-              <div class="metric-cell">
-                <p class="metric-label">Total Desire Cost</p>
-                <p class="metric-value">${money(totalValue)}</p>
               </div>
             </div>
           </div>
@@ -2485,7 +2385,6 @@
   }
 
   function sharedItemListRow(item, idx) {
-    const d = item.addedAt ? Math.floor((Date.now() - new Date(item.addedAt)) / 86400000) : 0;
     return `
       <div class="list-row" onclick="openSharedItem(${idx})">
         <div class="list-thumb">
@@ -2494,7 +2393,6 @@
         <div class="list-info">
           <p class="list-name">${esc(item.name)}</p>
           ${item.brand ? `<p class="list-meta">${esc(item.brand.toUpperCase())}</p>` : ''}
-          <p class="list-meta">${pad(d)} days</p>
         </div>
         ${item.price ? `<p class="list-price">${money(item.price)}</p>` : ''}
       </div>`;
@@ -2505,7 +2403,6 @@
     const item = shareData.items[s.sharedItemIdx];
     if (!item) { s.screen = 'shared-wl'; return screenSharedWl(); }
     const { wl } = shareData;
-    const d = item.addedAt ? Math.floor((Date.now() - new Date(item.addedAt)) / 86400000) : 0;
     const imgH = item.img
       ? `<img src="${esc(item.img)}" alt="${esc(item.name)}" />`
       : `<div class="ph-lg">${esc(item.name)}</div>`;
@@ -2533,7 +2430,7 @@
       <div class="scroll-area">
         <div class="detail-image">${imgH}</div>
         <div class="detail-body">
-          <p class="detail-days">${pad(d)} — Watching</p>
+          <p class="detail-days">Watching</p>
           ${item.brand ? `<p class="detail-brand">${esc(item.brand.toUpperCase())}</p>` : ''}
           <p class="detail-name">${esc(item.name)}</p>
           ${urlH}
@@ -2687,9 +2584,7 @@
           <div class="section-title-row" style="border-top:1px solid #f4f4f4;margin:8px 16px 0">
             <p class="section-title">Unorganized</p>
           </div>
-          <div style="display:flex;overflow-x:auto;scrollbar-width:none;gap:1px;background:#fff">
-            ${uncategorized.map(item => `<div style="flex:0 0 48vw;max-width:200px">${itemCard(item)}</div>`).join('')}
-          </div>` : ''}
+          <div class="grid">${uncategorized.map(item => itemCard(item)).join('')}</div>` : ''}
         <div class="safe-bottom"></div>
       </div>
       ${homeNav('wishlists')}`;
@@ -2837,25 +2732,12 @@
 
   function screenItems() {
     const all = watchingItems();
-    const totalValue = totalWatchingValue();
-    const itemsSaved = totalSaved();
     const allTags = [...new Set(all.flatMap(i => i.tags || []))].sort();
     const active = s.itemsFilterTags;
     const filtered = active.length ? all.filter(i => active.some(t => (i.tags||[]).includes(t))) : all;
     return `
       ${homeHeader('Items', all.length ? `${all.length} ${all.length===1?'item':'items'}` : '')}
       ${subTabBar('items')}
-      <div class="metric-strip">
-        <div class="metric-cell">
-          <p class="metric-label">Watching</p>
-          <p class="metric-value">${all.length} ${all.length===1?'Item':'Items'}</p>
-        </div>
-        <div class="metric-cell">
-          <p class="metric-label">Total Desire Cost</p>
-          <p class="metric-value">${money(totalValue)}</p>
-          ${totalValue ? `<div class="metric-progress"><div class="metric-progress-fill" style="width:${Math.min(100,Math.round(itemsSaved/totalValue*100))}%"></div></div>` : ''}
-        </div>
-      </div>
       <div class="filter-control-bar">
         <div class="filter-pills-scroll">
           ${allTags.map(t => `
@@ -2945,50 +2827,6 @@
         <div class="safe-bottom"></div>
       </div>
       ${homeNav('wishlists')}`;
-  }
-
-  function screenArchive() {
-    const arch = archivedItems();
-    const letGoTotal = letGoValue();
-    return `
-      <div class="safe-top"></div>
-      <header>
-        <button class="h-left" onclick="navTo('items')">←</button>
-        <span></span>
-      </header>
-      <div class="metric-strip">
-        <div class="metric-cell">
-          <p class="metric-label">Archived</p>
-          <p class="metric-value">${arch.length} ${arch.length===1?'Item':'Items'}</p>
-        </div>
-        <div class="metric-cell">
-          <p class="metric-label">Let Go Value</p>
-          <p class="metric-value">${money(letGoTotal)}</p>
-        </div>
-      </div>
-      <div class="filter-control-bar">
-        <div class="filter-pills-scroll"></div>
-        <div class="filter-toggle-end">
-          <div class="view-toggle">
-            <button class="view-btn ${s.archiveViewMode==='grid'?'active':''}" onclick="setArchiveView('grid')" title="Grid">
-              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
-            </button>
-            <button class="view-btn ${s.archiveViewMode==='list'?'active':''}" onclick="setArchiveView('list')" title="List">
-              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
-        ${arch.length === 0
-          ? `<div class="empty-state">
-               <p class="empty-hero">nothing<br/>archived<br/>yet</p>
-             </div>`
-          : s.archiveViewMode === 'grid'
-            ? `<div class="grid">${arch.map(archiveGridCard).join('')}</div>`
-            : arch.map(archiveRow).join('')}
-      </div>
-      <div class="safe-bottom"></div>`;
   }
 
   // ═══════════════════════════════════════════
@@ -3141,32 +2979,6 @@
   function screenStats() {
     const watching = watchingItems();
     const purchased = items.filter(i => i.status === 'purchased');
-    const letGo = letGoItems();
-    const decided = purchased.length + letGo.length;
-
-    // Conviction rate: of all decisions made, what % ended in a buy
-    const convictionRate = decided >= 3
-      ? Math.round((purchased.length / decided) * 100)
-      : null;
-
-    // Average days from save → buy
-    const withBuyTime = purchased.filter(i => i.archivedAt && i.addedAt);
-    const avgBuyDays = withBuyTime.length > 0
-      ? Math.round(withBuyTime.reduce((s, i) => s + Math.floor((i.archivedAt - i.addedAt) / DAY), 0) / withBuyTime.length)
-      : null;
-
-    // Average days from save → let go
-    const withLetGoTime = letGo.filter(i => i.archivedAt && i.addedAt);
-    const avgLetGoDays = withLetGoTime.length > 0
-      ? Math.round(withLetGoTime.reduce((s, i) => s + Math.floor((i.archivedAt - i.addedAt) / DAY), 0) / withLetGoTime.length)
-      : null;
-
-    // Impulse resisted: watched 30+ days, then let go without buying
-    const impulseResisted = letGo.filter(i =>
-      i.archivedAt && i.addedAt && Math.floor((i.archivedAt - i.addedAt) / DAY) >= 30
-    ).length;
-
-    const moneyNotSpent = letGoValue();
     const purchasedValue = sumPrice(purchased);
     const watchingValue = totalWatchingValue();
 
@@ -3195,13 +3007,6 @@
         </div>
       </div>`;
 
-    const bigStat = (number, label, sub='') => `
-      <div style="padding:20px 0;border-bottom:1px solid #f4f4f4">
-        <p style="font-size:48px;font-weight:800;letter-spacing:-0.03em;line-height:1;color:#000;margin-bottom:6px">${number}</p>
-        <p style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#bbb">${label}</p>
-        ${sub ? `<p style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#ccc;margin-top:3px">${sub}</p>` : ''}
-      </div>`;
-
     const sectionLabel = label => `
       <p style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#bbb;margin-top:36px;padding-bottom:10px;border-bottom:1px solid #f4f4f4">${label}</p>`;
 
@@ -3228,18 +3033,6 @@
 
           <p class="profile-hero" style="margin-bottom:8px">Your<br/>Desire<br/>Report</p>
 
-          ${sectionLabel('Decisions')}
-          ${convictionRate !== null
-            ? bigStat(`${convictionRate}%`, 'Conviction Rate', `${purchased.length} bought &middot; ${letGo.length} let go`)
-            : `<p style="padding:18px 0;border-bottom:1px solid #f4f4f4;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc">Archive a few items to see your conviction rate</p>`}
-          ${avgBuyDays !== null ? statRow('Avg Days to Buy', avgBuyDays) : ''}
-          ${avgLetGoDays !== null ? statRow('Avg Days to Let Go', avgLetGoDays) : ''}
-
-          ${(impulseResisted > 0 || moneyNotSpent > 0) ? sectionLabel('Discipline') : ''}
-          ${impulseResisted > 0 ? bigStat(impulseResisted, 'Impulse' + (impulseResisted === 1 ? '' : 's') + ' Resisted', 'Watched 30+ days, then let go') : ''}
-          ${moneyNotSpent > 0 ? statRow('Money Not Spent', money(moneyNotSpent)) : ''}
-          ${purchasedValue > 0 ? statRow('Total Purchased', money(purchasedValue)) : ''}
-
           ${(topBrand || topTag) ? sectionLabel('Your Pattern') : ''}
           ${topBrand ? statRow('Most Saved Brand', esc(topBrand[0]), topBrand[1] + ' ' + (topBrand[1] === 1 ? 'item' : 'items')) : ''}
           ${topTag ? statRow('Top Category', esc(topTag[0]), topTag[1] + ' ' + (topTag[1] === 1 ? 'item' : 'items')) : ''}
@@ -3247,6 +3040,7 @@
           ${sectionLabel('Right Now')}
           ${statRow('Watching', watching.length + ' ' + (watching.length === 1 ? 'Item' : 'Items'))}
           ${watchingValue > 0 ? statRow('Total Desire Value', money(watchingValue)) : ''}
+          ${purchasedValue > 0 ? statRow('Total Owned', money(purchasedValue)) : ''}
 
           ${oldest ? `
           ${sectionLabel('Longest Watch')}
@@ -3323,8 +3117,6 @@
     const item = getItem(s.currentIid);
     if (!item) return '';
     const purchased = item.status === 'purchased';
-    const d = item.addedAt ? days(item.addedAt) : 0;
-    const dateStr = d === 0 ? 'Added today' : d === 1 ? 'Added yesterday' : `Added ${d} days ago`;
 
     const imgH = item.img
       ? `<img src="${item.img}" alt="${esc(item.name)}" />`
@@ -3353,7 +3145,7 @@
       </div>
 
       <p class="item-detail-title">${esc(item.name)}</p>
-      <p class="item-detail-status">${purchased ? 'Purchased' : dateStr}</p>
+      <p class="item-detail-status">${purchased ? 'Owned' : 'Watching'}</p>
 
       ${item.brand ? metaRow('Brand', esc(item.brand)) : ''}
       ${item.price ? metaRow('Price', money(item.price)) : ''}
@@ -3363,10 +3155,10 @@
 
       <div class="item-detail-actions">
         ${!item.wid && !purchased && wishlists.length ? `
-          <button class="btn btn-outline" onclick="openMoveToWishlist('${item.id}')">+ Add to a Wishlist</button>` : ''}
+          <button class="btn btn-outline" onclick="openMoveToWishlist('${item.id}')">+ Add to a List</button>` : ''}
         ${purchased
-          ? `<button class="btn btn-black" onclick="addBackToWishlist('${item.id}')">Add Back to Wishlist</button>`
-          : `<button class="btn btn-text" onclick="archiveItem('${item.id}')">Remove</button>`}
+          ? `<button class="btn btn-black" onclick="addBackToWishlist('${item.id}')">Add Back to List</button>`
+          : `<button class="btn btn-text" onclick="openDeleteOverlay('${item.id}')">Remove</button>`}
       </div>
       <div style="height:max(env(safe-area-inset-bottom,0px),20px)"></div>`;
   }
@@ -3492,11 +3284,11 @@
         <div class="form-body">
           <div class="form-group">
             <label class="form-label">Brand</label>
-            <input class="form-input" id="f-brand" type="text" value="${esc(f.brand || '')}" maxlength="80" placeholder="e.g. Toteme" />
+            <input class="form-input" id="f-brand" type="text" value="${esc(f.brand || '')}" maxlength="80" placeholder="e.g. Toteme" oninput="s.addForm.brand=this.value" />
           </div>
           <div class="form-group">
             <label class="form-label">Name</label>
-            <input class="form-input" id="f-name" type="text" value="${esc(f.name)}" maxlength="100" />
+            <input class="form-input" id="f-name" type="text" value="${esc(f.name)}" maxlength="100" oninput="s.addForm.name=this.value" />
           </div>
           ${(() => {
             const guess = classifyItem({ name: f.name, brand: f.brand, tags: f.tags });
@@ -3566,8 +3358,14 @@
               </div>
           </div>
           <div class="form-group">
+            <label class="form-label">Ownership</label>
+            <div class="wl-picker">
+              <button type="button" class="wl-picker-pill ${f.owned?'active':''}" onclick="toggleFormOwned()">I already own this</button>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="form-label">Note</label>
-            <textarea class="form-input" id="f-note">${esc(f.note)}</textarea>
+            <textarea class="form-input" id="f-note" oninput="s.addForm.note=this.value">${esc(f.note)}</textarea>
           </div>
           <div class="form-group">
             <label class="form-label">Add to List (optional)</label>
@@ -3585,7 +3383,7 @@
             </div>
           </div>
           <button class="btn btn-black" onclick="saveItem()">
-            ${s.addIsEdit ? 'Save Changes' : 'Save to Wishlist'}
+            ${s.addIsEdit ? 'Save Changes' : 'Save Item'}
           </button>
           ${s.addIsEdit ? `
           <button onclick="openDeleteOverlay(s.currentIid)" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#bbb;text-decoration:underline;text-underline-offset:3px;padding:8px 0;width:100%;text-align:center;margin-top:4px">
@@ -3747,7 +3545,7 @@
         <div class="overlay" onclick="if(event.target===this)closeOverlay()">
           <div class="safe-top"></div>
           <div class="overlay-body">
-            <p class="overlay-title-sm">Add to Wishlist</p>
+            <p class="overlay-title-sm">Add to List</p>
             <div class="wl-move-list">
               ${wishlists.map(w => `
                 <button class="wl-move-option" onclick="moveItemToWl('${s.currentIid}','${w.id}')">
@@ -3801,6 +3599,9 @@
       s.wlSlideDir = null;
     } else if (tab === 'boards') {
       s.screen = 'boards';
+      render();
+    } else if (tab === 'stats') {
+      s.screen = 'stats';
       render();
     } else if (tab === 'profile') {
       s.screen = 'profile';
@@ -3968,6 +3769,7 @@
       serious: !!item.serious,
       category: item.category || '',
       subcategory: item.subcategory || '',
+      owned: item.status === 'purchased',
       showImgEdit: false,
       showTagInput: false,
       tagQuery: '',
@@ -4900,6 +4702,9 @@
     if (category === 'none') category = null;
     let subcategory = category === 'fashion' ? (s.addForm.subcategory || catGuess.subcategory || null) : null;
     if (subcategory === 'none') subcategory = null;
+    // "I already own this" — lets someone digitize their closet directly as
+    // owned, or flip an already-watched item straight to owned from the form.
+    const status = s.addForm.owned ? 'purchased' : 'watching';
 
     if (s.addIsEdit) {
       items = items.map(i => i.id === s.currentIid ? {
@@ -4915,6 +4720,8 @@
         img: img || i.img,
         category,
         subcategory,
+        status,
+        reason: null,
       } : i);
       saveData();
       // Return to the sheet overlay instead of navigating to full-screen item-detail
@@ -4932,7 +4739,7 @@
         saved: saved ? parseFloat(saved) : 0,
         serious,
         category, subcategory,
-        addedAt: Date.now(), status: 'watching', reason: null,
+        addedAt: Date.now(), status, reason: null,
       };
       const _wid = newItem.wid;
       const wasFirstInWl = _wid && items.filter(i => i.wid === _wid && i.status === 'watching').length === 0;
@@ -4986,17 +4793,6 @@
     render();
   }
 
-  function archiveItem(id) {
-    items = items.map(i => i.id === id ? {
-      ...i, status:'archived', reason:'let_go', archivedAt: Date.now(),
-    } : i);
-    saveData();
-    s.overlay = null;
-    s.screen = s.fromScreen === 'items' ? 'items' : s.fromScreen === 'board-detail' ? 'board-detail' : 'wishlist-detail';
-    if (s.fromWid) s.currentWid = s.fromWid;
-    render();
-  }
-
   function openDeleteOverlay(id) {
     s.currentIid = id;
     s.overlay = 'delete';
@@ -5019,28 +4815,12 @@
       if (item?.wid) s.currentWid = item.wid;
     } else {
       s.screen = s.fromScreen === 'items' ? 'items'
-        : s.fromScreen === 'archive' ? 'archive'
+        : s.fromScreen === 'category' ? 'category'
         : s.fromScreen === 'stats' ? 'stats'
         : s.fromScreen === 'board-detail' ? 'board-detail'
         : 'wishlist-detail';
       if (s.fromWid) s.currentWid = s.fromWid;
     }
-    render();
-
-  }
-
-  function deleteItem(id) {
-    s.currentIid = id;
-    s.fromScreen = 'archive';
-    s.overlay = 'delete';
-    render();
-  }
-
-  function restoreItem(id) {
-    items = items.map(i => i.id === id ? {
-      ...i, status:'watching', reason:null, archivedAt:undefined,
-    } : i);
-    saveData();
     render();
 
   }
@@ -5133,7 +4913,7 @@
     dragSrcIdx = null;
   }
 
-  // ── Swipe-to-act (Archive / Purchase) ──────────────────────────────
+  // ── Swipe-to-act (Delete / Purchase) ──────────────────────────────
   let _openSwipeWrap = null;
 
   function _closeOpenSwipe() {
@@ -5147,7 +4927,7 @@
     _openSwipeWrap = null;
   }
 
-  function swipeRowStart(e, itemId, fullSwipeAction) {
+  function swipeRowStart(e, itemId) {
     if (e.target.closest('.list-drag-handle')) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     // Let button taps fall through to their onclick handlers
@@ -5170,7 +4950,7 @@
     const startX = e.clientX;
     const startY = e.clientY;
     const SNAP = 160;                                   // px — width of both buttons combined
-    const FULL = Math.min(window.innerWidth * 0.65, 280); // px — full-swipe auto-archive
+    const FULL = Math.min(window.innerWidth * 0.65, 280); // px — full-swipe auto-deletes
     let decided = false, isSwipe = false, dx = 0;
 
     function onMove(ev) {
@@ -5191,7 +4971,7 @@
       cleanup();
       if (!isSwipe || dx === 0) return;
       if (dx <= -FULL) {
-        // Full swipe → animate off then archive
+        // Full swipe → animate off then delete
         inner.style.transition = 'transform 0.2s ease-in';
         inner.style.transform = 'translateX(-110vw)';
         const h = wrap.offsetHeight;
@@ -5202,7 +4982,7 @@
           wrap.style.maxHeight = '0';
           wrap.style.opacity = '0';
         });
-        setTimeout(() => fullSwipeAction === 'delete' ? swipeDeleteItem(itemId) : swipeArchiveItem(itemId), 350);
+        setTimeout(() => swipeDeleteItem(itemId), 350);
       } else if (dx <= -(SNAP / 2)) {
         // Partial swipe → snap open to show buttons
         inner.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
@@ -5226,23 +5006,6 @@
     document.addEventListener('pointermove', onMove, { passive: false });
     document.addEventListener('pointerup', onUp);
     document.addEventListener('pointercancel', onUp);
-  }
-
-  function swipeArchiveItem(itemId) {
-    _openSwipeWrap = null;
-    const item = getItem(itemId);
-    if (!item) { render(); return; }
-    const snapshot = { ...item };
-    items = items.map(i => i.id === itemId
-      ? { ...i, status: 'archived', reason: 'let_go', archivedAt: Date.now() }
-      : i);
-    saveData();
-    render();
-    showUndoToast('Archived', () => {
-      items = items.map(i => i.id === itemId ? snapshot : i);
-      saveData();
-      render();
-    });
   }
 
   function swipePurchaseItem(itemId) {
@@ -5609,11 +5372,16 @@
         i.src = imgSrc;
       });
 
-      const W = img.naturalWidth, H = img.naturalHeight;
+      // Cap dimensions before processing — source product photos can be huge,
+      // and an uncapped PNG data URL stored in localStorage is how items and
+      // boards silently blow past the storage quota (saves then fail quietly).
+      const MAX_DIM = 1000;
+      const srcScale = Math.min(1, MAX_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+      const W = Math.round(img.naturalWidth * srcScale), H = Math.round(img.naturalHeight * srcScale);
       const canvas = document.createElement('canvas');
       canvas.width = W; canvas.height = H;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(img, 0, 0, W, H);
 
       const imageData = ctx.getImageData(0, 0, W, H);
       const d = imageData.data;
@@ -5693,11 +5461,10 @@
   }
 
   // ═══════════════════════════════════════════
-  // LIST + ARCHIVE RENDERERS
+  // LIST RENDERERS
   // ═══════════════════════════════════════════
 
   function itemListRow(item, idx=0) {
-    const d = days(item.addedAt);
     const purchased = item.status === 'purchased';
     const thumbH = item.img
       ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
@@ -5711,55 +5478,12 @@
             <div class="list-thumb">${thumbH}</div>
             <div class="list-info">
               <p class="list-name">${esc(item.name)}</p>
-              <p class="list-meta">${pad(d)} · ${purchased ? 'Purchased' : item.serious ? 'Serious' : 'Watching'}</p>
-              ${item.price && savedAmount(item) && !purchased ? `<div class="mini-progress"><div class="mini-progress-fill" style="width:${progressPct(item)}%"></div></div>` : ''}
+              <p class="list-meta">${purchased ? 'Owned' : item.serious ? 'Serious' : 'Watching'}</p>
             </div>
             ${item.price ? `<span class="list-price">${money(item.price)}</span>` : ''}
           </div>
-          <button class="swipe-act-btn swipe-act-archive" onclick="swipeArchiveItem('${item.id}')">Archive</button>
+          <button class="swipe-act-btn swipe-act-delete" onclick="swipeDeleteItem('${item.id}')">Delete</button>
           <button class="swipe-act-btn swipe-act-purchase" onclick="swipePurchaseItem('${item.id}')">Purchase</button>
-        </div>
-      </div>`;
-  }
-
-  function archiveRow(item) {
-    const d = days(item.addedAt);
-    const reason = item.reason === 'got_it' ? 'Purchased' : 'Archived';
-    const thumbH = item.img
-      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
-      : `<div class="ph">${esc(item.name)}</div>`;
-    return `
-      <div class="archive-row">
-        <div class="archive-thumb">${thumbH}</div>
-        <div class="archive-info">
-          <p class="archive-reason">${reason}</p>
-          <p class="archive-name">${esc(item.name)}</p>
-          <p class="archive-meta">Watched ${d} days</p>
-        </div>
-        <div class="archive-btns">
-          <button class="archive-btn" onclick="restoreItem('${item.id}')">Restore</button>
-          <button class="archive-btn ghost" onclick="deleteItem('${item.id}')">Delete</button>
-        </div>
-      </div>`;
-  }
-
-  function archiveGridCard(item) {
-    const d = days(item.addedAt);
-    const reason = item.reason === 'got_it' ? 'Purchased' : 'Archived';
-    const imgH = item.img
-      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
-      : `<div class="ph">${esc(item.name)}</div>`;
-    return `
-      <div class="card card-purchased" style="position:relative">
-        <div class="card-image">${imgH}</div>
-        <div class="card-meta">
-          <div class="card-prefix"><span class="card-days">${reason}</span></div>
-          <p class="card-name">${esc(item.name)}</p>
-          <p class="card-price">Watched ${d} days</p>
-          <div style="display:flex;gap:6px;margin-top:8px">
-            <button class="archive-btn" style="flex:1" onclick="restoreItem('${item.id}')">Restore</button>
-            <button class="archive-btn ghost" style="flex:1" onclick="deleteItem('${item.id}')">Delete</button>
-          </div>
         </div>
       </div>`;
   }
@@ -5771,7 +5495,6 @@
   function setWlsView(mode) { s.wlsViewMode = mode; render(); }
   function setWlView(mode) { s.wlViewMode = mode; render(); }
   function setItemsView(mode) { s.itemsViewMode = mode; render(); }
-  function setArchiveView(mode) { s.archiveViewMode = mode; render(); }
   function openAddWishlistItem(wid) { openAddItem(wid); }
 
   function toggleItemsFilter(tag) {
@@ -5906,6 +5629,16 @@
     }
     field.dataset.cents = cents;
     field.value = (cents / 100).toFixed(2);
+    // Keep addForm in sync too — a pill picker elsewhere in the form (category,
+    // wishlist) triggers a full render(), which would otherwise reset this
+    // input back to whatever addForm still thinks the price is.
+    const key = fieldId.replace(/^f-/, '');
+    if (s.addForm && key in s.addForm) s.addForm[key] = String(cents / 100);
+  }
+
+  function toggleFormOwned() {
+    s.addForm.owned = !s.addForm.owned;
+    render();
   }
 
   // ═══════════════════════════════════════════
@@ -6234,11 +5967,14 @@
       i.onerror = reject;
       i.src = src;
     });
-    const W = img.naturalWidth, H = img.naturalHeight;
+    // Cap dimensions before processing — see removeItemBackground for why.
+    const MAX_DIM = 1000;
+    const srcScale = Math.min(1, MAX_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+    const W = Math.round(img.naturalWidth * srcScale), H = Math.round(img.naturalHeight * srcScale);
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, W, H);
     const imageData = ctx.getImageData(0, 0, W, H);
     const d = imageData.data;
     function px(x, y) { const i = (y*W+x)*4; return [d[i], d[i+1], d[i+2]]; }
@@ -6961,7 +6697,7 @@
     const MIN_X = 72;  // px horizontal travel to trigger
     let startX = 0, startY = 0, tracking = false, dragging = false;
 
-    const SWIPEABLE = new Set(['wishlist-detail','board-detail','archive','item-detail','shared-item','add-item','add-wishlist']);
+    const SWIPEABLE = new Set(['wishlist-detail','board-detail','item-detail','shared-item','add-item','add-wishlist']);
 
     function swipeBack() {
       switch (s.screen) {
@@ -6971,13 +6707,10 @@
         case 'board-detail':
           navTo('boards');
           break;
-        case 'archive':
-          navTo('items');
-          break;
         case 'item-detail': {
           const item = getItem(s.currentIid);
           if (s.fromScreen === 'items') navTo('items');
-          else if (s.fromScreen === 'archive') navTo('archive');
+          else if (s.fromScreen === 'category') navTo('category');
           else if (s.fromScreen === 'wishlists') navTo('wishlists');
           else if (item?.wid) openWl(item.wid);
           else navTo('wishlists');
@@ -7069,7 +6802,7 @@
 
   // ─── Horizontal swipe for sub-tabs AND main nav tabs ─────
   (function initSubTabSwipe() {
-    const SUB_TABS = ['wishlists', 'items', 'archive'];
+    const SUB_TABS = ['items', 'category', 'wishlists'];
     const MAIN_TABS = ['wishlists', 'boards']; // swipe between home pages
     const MIN_X = 48;
     let startX = 0, startY = 0, tracking = false, dragging = false;
@@ -7120,7 +6853,7 @@
         }
         return;
       }
-      // Sub-tab swipe: wishlists ↔ items ↔ archive
+      // Sub-tab swipe: items ↔ category ↔ wishlists
       const cur = SUB_TABS.indexOf(s.screen);
       if (dx < 0 && cur < SUB_TABS.length - 1) {
         setWlSubTab(SUB_TABS[cur + 1]);
