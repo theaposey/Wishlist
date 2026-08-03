@@ -1698,8 +1698,8 @@
   // ═══════════════════════════════════════════
 
   const s = {
-    screen: 'wishlists',
-    wlSubTab: 'wishlists',  // 'wishlists' | 'items' | 'archive' — sub-tab within the wishlists main tab
+    screen: 'items',
+    wlSubTab: 'items',  // 'items' | 'category' | 'wishlists' — sub-tab within the home main tab (Items is the default landing view)
     overlay: null,
     currentWid: null,
     currentIid: null,
@@ -1716,6 +1716,8 @@
     itemsViewMode: 'grid',
     itemsFilterTags: [],
     archiveViewMode: 'grid',
+    categoryFilters: [],    // active category keys in the Category view; empty = All
+    categorySubFilters: [], // active fashion subcategory keys; empty = All (only shown when 'fashion' is selected)
     addForm: { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid:'', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false },
     removingBg: false,
     sharedItemIdx: 0,
@@ -1868,7 +1870,7 @@
               ${t.svg}
             </button>`).join('')}
         </div>
-        <button class="home-fab-btn" onclick="${active==='boards'?'openBoardEditor(null)':'openAddWishlist()'}" aria-label="Add">
+        <button class="home-fab-btn" onclick="${active==='boards'?'openBoardEditor(null)':'openAddItem(null)'}" aria-label="Add">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
             <line x1="10" y1="3" x2="10" y2="17"/><line x1="3" y1="10" x2="17" y2="10"/>
           </svg>
@@ -1903,10 +1905,36 @@
       </div>`;
   }
 
+  // Shared header for the three home sub-tabs (Items / Category / Lists) —
+  // big title + an Archive shortcut (things you purchased or let go live there
+  // now, outside the main toggle) + the Profile icon.
+  function homeHeader(title, subtitle) {
+    return `
+      <div class="home-screen-hdr">
+        <div>
+          <p class="home-big-title">${esc(title)}</p>
+          ${subtitle ? `<p style="font-size:13px;color:#aaa;margin-top:5px;font-weight:400">${esc(subtitle)}</p>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="home-profile-btn" onclick="navTo('archive')" title="Archive">
+            <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="14" height="3.5"/><path d="M3,6.5v7a1,1 0 0 0 1,1h10a1,1 0 0 0 1,-1v-7"/><line x1="7.2" y1="9.5" x2="10.8" y2="9.5"/>
+            </svg>
+          </button>
+          <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="10" cy="7" r="3.5"/>
+              <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
+            </svg>
+          </button>
+        </div>
+      </div>`;
+  }
+
   function subTabBar(active) {
-    // active = 'wishlists' | 'items' | 'archive'
-    const tabs = ['wishlists','items','archive'];
-    const labels = { wishlists:'Wishlists', items:'Items', archive:'Archive' };
+    // active = 'items' | 'category' | 'wishlists' (wishlists screen id == "Lists" view)
+    const tabs = ['items','category','wishlists'];
+    const labels = { items:'Items', category:'Category', wishlists:'Lists' };
     return `
       <div class="sub-tab-bar">
         ${tabs.map(t => `
@@ -2346,7 +2374,8 @@
       case 'wishlists':       return screenWlTab();
       case 'wishlist-detail': return screenWlDetail();
       case 'items':           return screenWlTab();
-      case 'archive':         return screenWlTab();
+      case 'category':        return screenWlTab();
+      case 'archive':         return screenArchive();
       case 'boards':          return screenBoards();
       case 'board-detail':    return screenBoardDetail();
       case 'board-editor':    return screenBoardEditor();
@@ -2361,14 +2390,14 @@
     }
   }
 
-  // Wraps wishlists/items/archive into a single tabbed view
+  // Wraps items/category/wishlists into a single tabbed view (the home tab)
   // Uses s.screen as source of truth so direct screen assignments work correctly
   function screenWlTab() {
     s.wlSubTab = s.screen; // keep in sync
     switch(s.screen) {
-      case 'items':   return screenItems();
-      case 'archive': return screenArchive();
-      default:        return screenWishlists();
+      case 'category':  return screenCategory();
+      case 'wishlists': return screenWishlists();
+      default:          return screenItems();
     }
   }
 
@@ -2642,24 +2671,17 @@
       ? `${wishlists.length} ${wishlists.length===1?'list':'lists'} · ${allWatching.length} items`
       : '';
     return `
-      <div class="home-screen-hdr">
-        <div>
-          <p class="home-big-title">Lists</p>
-          ${subtitle ? `<p style="font-size:13px;color:#aaa;margin-top:5px;font-weight:400">${subtitle}</p>` : ''}
-        </div>
-        <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="10" cy="7" r="3.5"/>
-            <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
-          </svg>
-        </button>
-      </div>
+      ${homeHeader('Lists', subtitle)}
+      ${subTabBar('wishlists')}
       <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll" style="padding-top:10px">
+        <div style="padding:0 16px 12px;text-align:right">
+          <button onclick="openAddWishlist()" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#000;padding:0;-webkit-tap-highlight-color:transparent">+ New List</button>
+        </div>
         ${hasLists
           ? wishlists.map((wl, idx) => homeWlRow(wl, idx)).join('')
           : `<div class="empty-state">
                <p class="empty-hero">nothing<br/>here<br/>yet</p>
-               <p style="margin-top:20px;font-size:13px;color:#ccc;font-weight:400">Tap + to create your first list</p>
+               <p style="margin-top:20px;font-size:13px;color:#ccc;font-weight:400">Tap + New List to create your first one</p>
              </div>`}
         ${uncategorized.length ? `
           <div class="section-title-row" style="border-top:1px solid #f4f4f4;margin:8px 16px 0">
@@ -2821,7 +2843,7 @@
     const active = s.itemsFilterTags;
     const filtered = active.length ? all.filter(i => active.some(t => (i.tags||[]).includes(t))) : all;
     return `
-      <div class="safe-top"></div>
+      ${homeHeader('Items', all.length ? `${all.length} ${all.length===1?'item':'items'}` : '')}
       ${subTabBar('items')}
       <div class="metric-strip">
         <div class="metric-cell">
@@ -2860,8 +2882,69 @@
             ? `<div class="list-view">${filtered.map(item => itemListRow(item)).join('')}</div>`
             : `<div class="grid">${filtered.map(itemCard).join('')}</div>`}
       </div>
-      ${fab("openAddItem(null)")}
-      ${nav('wishlists')}`;
+      ${homeNav('wishlists')}`;
+  }
+
+  function screenCategory() {
+    const all = watchingItems();
+    const catFilters = s.categoryFilters;
+    const subFilters = s.categorySubFilters;
+    const sections = [
+      { key: 'fashion', label: 'Fashion' },
+      { key: 'beauty', label: 'Beauty' },
+      { key: 'home', label: 'Home' },
+    ];
+    const categorize = (item) => {
+      const guess = classifyItem(item);
+      return { cat: item.category || guess.category, sub: item.subcategory || guess.subcategory };
+    };
+
+    const grouped = { fashion: [], beauty: [], home: [], uncategorized: [] };
+    all.forEach(item => {
+      const { cat, sub } = categorize(item);
+      const bucket = cat && grouped[cat] ? cat : 'uncategorized';
+      if (catFilters.length && !catFilters.includes(bucket)) return;
+      if (bucket === 'fashion' && catFilters.includes('fashion') && subFilters.length && !subFilters.includes(sub)) return;
+      grouped[bucket].push(item);
+    });
+    const activeSections = catFilters.length
+      ? sections.filter(sec => catFilters.includes(sec.key))
+      : [...sections, { key: 'uncategorized', label: 'Uncategorized' }];
+    const content = activeSections
+      .filter(sec => grouped[sec.key].length)
+      .map(sec => `
+        <div class="section-title-row">
+          <p class="section-title">${esc(sec.label)}</p>
+        </div>
+        <div class="grid">${grouped[sec.key].map(itemCard).join('')}</div>
+      `).join('');
+
+    return `
+      ${homeHeader('Category', all.length ? `${all.length} ${all.length===1?'item':'items'}` : '')}
+      ${subTabBar('category')}
+      <div class="tag-filter-bar">
+        <button class="tag-filter-pill ${!catFilters.length?'active':''}" onclick="setCategoryFilter('all')">All</button>
+        <span class="tag-filter-divider"></span>
+        ${sections.map(sec => `<button class="tag-filter-pill ${catFilters.includes(sec.key)?'active':''}" onclick="setCategoryFilter('${sec.key}')">${esc(sec.label)}</button>`).join('')}
+      </div>
+      ${catFilters.includes('fashion') ? `
+      <div class="tag-filter-bar">
+        <button class="tag-filter-pill ${!subFilters.length?'active':''}" onclick="setCategorySubFilter('all')">All</button>
+        <span class="tag-filter-divider"></span>
+        ${CATEGORY_TAXONOMY.fashion.subcategories.map(sub => `<button class="tag-filter-pill ${subFilters.includes(sub)?'active':''}" onclick="setCategorySubFilter('${sub}')">${esc(SUBCATEGORY_LABELS[sub])}</button>`).join('')}
+      </div>` : ''}
+      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
+        ${all.length === 0 ? `
+          <div class="empty-state" style="padding-top:60px">
+            <p class="empty-hero">nothing<br/>here<br/>yet</p>
+            <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap + to add your first item</p>
+          </div>` : content || `
+          <div class="empty-state" style="padding-top:60px">
+            <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#ccc">No items in this category yet.</p>
+          </div>`}
+        <div class="safe-bottom"></div>
+      </div>
+      ${homeNav('wishlists')}`;
   }
 
   function screenArchive() {
@@ -2869,7 +2952,10 @@
     const letGoTotal = letGoValue();
     return `
       <div class="safe-top"></div>
-      ${subTabBar('archive')}
+      <header>
+        <button class="h-left" onclick="navTo('items')">←</button>
+        <span></span>
+      </header>
       <div class="metric-strip">
         <div class="metric-cell">
           <p class="metric-label">Archived</p>
@@ -2902,7 +2988,7 @@
             ? `<div class="grid">${arch.map(archiveGridCard).join('')}</div>`
             : arch.map(archiveRow).join('')}
       </div>
-      ${nav('wishlists')}`;
+      <div class="safe-bottom"></div>`;
   }
 
   // ═══════════════════════════════════════════
@@ -3484,7 +3570,7 @@
             <textarea class="form-input" id="f-note">${esc(f.note)}</textarea>
           </div>
           <div class="form-group">
-            <label class="form-label">Wishlist</label>
+            <label class="form-label">Add to List (optional)</label>
             <input type="hidden" id="f-wid" value="${esc(selectedWid)}" />
             <div class="wl-picker">
               ${wishlists.map(w => `
@@ -3685,7 +3771,7 @@
     s.wlItemEditMode = false;
     s.wlEditMode = false;
     // Keep wlSubTab in sync so the sub-tab indicator stays correct
-    if (screen === 'wishlists' || screen === 'items' || screen === 'archive') {
+    if (screen === 'items' || screen === 'category' || screen === 'wishlists') {
       s.wlSubTab = screen;
       s.currentWid = null;
       s.wlDetailFilterTags = [];
@@ -3699,17 +3785,17 @@
     s.wlItemEditMode = false;
     s.wlEditMode = false;
     if (tab === 'wishlists') {
-      const SUB_TABS = ['wishlists', 'items', 'archive'];
+      const SUB_TABS = ['items', 'category', 'wishlists'];
       const fromIdx = SUB_TABS.indexOf(s.screen);
-      // If already on a sub-tab that isn't wishlists, slide back to wishlists
+      // If already on a sub-tab that isn't the default (Items), slide back to it
       if (fromIdx > 0) {
         s.wlSlideDir = 'left';
       } else if (fromIdx === -1) {
         // Coming from a non-sub-tab screen (detail, stats, etc.) — no slide
         s.wlSlideDir = null;
       }
-      s.screen = 'wishlists';
-      s.wlSubTab = 'wishlists';
+      s.screen = 'items';
+      s.wlSubTab = 'items';
       s.currentWid = null;
       render();
       s.wlSlideDir = null;
@@ -3722,9 +3808,9 @@
     }
   }
 
-  // Switch between sub-tabs (Wishlists / Items / Archive) within the wishlists main tab
+  // Switch between sub-tabs (Items / Category / Lists) within the home main tab
   function setWlSubTab(tab) {
-    const SUB_TABS = ['wishlists', 'items', 'archive'];
+    const SUB_TABS = ['items', 'category', 'wishlists'];
     const fromIdx = SUB_TABS.indexOf(s.screen);
     const toIdx   = SUB_TABS.indexOf(tab);
     if (toIdx !== fromIdx) s.wlSlideDir = toIdx > fromIdx ? 'right' : 'left';
@@ -3821,6 +3907,7 @@
   }
 
   function openAddWishlist() {
+    s.fromScreen = s.screen;
     s.screen = 'add-wishlist';
     s.overlay = null;
     render();
@@ -3902,7 +3989,8 @@
       s.currentWid = s.addWid;
     } else {
       s.overlay = null;
-      s.screen = s.fromScreen === 'items' ? 'items' : 'wishlists';
+      s.screen = (s.fromScreen === 'items' || s.fromScreen === 'category' || s.fromScreen === 'wishlists')
+        ? s.fromScreen : 'items';
     }
     render();
   }
@@ -5596,7 +5684,7 @@
   function addManually() {
     s.addForm = {
       url: '', name: '', brand: '', tags: [], img: '', price: '', saved: '', note: '',
-      wid: s.addWid || wishlists[0]?.id || '',
+      wid: s.addWid || '',
       serious: false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false,
     };
     s.addStep = 'form';
@@ -5690,6 +5778,29 @@
     const idx = s.itemsFilterTags.indexOf(tag);
     if (idx === -1) s.itemsFilterTags = [...s.itemsFilterTags, tag];
     else s.itemsFilterTags = s.itemsFilterTags.filter(t => t !== tag);
+    render();
+  }
+
+  function setCategoryFilter(cat) {
+    if (cat === 'all') {
+      s.categoryFilters = [];
+    } else {
+      s.categoryFilters = s.categoryFilters.includes(cat)
+        ? s.categoryFilters.filter(c => c !== cat)
+        : [...s.categoryFilters, cat];
+    }
+    s.categorySubFilters = [];
+    render();
+  }
+
+  function setCategorySubFilter(sub) {
+    if (sub === 'all') {
+      s.categorySubFilters = [];
+    } else {
+      s.categorySubFilters = s.categorySubFilters.includes(sub)
+        ? s.categorySubFilters.filter(x => x !== sub)
+        : [...s.categorySubFilters, sub];
+    }
     render();
   }
 
@@ -5817,7 +5928,8 @@
   // ═══════════════════════════════════════════
 
   function setFormWl(wid) {
-    s.addForm.wid = wid;
+    // Tapping the already-selected list deselects it — adding to a list is optional.
+    s.addForm.wid = s.addForm.wid === wid ? '' : wid;
     s.addForm.showNewWl = false;
     render();
   }
@@ -6849,7 +6961,7 @@
     const MIN_X = 72;  // px horizontal travel to trigger
     let startX = 0, startY = 0, tracking = false, dragging = false;
 
-    const SWIPEABLE = new Set(['wishlist-detail','board-detail','item-detail','shared-item','add-item','add-wishlist']);
+    const SWIPEABLE = new Set(['wishlist-detail','board-detail','archive','item-detail','shared-item','add-item','add-wishlist']);
 
     function swipeBack() {
       switch (s.screen) {
@@ -6858,6 +6970,9 @@
           break;
         case 'board-detail':
           navTo('boards');
+          break;
+        case 'archive':
+          navTo('items');
           break;
         case 'item-detail': {
           const item = getItem(s.currentIid);
