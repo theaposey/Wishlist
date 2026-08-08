@@ -275,7 +275,7 @@
     .wl-slide-from-right { animation: wlSlideFromRight 0.42s cubic-bezier(0.4,0,0.2,1) both; }
     .wl-slide-from-left  { animation: wlSlideFromLeft  0.42s cubic-bezier(0.4,0,0.2,1) both; }
 
-    /* ─── Filter + view-toggle control bar ─── */
+    /* ─── Filter control bar ─── */
     .filter-control-bar {
       display: flex; align-items: stretch; border-bottom: 1px solid #f4f4f4;
       background: #fff; flex-shrink: 0; min-height: 40px; position: relative;
@@ -285,15 +285,6 @@
       padding: 8px 12px; touch-action: pan-x; align-items: center;
     }
     .filter-pills-scroll::-webkit-scrollbar { display: none; }
-    .filter-toggle-end {
-      display: flex; align-items: center; gap: 0; flex-shrink: 0;
-      padding: 0 10px 0 6px; background: #fff; position: sticky; right: 0;
-    }
-    .filter-toggle-end::before {
-      content: ''; display: block; width: 24px; height: 100%;
-      background: linear-gradient(to right, transparent, #fff);
-      position: absolute; left: -24px; top: 0; pointer-events: none;
-    }
 
     /* ─── Scroll areas ─── */
     .scroll-area {
@@ -453,6 +444,11 @@
       color: #bbb;
       margin-top: 2px;
     }
+    .owned-badge {
+      position: absolute; top: 8px; left: 8px; z-index: 2;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #000; display: flex; align-items: center; justify-content: center;
+    }
 
     /* ─── Item delete button (edit mode within wishlist) ─── */
     .item-delete-btn {
@@ -558,13 +554,6 @@
       margin-top: 3px;
       font-weight: 400;
     }
-    .view-toggle { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
-    .view-btn {
-      background: none; border: none; cursor: pointer;
-      padding: 6px; color: #ccc; display: flex; align-items: center;
-    }
-    .view-btn.active svg rect, .view-btn.active svg path { fill: #000; }
-    .view-btn svg rect, .view-btn svg path { fill: #ccc; }
 
     /* ─── List view rows ─── */
     .list-view { width: 100%; }
@@ -1398,6 +1387,18 @@
     }
     .wl-picker-pill.active { background: var(--accent); color: #000; border-color: var(--accent); }
     .wl-picker-add { color: #bbb; font-size: 14px; font-weight: 200; padding: 4px 12px; }
+    .toggle-switch {
+      width: 44px; height: 26px; border-radius: 13px; background: #e0e0e0;
+      border: none; position: relative; cursor: pointer; padding: 0; flex-shrink: 0;
+      transition: background 0.18s ease; -webkit-tap-highlight-color: transparent;
+    }
+    .toggle-switch.active { background: var(--accent); }
+    .toggle-switch-thumb {
+      position: absolute; top: 2px; left: 2px; width: 22px; height: 22px;
+      border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+      transition: transform 0.18s ease;
+    }
+    .toggle-switch.active .toggle-switch-thumb { transform: translateX(18px); }
     .wl-new-wl-input {
       border: none; border-bottom: 1px solid #000; outline: none;
       font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
@@ -1600,14 +1601,15 @@
     const now = Date.now();
     if (now - _lastStorageWarnAt < 15000) return;
     _lastStorageWarnAt = now;
-    showToast("Couldn't save — storage is full. Try removing some images.");
+    showActionToast("Couldn't save — storage is full.", 'Fix It', shrinkAllImages);
   }
 
   function saveData() {
     try {
       localStorage.setItem('vitrine_wishlists', JSON.stringify(wishlists));
       localStorage.setItem('vitrine_items', JSON.stringify(items));
-    } catch(e) { warnStorageFailure(); }
+      return true;
+    } catch(e) { warnStorageFailure(); return false; }
   }
 
   function loadData() {
@@ -1626,8 +1628,70 @@
   }
 
   function saveBoardData() {
-    try { localStorage.setItem('vitrine_boards', JSON.stringify(boards)); }
-    catch(e) { warnStorageFailure(); }
+    try { localStorage.setItem('vitrine_boards', JSON.stringify(boards)); return true; }
+    catch(e) { warnStorageFailure(); return false; }
+  }
+
+  // Retroactively shrinks any already-stored item image that predates the
+  // 1000px cap added to the background-removal pipeline. Existing users could
+  // have images saved at full source resolution eating most of the quota —
+  // this re-saves them smaller in place so future saves have room again.
+  function shrinkDataUrl(dataUrl, maxDim) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+        if (scale >= 1) { resolve(null); return; } // already small enough
+        const w = Math.round(img.naturalWidth * scale), h = Math.round(img.naturalHeight * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        try { resolve(canvas.toDataURL('image/webp', 0.9)); } catch { resolve(null); }
+      };
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
+    });
+  }
+
+  async function shrinkAllImages() {
+    if (s.shrinkingImages) return;
+    s.shrinkingImages = true;
+    render();
+    await new Promise(r => setTimeout(r, 0)); // yield so the "Optimizing…" state paints
+
+    const MAX_DIM = 1000;
+    const isOversizable = img => img && (img.startsWith('data:image/png') || img.startsWith('data:image/jpeg') || img.startsWith('data:image/webp'));
+    let changed = 0;
+    for (let i = 0; i < items.length; i++) {
+      const img = items[i].img;
+      if (!isOversizable(img)) continue;
+      const shrunk = await shrinkDataUrl(img, MAX_DIM);
+      if (shrunk && shrunk.length < img.length) {
+        items[i] = { ...items[i], img: shrunk };
+        changed++;
+      }
+    }
+    for (let i = 0; i < wishlists.length; i++) {
+      const img = wishlists[i].coverImg;
+      if (!isOversizable(img)) continue;
+      const shrunk = await shrinkDataUrl(img, MAX_DIM);
+      if (shrunk && shrunk.length < img.length) {
+        wishlists[i] = { ...wishlists[i], coverImg: shrunk };
+        changed++;
+      }
+    }
+
+    const ok = saveData();
+    s.shrinkingImages = false;
+    render();
+    if (!ok) {
+      showToast('Still full — try deleting a few items or images.');
+    } else if (changed > 0) {
+      showToast(`Shrunk ${changed} image${changed===1?'':'s'} — saving normally again.`);
+    } else {
+      showToast('Nothing to shrink — try deleting a few items instead.');
+    }
   }
 
   // ═══════════════════════════════════════════
@@ -1647,15 +1711,13 @@
     addIsEdit: false,
     wlEditMode: false,
     wlItemEditMode: false,
-    wlsViewMode: 'grid',   // view mode for the wishlists overview tab
     wlDetailFilterTags: [], // active tag filters inside a wishlist detail
-    wlViewMode: 'list',    // view mode inside a wishlist detail
-    itemsViewMode: 'grid',
     itemsFilterTags: [],
     categoryFilters: [],    // active category keys in the Category view; empty = All
     categorySubFilters: [], // active fashion subcategory keys; empty = All (only shown when 'fashion' is selected)
     addForm: { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid:'', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false },
     removingBg: false,
+    shrinkingImages: false,
     sharedItemIdx: 0,
     wlSlideDir: null,   // 'right' | 'left' | null — direction for sub-tab slide animation
     currentBoardId: null, // board shown on the board-detail (preview) screen
@@ -1692,6 +1754,12 @@
 
   const watchingItems = (wid=null) => items
     .filter(i => i.status === 'watching' && (wid ? i.wid === wid : true))
+    .sort((a,b) => b.addedAt - a.addedAt);
+  // Everything you've saved, watching or owned — used by the browsing grids
+  // (Items/Category/Lists) so items you already own don't just vanish from
+  // view once marked owned.
+  const savedItems = (wid=null) => items
+    .filter(i => (i.status === 'watching' || i.status === 'purchased') && (wid ? i.wid === wid : true))
     .sort((a,b) => b.addedAt - a.addedAt);
   const wishlistItems = (wid) => items
     .filter(i => (i.status === 'watching' || i.status === 'purchased') && i.wid === wid)
@@ -1762,6 +1830,17 @@
     _undoFn = null;
     clearTimeout(toastTimer);
     document.getElementById('toast').classList.remove('show');
+  }
+
+  // Same shape as showUndoToast but with a configurable label — used for
+  // toasts that offer to fix something rather than undo the last action.
+  function showActionToast(msg, label, fn) {
+    _undoFn = fn;
+    const el = document.getElementById('toast');
+    el.innerHTML = `<span>${msg}</span><button onclick="doUndo()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;padding:0;flex-shrink:0">${esc(label)}</button>`;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.classList.remove('show'); _undoFn = null; }, 6000);
   }
 
   // ═══════════════════════════════════════════
@@ -1899,11 +1978,11 @@
     return `
       <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} ${dragAttrs} ${lpAttrs} style="position:relative">
         ${deleteBtn}
+        ${purchased ? `<div class="owned-badge" title="Owned"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></div>` : ''}
         <div class="card-image">${imgH}</div>
         <div class="card-meta">
           ${item.brand ? `<p class="card-days" style="letter-spacing:0.12em">${esc(item.brand.toUpperCase())}</p>` : ''}
           <p class="card-name">${esc(item.name)}</p>
-          ${purchased ? `<p class="card-purchased-tag">Owned</p>` : ''}
           ${item.serious && !purchased ? `<p class="card-purchased-tag">Serious</p>` : ''}
           ${item.price && !purchased ? `<p class="card-price">${money(item.price)}</p>` : ''}
         </div>
@@ -1959,11 +2038,11 @@
     return `
       <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} style="position:relative">
         ${deleteBtn}
+        ${purchased ? `<div class="owned-badge" title="Owned"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></div>` : ''}
         <div class="card-image">${imgH}</div>
         <div class="card-meta">
           ${brandPrice ? `<p class="wl-card-brand-price">${esc(brandPrice)}</p>` : ''}
           <p class="wl-card-name">${esc(item.name)}</p>
-          ${purchased ? `<p class="card-purchased-tag">Owned</p>` : ''}
         </div>
       </div>`;
   }
@@ -2359,19 +2438,9 @@
                 <span class="wl-name-big">${esc(wl.name)}</span>
                 <span class="wl-count-sm">${watchCount} ${watchCount===1?'Item':'Items'}</span>
               </div>
-              <div class="view-toggle">
-                <button class="view-btn ${s.wlViewMode==='grid'?'active':''}" onclick="setWlView('grid')" title="Grid">
-                  <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
-                </button>
-                <button class="view-btn ${s.wlViewMode==='list'?'active':''}" onclick="setWlView('list')" title="List">
-                  <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
-                </button>
-              </div>
             </div>
           </div>
-          ${s.wlViewMode === 'list'
-            ? `<div class="list-view">${sItems.map((item, idx) => sharedItemListRow(item, idx)).join('')}</div>`
-            : `<div class="grid">${sItems.map((item, idx) => sharedItemCard(item, idx)).join('')}</div>`}
+          <div class="grid">${sItems.map((item, idx) => sharedItemCard(item, idx)).join('')}</div>
           ${sItems.length === 0 ? `<div style="padding:40px 28px"><p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#ccc">Nothing here yet.</p></div>` : ''}
         </div>
       </div>
@@ -2561,11 +2630,11 @@
   }
 
   function screenWishlists() {
-    const allWatching = watchingItems();
+    const allSaved = savedItems();
     const hasLists = wishlists.length > 0;
-    const uncategorized = allWatching.filter(i => !i.wid);
+    const uncategorized = allSaved.filter(i => !i.wid);
     const subtitle = hasLists
-      ? `${wishlists.length} ${wishlists.length===1?'list':'lists'} · ${allWatching.length} items`
+      ? `${wishlists.length} ${wishlists.length===1?'list':'lists'} · ${allSaved.length} items`
       : '';
     return `
       ${homeHeader('Lists', subtitle)}
@@ -2731,44 +2800,33 @@
   }
 
   function screenItems() {
-    const all = watchingItems();
+    const all = savedItems();
     const allTags = [...new Set(all.flatMap(i => i.tags || []))].sort();
     const active = s.itemsFilterTags;
     const filtered = active.length ? all.filter(i => active.some(t => (i.tags||[]).includes(t))) : all;
     return `
       ${homeHeader('Items', all.length ? `${all.length} ${all.length===1?'item':'items'}` : '')}
       ${subTabBar('items')}
+      ${allTags.length ? `
       <div class="filter-control-bar">
         <div class="filter-pills-scroll">
           ${allTags.map(t => `
             <button class="tag-filter-pill ${active.includes(t)?'active':''}" onclick="toggleItemsFilter('${esc(t)}')">${esc(t)}</button>
           `).join('')}
         </div>
-        <div class="filter-toggle-end">
-          <div class="view-toggle">
-            <button class="view-btn ${s.itemsViewMode==='grid'?'active':''}" onclick="setItemsView('grid')" title="Grid">
-              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="5.5" height="5.5"/><rect x="7.5" y="0" width="5.5" height="5.5"/><rect x="0" y="7.5" width="5.5" height="5.5"/><rect x="7.5" y="7.5" width="5.5" height="5.5"/></svg>
-            </button>
-            <button class="view-btn ${s.itemsViewMode==='list'?'active':''}" onclick="setItemsView('list')" title="List">
-              <svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0.5" width="13" height="2"/><rect x="0" y="5.5" width="13" height="2"/><rect x="0" y="10.5" width="13" height="2"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
+      </div>` : ''}
       <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
         ${all.length === 0 ? `
           <div class="empty-state" style="padding-top:60px">
             <p class="empty-hero">nothing<br/>here<br/>yet</p>
             <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap + to add your first item</p>
-          </div>` : s.itemsViewMode === 'list'
-            ? `<div class="list-view">${filtered.map(item => itemListRow(item)).join('')}</div>`
-            : `<div class="grid">${filtered.map(itemCard).join('')}</div>`}
+          </div>` : `<div class="grid">${filtered.map(itemCard).join('')}</div>`}
       </div>
       ${homeNav('wishlists')}`;
   }
 
   function screenCategory() {
-    const all = watchingItems();
+    const all = savedItems();
     const catFilters = s.categoryFilters;
     const subFilters = s.categorySubFilters;
     const sections = [
@@ -2992,6 +3050,28 @@
     items.forEach(i => (i.tags||[]).forEach(t => { if (t) tagCounts[t] = (tagCounts[t] || 0) + 1; }));
     const topTag = Object.entries(tagCounts).sort((a,b) => b[1]-a[1])[0] || null;
 
+    // Top category (Fashion/Beauty/Home) across all items ever, auto-detected
+    // for anything that was never explicitly categorized
+    const categoryCounts = {};
+    items.forEach(i => {
+      const cat = i.category || classifyItem(i).category;
+      if (cat) categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+    });
+    const topCategoryEntry = Object.entries(categoryCounts).sort((a,b) => b[1]-a[1])[0] || null;
+    const topCategory = topCategoryEntry
+      ? { label: CATEGORY_TAXONOMY[topCategoryEntry[0]]?.label || topCategoryEntry[0], count: topCategoryEntry[1] }
+      : null;
+
+    // Item that shows up in the most boards — only worth calling out once it repeats
+    const boardFeatureCounts = {};
+    boards.forEach(b => {
+      const seen = new Set((b.stickers || []).map(st => st.itemId).filter(Boolean));
+      seen.forEach(id => { boardFeatureCounts[id] = (boardFeatureCounts[id] || 0) + 1; });
+    });
+    const topFeaturedEntry = Object.entries(boardFeatureCounts).sort((a,b) => b[1]-a[1])[0] || null;
+    const mostFeatured = topFeaturedEntry && topFeaturedEntry[1] >= 2 ? getItem(topFeaturedEntry[0]) : null;
+    const mostFeaturedCount = topFeaturedEntry ? topFeaturedEntry[1] : 0;
+
     // Longest currently-watching item
     const oldest = watching.length > 0
       ? watching.reduce((a, b) => a.addedAt < b.addedAt ? a : b)
@@ -3012,8 +3092,7 @@
 
     if (items.length === 0) {
       return `
-        <div class="safe-top"></div>
-        <header><span class="h-left">Stats</span></header>
+        ${homeHeader('Stats', '')}
         <div class="scroll-area">
           <div class="empty-state">
             <p class="empty-hero">no<br/>data<br/>yet</p>
@@ -3023,40 +3102,49 @@
         ${homeNav('stats')}`;
     }
 
+    const featureCard = (item, metaLine) => `
+      <div onclick="openItem('${item.id}')" style="display:flex;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid #f4f4f4;cursor:pointer">
+        <div style="width:56px;height:56px;background:#f9f9f9;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center">
+          ${item.img
+            ? `<img src="${esc(item.img)}" style="width:100%;height:100%;object-fit:contain" />`
+            : `<span style="font-size:8px;letter-spacing:0.06em;text-transform:uppercase;color:#ccc;text-align:center;padding:4px;line-height:1.4">${esc(item.name)}</span>`}
+        </div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#bbb;margin-bottom:4px">${metaLine}</p>
+          <p style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(item.name)}</p>
+          ${item.price ? `<p style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-top:3px">${money(item.price)}</p>` : ''}
+        </div>
+        <span style="font-size:18px;color:#ddd;flex-shrink:0">›</span>
+      </div>`;
+
     return `
-      <div class="safe-top"></div>
-      <header>
-        <span class="h-left">Stats</span>
-      </header>
+      ${homeHeader('Stats', `${items.length} ${items.length===1?'item':'items'} tracked`)}
       <div class="scroll-area">
-        <div style="padding:36px 28px 80px">
+        <div style="padding:8px 28px 80px">
 
-          <p class="profile-hero" style="margin-bottom:8px">Your<br/>Desire<br/>Report</p>
-
-          ${(topBrand || topTag) ? sectionLabel('Your Pattern') : ''}
+          ${(topBrand || topTag || topCategory) ? sectionLabel('Your Pattern') : ''}
           ${topBrand ? statRow('Most Saved Brand', esc(topBrand[0]), topBrand[1] + ' ' + (topBrand[1] === 1 ? 'item' : 'items')) : ''}
-          ${topTag ? statRow('Top Category', esc(topTag[0]), topTag[1] + ' ' + (topTag[1] === 1 ? 'item' : 'items')) : ''}
+          ${topCategory ? statRow('Top Category', esc(topCategory.label), topCategory.count + ' ' + (topCategory.count === 1 ? 'item' : 'items')) : ''}
+          ${topTag ? statRow('Top Tag', esc(topTag[0]), topTag[1] + ' ' + (topTag[1] === 1 ? 'item' : 'items')) : ''}
 
           ${sectionLabel('Right Now')}
           ${statRow('Watching', watching.length + ' ' + (watching.length === 1 ? 'Item' : 'Items'))}
-          ${watchingValue > 0 ? statRow('Total Desire Value', money(watchingValue)) : ''}
-          ${purchasedValue > 0 ? statRow('Total Owned', money(purchasedValue)) : ''}
+          ${purchased.length > 0 ? statRow('Owned', purchased.length + ' ' + (purchased.length === 1 ? 'Item' : 'Items')) : ''}
+          ${watchingValue > 0 ? statRow('Value Watching', money(watchingValue)) : ''}
+          ${purchasedValue > 0 ? statRow('Value Owned', money(purchasedValue)) : ''}
+
+          ${sectionLabel('Your Collection')}
+          ${statRow('Lists', wishlists.length)}
+          ${statRow('Boards', boards.length)}
+          ${statRow('Items Saved', items.length)}
+
+          ${mostFeatured ? `
+          ${sectionLabel('Most Featured')}
+          ${featureCard(mostFeatured, `In ${mostFeaturedCount} Boards`)}` : ''}
 
           ${oldest ? `
           ${sectionLabel('Longest Watch')}
-          <div onclick="openItem('${oldest.id}')" style="display:flex;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid #f4f4f4;cursor:pointer">
-            <div style="width:56px;height:56px;background:#f9f9f9;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center">
-              ${oldest.img
-                ? `<img src="${esc(oldest.img)}" style="width:100%;height:100%;object-fit:contain" />`
-                : `<span style="font-size:8px;letter-spacing:0.06em;text-transform:uppercase;color:#ccc;text-align:center;padding:4px;line-height:1.4">${esc(oldest.name)}</span>`}
-            </div>
-            <div style="flex:1;min-width:0">
-              <p style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#bbb;margin-bottom:4px">${pad(oldestDays)} Days</p>
-              <p style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(oldest.name)}</p>
-              ${oldest.price ? `<p style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#bbb;margin-top:3px">${money(oldest.price)}</p>` : ''}
-            </div>
-            <span style="font-size:18px;color:#ddd;flex-shrink:0">›</span>
-          </div>` : ''}
+          ${featureCard(oldest, `${pad(oldestDays)} Days`)}` : ''}
 
         </div>
       </div>
@@ -3078,6 +3166,13 @@
                <button onclick="openEditName()" style="display:block;margin-top:16px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;background:none;border:none;font-family:inherit;cursor:pointer;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px">That's not my name</button>`
             : `<p class="profile-hero">Hello.</p>
                <button onclick="openEditName()" style="display:block;margin-top:16px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#bbb;background:none;border:none;font-family:inherit;cursor:pointer;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px">Add your name</button>`}
+          <div style="margin-top:40px;padding-top:24px;border-top:1px solid #f4f4f4">
+            <p style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#bbb;margin-bottom:10px">Storage</p>
+            <button onclick="shrinkAllImages()" ${s.shrinkingImages ? 'disabled' : ''} style="display:block;width:100%;text-align:left;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:${s.shrinkingImages?'#ccc':'#000'};background:none;border:1px solid #e0e0e0;padding:12px 14px;font-family:inherit;cursor:pointer">
+              ${s.shrinkingImages ? 'Optimizing Images…' : 'Free Up Storage'}
+            </button>
+            <p style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#ccc;margin-top:8px;line-height:1.5">Shrinks any oversized saved images. Use this if you're seeing a "storage full" message.</p>
+          </div>
         </div>
       </div>
       ${s.overlay === 'edit-name' ? `
@@ -3357,11 +3452,11 @@
                   onkeydown="currencyKeydown(event,'f-price')" readonly onfocus="this.removeAttribute('readonly')" />
               </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Ownership</label>
-            <div class="wl-picker">
-              <button type="button" class="wl-picker-pill ${f.owned?'active':''}" onclick="toggleFormOwned()">I already own this</button>
-            </div>
+          <div class="form-group" style="display:flex;align-items:center;justify-content:space-between">
+            <label class="form-label" style="margin-bottom:0">I Own This</label>
+            <button type="button" class="toggle-switch ${f.owned?'active':''}" onclick="toggleFormOwned()" role="switch" aria-checked="${f.owned?'true':'false'}" aria-label="I own this">
+              <span class="toggle-switch-thumb"></span>
+            </button>
           </div>
           <div class="form-group">
             <label class="form-label">Note</label>
@@ -5187,16 +5282,43 @@
     render();
   }
 
-  function handleWlEditCoverFile(input, wid) {
+  // A raw camera-roll photo can be several MB at full resolution — reading it
+  // straight into localStorage (as every file-upload path here used to do) is
+  // the single biggest way to blow the storage quota and lose data. Every
+  // upload goes through this cap first, no exceptions.
+  function capImageFile(file, maxDim = 1000) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const raw = e.target.result;
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+          if (scale >= 1) { resolve(raw); return; }
+          try {
+            const w = Math.round(img.naturalWidth * scale), h = Math.round(img.naturalHeight * scale);
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/webp', 0.88));
+          } catch { resolve(raw); }
+        };
+        img.onerror = () => resolve(raw);
+        img.src = raw;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleWlEditCoverFile(input, wid) {
     const file = input.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: e.target.result } : w);
-      saveData();
-      render();
-    };
-    reader.readAsDataURL(file);
+    const capped = await capImageFile(file);
+    if (!capped) return;
+    wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: capped } : w);
+    saveData();
+    render();
   }
 
   function openChangeCover(wid) {
@@ -5220,34 +5342,29 @@
 
   }
 
-  function handleCoverFile(input, wid) {
+  async function handleCoverFile(input, wid) {
     const file = input.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: e.target.result } : w);
-      saveData();
-      s.overlay = null;
-      render();
-  
-    };
-    reader.readAsDataURL(file);
+    const capped = await capImageFile(file);
+    if (!capped) return;
+    wishlists = wishlists.map(w => w.id === wid ? { ...w, coverImg: capped } : w);
+    saveData();
+    s.overlay = null;
+    render();
   }
 
   // ═══════════════════════════════════════════
   // ITEM IMAGE + FORM
   // ═══════════════════════════════════════════
 
-  function handleItemFile(input) {
+  async function handleItemFile(input) {
     const file = input.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      s.addForm.img = e.target.result;
-      render();
-      autoRemoveBgIfWhite();
-    };
-    reader.readAsDataURL(file);
+    const capped = await capImageFile(file);
+    if (!capped) return;
+    s.addForm.img = capped;
+    render();
+    autoRemoveBgIfWhite();
   }
 
   async function autoRemoveBgIfWhite() {
@@ -5438,7 +5555,7 @@
       }
 
       ctx.putImageData(imageData, 0, 0);
-      s.addForm.img = canvas.toDataURL('image/png');
+      s.addForm.img = canvas.toDataURL('image/webp', 0.9);
       s.removingBg = false;
       render();
     } catch(err) {
@@ -5492,9 +5609,6 @@
   // VIEW MODES + FILTER
   // ═══════════════════════════════════════════
 
-  function setWlsView(mode) { s.wlsViewMode = mode; render(); }
-  function setWlView(mode) { s.wlViewMode = mode; render(); }
-  function setItemsView(mode) { s.itemsViewMode = mode; render(); }
   function openAddWishlistItem(wid) { openAddItem(wid); }
 
   function toggleItemsFilter(tag) {
@@ -6013,7 +6127,7 @@
         }
       }
     }
-    if (minX > maxX || minY > maxY) return canvas.toDataURL('image/png');
+    if (minX > maxX || minY > maxY) return canvas.toDataURL('image/webp', 0.9);
 
     const cropW = maxX - minX + 1;
     const cropH = maxY - minY + 1;
@@ -6024,7 +6138,7 @@
     const octx = out.getContext('2d');
     octx.drawImage(canvas, minX, minY, cropW, cropH,
       Math.round((size - cropW) / 2), Math.round((size - cropH) / 2), cropW, cropH);
-    return out.toDataURL('image/png');
+    return out.toDataURL('image/webp', 0.9);
   }
 
 
@@ -6132,10 +6246,15 @@
       if (!board) return;
       _boardEditId = boardId;
       _boardName = board.name;
-      _boardStickers = (board.stickers || []).map(st => {
+      const rawStickers = board.stickers || [];
+      // A sticker whose item no longer exists (e.g. lost to a past storage-full
+      // save failure) can't render anything — drop it instead of keeping a
+      // blank tile that silently vanishes from the board again on next save.
+      _boardStickers = rawStickers.map(st => {
         const item = getItem(st.itemId);
-        const sticker = { itemId: st.itemId, img: item?.img || '', name: item?.name || '', x: st.x, y: st.y, w: st.w, h: st.h, aspect: st.w / st.h };
-        if (item?.img) {
+        if (!item) return null;
+        const sticker = { itemId: st.itemId, img: item.img || '', name: item.name || '', x: st.x, y: st.y, w: st.w, h: st.h, aspect: st.w / st.h };
+        if (item.img) {
           const _img = new Image();
           _img.onload = () => {
             if (_img.naturalWidth && _img.naturalHeight) {
@@ -6145,7 +6264,11 @@
           _img.src = item.img;
         }
         return sticker;
-      });
+      }).filter(Boolean);
+      const droppedCount = rawStickers.length - _boardStickers.length;
+      if (droppedCount > 0) {
+        showToast(`${droppedCount} item${droppedCount===1?'':'s'} no longer available — removed from this board.`);
+      }
     } else {
       _boardEditId = null;
       _boardName = 'My Board';
