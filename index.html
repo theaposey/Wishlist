@@ -106,10 +106,11 @@
       margin-top: 4px;
       -webkit-tap-highlight-color: transparent;
     }
+    /* Matches .sub-tab-bar's natural height (35px) so Boards/Stats empty
+       states center at the same spot as Items/Lists — see .safe-top pairing
+       in minimalHeader(). */
     .minimal-hdr {
-      padding: calc(env(safe-area-inset-top, 44px) + 14px) 20px 6px;
-      display: flex;
-      justify-content: flex-end;
+      height: 35px;
       flex-shrink: 0;
     }
 
@@ -291,6 +292,14 @@
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+    }
+    /* When a .scroll-area's only content is an .empty-state, this makes that
+       state truly vertically center in the remaining space — so "nothing here
+       yet" / "no boards yet" / "no data yet" all land in the same spot
+       regardless of how tall the header above them is. */
+    .scroll-area-empty {
+      display: flex;
+      flex-direction: column;
     }
 
     /* ─── Grid ─── */
@@ -1763,17 +1772,11 @@
       </div>`;
   }
 
-  // Titleless header for Boards / Stats — just the safe-area spacer + Profile icon.
+  // Titleless header for Boards / Stats — safe-area spacer + a bar matching
+  // .sub-tab-bar's height, so empty states land at the same spot as Items/Lists.
+  // Profile icon removed for now (see subTabBar) — nav('profile') still works if re-added.
   function minimalHeader() {
-    return `
-      <div class="minimal-hdr">
-        <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="10" cy="7" r="3.5"/>
-            <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
-          </svg>
-        </button>
-      </div>`;
+    return `<div class="safe-top"></div><div class="minimal-hdr"></div>`;
   }
 
   function subTabBar(active) {
@@ -1786,12 +1789,6 @@
           <button class="sub-tab ${active===t?'active':''}" onclick="setWlSubTab('${t}')">
             <span>${labels[t]}</span>
           </button>`).join('')}
-        <button class="sub-tab-profile-btn" onclick="navTab('profile')" title="Profile">
-          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="10" cy="7" r="3.5"/>
-            <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
-          </svg>
-        </button>
       </div>`;
   }
 
@@ -2434,12 +2431,12 @@
     return `
       <div class="safe-top"></div>
       ${subTabBar('wishlists')}
-      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll" style="padding-top:10px">
+      <div class="scroll-area${(!hasLists && !uncategorized.length) ? ' scroll-area-empty' : ''}${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll"${(!hasLists && !uncategorized.length) ? '' : ' style="padding-top:10px"'}>
         ${hasLists
           ? wishlists.map((wl, idx) => homeWlRow(wl, idx)).join('')
           : `<div class="empty-state">
                <p class="empty-hero">nothing<br/>here<br/>yet</p>
-               <p style="margin-top:20px;font-size:13px;color:#ccc;font-weight:400">Tap + to create your first one</p>
+               <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap + to create your first one</p>
              </div>`}
         ${uncategorized.length ? `
           <div class="section-title-row" style="border-top:1px solid #f4f4f4;margin:8px 16px 0">
@@ -2602,13 +2599,13 @@
           `).join('')}
         </div>
       </div>` : ''}
-      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
+      <div class="scroll-area${!filtered.length ? ' scroll-area-empty' : ''}${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll">
         ${all.length === 0 ? `
-          <div class="empty-state" style="padding-top:60px">
+          <div class="empty-state">
             <p class="empty-hero">nothing<br/>here<br/>yet</p>
             <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Tap + to add your first item</p>
           </div>` : filtered.length ? `<div class="grid">${filtered.map(itemCard).join('')}</div>` : `
-          <div class="empty-state" style="padding-top:60px">
+          <div class="empty-state">
             <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#ccc">No items match the selected filters.</p>
           </div>`}
       </div>
@@ -2622,7 +2619,7 @@
   function screenBoards() {
     return `
       ${minimalHeader()}
-      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll" style="padding-top:10px">
+      <div class="scroll-area${boards.length === 0 ? ' scroll-area-empty' : ''}${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll"${boards.length === 0 ? '' : ' style="padding-top:10px"'}>
         ${boards.length === 0 ? `
           <div class="empty-state">
             <p class="empty-hero">no<br/>boards<br/>yet</p>
@@ -2809,10 +2806,10 @@
     if (items.length === 0) {
       return `
         ${minimalHeader()}
-        <div class="scroll-area">
+        <div class="scroll-area scroll-area-empty">
           <div class="empty-state">
             <p class="empty-hero">no<br/>data<br/>yet</p>
-            <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Start saving items to see your patterns</p>
+            <p style="margin-top:20px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ccc;text-align:left">Start curating to see your patterns</p>
           </div>
         </div>
         ${homeNav('stats')}`;
