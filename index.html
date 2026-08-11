@@ -2964,9 +2964,7 @@
       <div class="item-detail-actions">
         ${!item.wid && wishlists.length ? `
           <button class="btn btn-outline" onclick="openMoveToWishlist('${item.id}')">+ Add to a List</button>` : ''}
-        ${purchased
-          ? `<button class="btn btn-black" onclick="addBackToWishlist('${item.id}')">Add Back to List</button>`
-          : `<button class="btn btn-text" onclick="openDeleteOverlay('${item.id}')">Remove</button>`}
+        <button class="btn btn-text" onclick="openDeleteOverlay('${item.id}')">Remove</button>
       </div>
       <div style="height:max(env(safe-area-inset-bottom,0px),20px)"></div>`;
   }
@@ -3660,10 +3658,20 @@
       'request could not be satisfied', 'error occurred when we tried',
       '404 not found', '500 internal server', 'service unavailable',
       'bad gateway', 'gateway timeout',
+      // Akamai / Imperva / PerimeterX / generic WAF block pages — common on
+      // luxury retail sites (Net-a-Porter, etc.) with aggressive bot protection
+      'pardon our interruption', 'reference id', 'incapsula incident',
+      'request unsuccessful', 'unusual traffic', 'automated access',
+      'protected by akamai', 'powered and protected by',
+      'blocked by network security', 'has been blocked',
     ];
     if (JUNK.some(j => t.includes(j))) return true;
     // Title starts with "ERROR" or "error" with no product-like content
     if (/^error[:\s]/i.test(t)) return true;
+    // "Forbidden - Depop", "Forbidden | Site" — bare error-page titles.
+    // (Not a plain `t.includes('forbidden')` check — that would also flag a
+    // legitimately named product like "Forbidden Fruit Eau de Parfum".)
+    if (/^forbidden\s*[-|–—]/i.test(t)) return true;
     if (!t) return true; // no title at all = not a product page
     // Cloudflare JS challenge HTML markers
     if (html.includes('cf-browser-verification') ||
@@ -4062,11 +4070,43 @@
     return { title, image, price: price.replace(/[^0-9.]/g, ''), brand: brand.trim() };
   }
 
-  // Shared by every "paste a link" entry point. Kicks off Microlink + 4 CORS-proxy
-  // HTML fetches for a URL, each normalized to a common { name, brand, img, price }
-  // shape. Callers merge fields across whichever of these resolve — no single
-  // source is treated as authoritative, so a proxy missing the image doesn't
-  // block another one from supplying it.
+  // Parses the plain-text/Markdown response from r.jina.ai's Reader API — used
+  // as a fallback source alongside the raw-HTML proxies. Jina renders the page
+  // itself (like Microlink) so it gets past some bot walls the dumb HTML
+  // proxies don't, but it hands back Markdown, not tags, so this needs its own
+  // lightweight extraction rather than parseOgFromHtml's DOM-based one.
+  function parseJinaMarkdown(text, baseUrl) {
+    const titleMatch = text.match(/^Title:\s*(.*)$/m);
+    const rawTitle = (titleMatch?.[1] || '').trim();
+    if (isBlockedPage(text, rawTitle)) throw new Error('blocked');
+    const title = cleanTitle(rawTitle);
+
+    // First markdown image link that doesn't look like a logo/icon/tracking pixel
+    let image = '';
+    const imgRe = /!\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/g;
+    let m;
+    while ((m = imgRe.exec(text))) {
+      const src = m[1];
+      if (/logo|icon|sprite|favicon|avatar|placeholder|pixel|\.svg(\?|$)/i.test(src)) continue;
+      image = src;
+      break;
+    }
+    if (image && !image.startsWith('http')) {
+      try { image = new URL(image, baseUrl).href; } catch {}
+    }
+
+    if (!title && !image) throw new Error('empty');
+    // No price extraction here — Markdown has no structured price field, and a
+    // wrong regex match would silently lock in a bad number (first source to
+    // report a field wins). Other sources cover price when they succeed.
+    return { title, image, price: '', brand: '' };
+  }
+
+  // Shared by every "paste a link" entry point. Kicks off Microlink + several
+  // CORS-proxy/reader HTML fetches for a URL, each normalized to a common
+  // { name, brand, img, price } shape. Callers merge fields across whichever
+  // of these resolve — no single source is treated as authoritative, so a
+  // proxy missing the image doesn't block another one from supplying it.
   function buildMetaSources(url, abort) {
     const urlMeta = parseUrlFallback(url);
     const stripBrandPrefix = (name, brand) => {
@@ -4096,6 +4136,11 @@
     ).then(async r => {
       const ml = await r.json();
       if (ml.status !== 'success') throw new Error('ml-fail');
+      // Microlink's own request succeeding doesn't mean the target page did —
+      // a 404/redirect-to-homepage/soft-block still reports status:'success'
+      // with whatever page it landed on (e.g. Depop 404s to its own homepage).
+      const code = ml.data?.statusCode;
+      if (code != null && (code < 200 || code >= 400)) throw new Error('bad-status');
       if (isBlockedPage('', ml.data.title || '')) throw new Error('blocked');
       return normalizeMl(ml.data);
     });
@@ -4108,19 +4153,16 @@
           .then(r => r.json()).then(j => ({ html: j.contents || '' }))
       ),
       proxyFetch(
-        fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, { signal: abort.signal })
-          .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
-          .then(h => ({ html: h }))
-      ),
-      proxyFetch(
         fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, { signal: abort.signal })
           .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
           .then(h => ({ html: h }))
       ),
-      proxyFetch(
-        fetch(`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`, { signal: abort.signal })
-          .then(r => r.text()).then(h => ({ html: h }))
-      ),
+      // r.jina.ai: renders the page like a real browser (like Microlink) rather
+      // than a dumb server-side GET, so it gets past some bot walls the two
+      // proxies above don't — but hands back Markdown, so it needs its own parser.
+      fetch(`https://r.jina.ai/${url}`, { signal: abort.signal })
+        .then(r => { if (!r.ok) throw new Error('http-' + r.status); return r.text(); })
+        .then(text => normalizeHtml(parseJinaMarkdown(text, url))),
     ];
 
     return { urlMeta, allSources: [mlPromise, ...htmlProxies] };
@@ -4368,14 +4410,6 @@
     render();
   }
 
-  function addBackToWishlist(id) {
-    items = items.map(i => i.id === id ? { ...i, status:'watching', reason:null } : i);
-    saveData();
-    s.overlay = null;
-    s.screen = s.fromScreen === 'items' ? 'items' : s.fromScreen === 'board-detail' ? 'board-detail' : 'wishlist-detail';
-    s.currentWid = s.fromWid || s.currentWid;
-    render();
-  }
 
   function openDeleteOverlay(id) {
     s.currentIid = id;
@@ -4759,7 +4793,7 @@
         // External URL — fetch via proxy first
         const proxies = [
           'https://api.allorigins.win/raw?url=' + encodeURIComponent(src),
-          'https://corsproxy.io/?' + encodeURIComponent(src),
+          'https://wsrv.nl/?url=' + encodeURIComponent(src),
         ];
         let dataUrl = null;
         for (const proxy of proxies) {
@@ -4844,7 +4878,7 @@
       if (!src.startsWith('data:')) {
         const proxies = [
           'https://api.allorigins.win/raw?url=' + encodeURIComponent(src),
-          'https://corsproxy.io/?' + encodeURIComponent(src),
+          'https://wsrv.nl/?url=' + encodeURIComponent(src),
         ];
         for (const proxy of proxies) {
           try {
@@ -5443,7 +5477,7 @@
     if (!src.startsWith('data:')) {
       const proxies = [
         'https://api.allorigins.win/raw?url=' + encodeURIComponent(src),
-        'https://corsproxy.io/?' + encodeURIComponent(src),
+        'https://wsrv.nl/?url=' + encodeURIComponent(src),
       ];
       for (const proxy of proxies) {
         try {
