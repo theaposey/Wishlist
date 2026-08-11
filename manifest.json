@@ -1,6 +1,6 @@
 {
-  "name": "The Wishlist",
-  "short_name": "Wishlist",
+  "name": "Curate",
+  "short_name": "Curate",
   "description": "Save what you want. Share what you love.",
   "start_url": "/Wishlist/",
   "display": "standalone",

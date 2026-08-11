@@ -10,20 +10,20 @@
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-XFFKTX850F', {
-      page_title: 'The Wishlist',
+      page_title: 'Curate',
       page_location: location.href
     });
   </script>
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="The Wishlist" />
-  <meta property="og:title" content="The Wishlist" />
+  <meta name="apple-mobile-web-app-title" content="Curate" />
+  <meta property="og:title" content="Curate" />
   <meta property="og:description" content="Save what you want. Share what you love." />
   <meta property="og:image" content="/icon.svg" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="The Wishlist" />
+  <meta name="twitter:title" content="Curate" />
   <meta name="twitter:description" content="Save what you want. Share what you love." />
   <meta name="twitter:image" content="/icon.svg" />
   <link rel="manifest" href="manifest.json" />
@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <title>The Wishlist</title>
+  <title>Curate</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --accent: #0264FD; }
@@ -1905,7 +1905,7 @@
       <div class="install-dlg-header">
         <div class="install-dlg-icon"></div>
         <div class="install-dlg-titles">
-          <span class="install-dlg-name">The Wishlist</span>
+          <span class="install-dlg-name">Curate</span>
           <span class="install-dlg-sub">Web Application</span>
         </div>
         <button class="install-dlg-close" onclick="dismissOnboarding()">×</button>
@@ -1949,7 +1949,7 @@
       <div class="install-dlg-header" style="padding-bottom:10px">
         <div class="install-dlg-icon"></div>
         <div class="install-dlg-titles">
-          <span class="install-dlg-name">The Wishlist</span>
+          <span class="install-dlg-name">Curate</span>
           <span class="install-dlg-sub">Web Application</span>
         </div>
         <button class="install-dlg-close" onclick="dismissOnboarding()">×</button>
@@ -2064,7 +2064,7 @@
       <div class="name-prompt" id="name-prompt">
         <div class="name-prompt-hero">
           <p class="ob-eyebrow">Alpha Version</p>
-          <h1 class="name-prompt-title">Wishlist</h1>
+          <h1 class="name-prompt-title">Curate</h1>
           <p class="name-prompt-sub">You're using an early build.<br/>Sign up with your name and email to start — we'll let you know when the app hits the App Store.</p>
         </div>
         <div class="name-prompt-body">
@@ -2247,7 +2247,7 @@
         ${shareData?.perm === 'edit'
           ? `<button onclick="importSharedWishlist()" style="width:100%;padding:16px;background:#000;color:#fff;border:none;font-family:inherit;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:14px">Import &amp; Edit</button>`
           : ''}
-        <p style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#bbb">Saved with The Wishlist</p>
+        <p style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#bbb">Saved with Curate</p>
       </div>
       <div class="safe-bottom"></div>`;
   }
@@ -2313,7 +2313,7 @@
               </svg>
               Open Link
             </a>` : ''}
-            <a class="btn btn-black" href="https://theaposey.github.io/Wishlist/#install" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">Get The Wishlist</a>
+            <a class="btn btn-black" href="https://theaposey.github.io/Wishlist/#install" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">Get Curate</a>
           </div>
         </div>
       </div>`;
@@ -6399,7 +6399,7 @@
   })();
 
   // ─── Web Share Target ────────────────────────────────────────────
-  // When the user taps "Share → The Wishlist" in their browser, the OS
+  // When the user taps "Share → Curate" in their browser, the OS
   // opens the app at /?url=<product-url> (per manifest share_target).
   // Detect it, clean the URL from history, and immediately fetch.
   (function handleShareTarget() {

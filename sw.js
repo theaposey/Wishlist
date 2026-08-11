@@ -1,4 +1,4 @@
-const CACHE = 'wishlist-v125';
+const CACHE = 'curate-v126';
 const BASE = '/Wishlist';
 const SHELL = [BASE + '/index.html', BASE + '/manifest.json', BASE + '/sw.js', BASE + '/icon.png', BASE + '/install.html'];
 
