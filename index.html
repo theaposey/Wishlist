@@ -95,20 +95,6 @@
     .h-muted { color: #bbb !important; }
 
     /* ─── Home screen header ─── */
-    .home-screen-hdr {
-      padding: calc(env(safe-area-inset-top, 44px) + 14px) 20px 6px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-    .home-big-title {
-      font-size: 42px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1;
-      color: #000;
-    }
     .home-profile-btn {
       width: 32px; height: 32px;
       background: #efefef;
@@ -119,6 +105,12 @@
       flex-shrink: 0;
       margin-top: 4px;
       -webkit-tap-highlight-color: transparent;
+    }
+    .minimal-hdr {
+      padding: calc(env(safe-area-inset-top, 44px) + 14px) 20px 6px;
+      display: flex;
+      justify-content: flex-end;
+      flex-shrink: 0;
     }
 
     /* ─── Home nav (left pill tabs + right FAB) ─── */
@@ -438,21 +430,13 @@
       cursor: pointer;
     }
 
-    /* ─── Purchased / faded item treatment ─── */
-    .card-purchased .card-image img { opacity: 0.42; }
+    /* ─── Purchased item treatment ─── */
     .card-purchased .card-image .ph { color: #ddd; }
     .card-purchased .card-name { color: #ccc; }
     .card-purchased .card-days { color: #e0e0e0; }
     .card-purchased .card-price { color: #ddd; }
-    .card-purchased-tag {
-      font-size: 8px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #bbb;
-      margin-top: 2px;
-    }
     .owned-badge {
-      position: absolute; top: 8px; left: 8px; z-index: 2;
+      position: absolute; top: 8px; right: 8px; z-index: 2;
       width: 20px; height: 20px; border-radius: 50%;
       background: #000; display: flex; align-items: center; justify-content: center;
     }
@@ -460,7 +444,7 @@
     /* ─── Item delete button (edit mode within wishlist) ─── */
     .item-delete-btn {
       position: absolute;
-      top: 0; right: 0;
+      top: 0; left: 0;
       z-index: 10;
       width: 22px; height: 22px;
       background: #000;
@@ -623,10 +607,6 @@
     }
     .list-meta { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; margin-top: 2px; }
     .list-price { font-size: 10px; letter-spacing: 0.06em; color: #000; flex-shrink: 0; }
-    .list-row-purchased .list-thumb img { opacity: 0.4; }
-    .list-row-purchased .list-name { color: #ccc; }
-    .list-row-purchased .list-meta { color: #ddd; }
-    .list-row-purchased .list-price { color: #ddd; }
 
     /* ─── Notes-style item rows (wishlist detail) ─── */
     .note-row {
@@ -662,7 +642,6 @@
       font-size: 13px; font-weight: 400; letter-spacing: 0;
       color: #888; flex-shrink: 0;
     }
-    .note-row-purchased .note-thumb img { opacity: 0.35; }
     .note-row-purchased .note-name { color: #aaa; }
     .note-row-purchased .note-meta { color: #bbb; }
     .note-row-purchased .note-price { color: #ccc; }
@@ -856,17 +835,16 @@
       text-transform: uppercase;
     }
     .name-prompt-input::placeholder { color: #ccc; font-weight: 400; }
+    .name-prompt-field.has-error .name-prompt-input { border-bottom-color: #e33; }
+    .name-prompt-error {
+      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #e33; margin-top: 8px; min-height: 11px;
+    }
     .name-prompt-actions { padding: 0 28px 20px; }
     .name-prompt-cta {
       display: block; width: 100%; background: #000; color: #fff; border: none;
       font-family: inherit; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-      padding: 16px; cursor: pointer; margin-bottom: 12px;
-    }
-    .name-prompt-skip {
-      display: block; width: 100%; background: none; border: none;
-      font-family: inherit; font-size: 9px; letter-spacing: 0.15em;
-      text-transform: uppercase; color: #bbb; padding: 10px 0;
-      cursor: pointer; text-align: center;
+      padding: 16px; cursor: pointer;
     }
 
     /* ─── Empty state ─── */
@@ -1240,27 +1218,6 @@
       -webkit-box-orient: vertical; overflow: hidden;
     }
 
-    /* ─── Quick save ─── */
-    .quick-save-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-    .quick-save-input {
-      border: none; border-bottom: 1px solid #d8d8d8;
-      padding: 5px 0; font-size: 13px; font-family: inherit;
-      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
-      width: 100px;
-    }
-    .quick-save-input:focus { border-bottom-color: #000; }
-    .quick-save-btn {
-      font-family: inherit; font-size: 9px; letter-spacing: 0.18em;
-      text-transform: uppercase; background: var(--accent); color: #000;
-      border: none; padding: 8px 12px; cursor: pointer;
-    }
-    .quick-save-trigger {
-      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
-      background: none; border: none; border-bottom: 1px solid #000;
-      padding-bottom: 2px; cursor: pointer; font-family: inherit; color: #000;
-      margin-top: 10px; display: inline-block;
-    }
-
     /* ─── Currency field ─── */
     .currency-field {
       display: inline-flex; align-items: baseline;
@@ -1596,7 +1553,7 @@
 
   const s = {
     screen: 'items',
-    wlSubTab: 'items',  // 'items' | 'category' | 'wishlists' — sub-tab within the home main tab (Items is the default landing view)
+    wlSubTab: 'items',  // 'items' | 'wishlists' — sub-tab within the home main tab (Items is the default landing view)
     overlay: null,
     currentWid: null,
     currentIid: null,
@@ -1610,9 +1567,9 @@
     wlDetailFilterTags: [], // active tag filters inside a wishlist detail
     wlPickerFilterTags: [], // active tag filters inside the "add saved items to this list" picker
     itemsFilterTags: [],
-    categoryFilters: [],    // active category keys in the Category view; empty = All
+    categoryFilters: [],    // active category filter pills on Items; empty = All
     categorySubFilters: [], // active fashion subcategory keys; empty = All (only shown when 'fashion' is selected)
-    addForm: { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid:'', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false },
+    addForm: { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid:'', showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false },
     removingBg: false,
     shrinkingImages: false,
     sharedItemIdx: 0,
@@ -1637,15 +1594,7 @@
   const fmtDate = ts => new Date(ts).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
   const sumPrice = arr => arr.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
-  const seriousWatchingItems = (wid=null) => watchingItems(wid).filter(i => !!i.serious);
-  const casualWatchingItems = (wid=null) => watchingItems(wid).filter(i => !i.serious);
   const totalWatchingValue = (wid=null) => sumPrice(watchingItems(wid));
-  const seriousWatchingValue = (wid=null) => sumPrice(seriousWatchingItems(wid));
-  const casualWatchingValue = (wid=null) => sumPrice(casualWatchingItems(wid));
-  const savedAmount = item => Math.max(0, Number(item?.saved) || 0);
-  const totalSaved = (wid=null) => watchingItems(wid).reduce((sum, i) => sum + savedAmount(i), 0);
-  const totalLeft = (wid=null) => Math.max(0, totalWatchingValue(wid) - totalSaved(wid));
-  const gapAmount = item => Math.max((Number(item?.price) || 0) - savedAmount(item), 0);
 
   const watchingItems = (wid=null) => items
     .filter(i => i.status === 'watching' && (wid ? i.wid === wid : true))
@@ -1814,30 +1763,23 @@
       </div>`;
   }
 
-  // Shared header for the three home sub-tabs (Items / Category / Lists) —
-  // big title + the Profile icon.
-  function homeHeader(title, subtitle) {
+  // Titleless header for Boards / Stats — just the safe-area spacer + Profile icon.
+  function minimalHeader() {
     return `
-      <div class="home-screen-hdr">
-        <div>
-          <p class="home-big-title">${esc(title)}</p>
-          ${subtitle ? `<p style="font-size:13px;color:#aaa;margin-top:5px;font-weight:400">${esc(subtitle)}</p>` : ''}
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="10" cy="7" r="3.5"/>
-              <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
-            </svg>
-          </button>
-        </div>
+      <div class="minimal-hdr">
+        <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="7" r="3.5"/>
+            <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
+          </svg>
+        </button>
       </div>`;
   }
 
   function subTabBar(active) {
-    // active = 'items' | 'category' | 'wishlists' (wishlists screen id == "Lists" view)
-    const tabs = ['items','category','wishlists'];
-    const labels = { items:'Items', category:'Category', wishlists:'Lists' };
+    // active = 'items' | 'wishlists' (wishlists screen id == "Lists" view)
+    const tabs = ['items','wishlists'];
+    const labels = { items:'Items', wishlists:'Lists' };
     return `
       <div class="sub-tab-bar">
         ${tabs.map(t => `
@@ -1871,13 +1813,6 @@
       : `<div class="ph">${esc(item.name)}</div>`;
     const deleteBtn = s.wlItemEditMode
       ? `<div class="item-delete-btn" onclick="removeItem(event,'${item.id}')">×</div>` : '';
-    const dragAttrs = s.wlItemEditMode
-      ? `draggable="true"
-         ondragstart="itemDragStart(event,${idx})"
-         ondragover="itemDragOver(event,${idx})"
-         ondragleave="itemDragLeave(event)"
-         ondrop="itemDrop(event,${idx})"
-         ondragend="itemDragEnd(event)"` : '';
     const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
     const lpAttrs = s.wlItemEditMode ? '' :
       `onpointerdown="itemLongPressStart(event,'${item.id}')"
@@ -1885,14 +1820,13 @@
        onpointermove="itemLongPressCancel()"
        onpointerleave="itemLongPressCancel()"`;
     return `
-      <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} ${dragAttrs} ${lpAttrs} style="position:relative">
+      <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} ${lpAttrs} style="position:relative">
         ${deleteBtn}
         ${purchased ? `<div class="owned-badge" title="Owned"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></div>` : ''}
         <div class="card-image">${imgH}</div>
         <div class="card-meta">
           ${item.brand ? `<p class="card-days" style="letter-spacing:0.12em">${esc(item.brand.toUpperCase())}</p>` : ''}
           <p class="card-name">${esc(item.name)}</p>
-          ${item.serious && !purchased ? `<p class="card-purchased-tag">Serious</p>` : ''}
           ${item.price && !purchased ? `<p class="card-price">${money(item.price)}</p>` : ''}
         </div>
       </div>`;
@@ -1924,28 +1858,6 @@
   }
 
 
-  // Card variant for wishlist detail grid — brand·price line + name, no day prefix
-  function wlDetailCard(item) {
-    const purchased = item.status === 'purchased';
-    const imgH = item.img
-      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
-      : `<div class="ph">${esc(item.name)}</div>`;
-    const brandPrice = [item.brand, item.price ? money(item.price) : ''].filter(Boolean).join(' · ');
-    const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
-    const deleteBtn = s.wlItemEditMode
-      ? `<div class="item-delete-btn" onclick="removeItem(event,'${item.id}')">×</div>` : '';
-    return `
-      <div class="card ${purchased ? 'card-purchased' : ''}" ${clickAttr} style="position:relative">
-        ${deleteBtn}
-        ${purchased ? `<div class="owned-badge" title="Owned"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></div>` : ''}
-        <div class="card-image">${imgH}</div>
-        <div class="card-meta">
-          ${brandPrice ? `<p class="wl-card-brand-price">${esc(brandPrice)}</p>` : ''}
-          <p class="wl-card-name">${esc(item.name)}</p>
-        </div>
-      </div>`;
-  }
-
   function updateWlDescription(wid) {
     const el = document.getElementById('wl-desc-input');
     if (!el) return;
@@ -1967,69 +1879,6 @@
     return `<div class="wl-collage wl-collage-${n}">
       ${imgs.map(i => `<img src="${i.img}" alt="" loading="lazy" />`).join('')}
     </div>`;
-  }
-
-  function wishlistCard(wl, idx) {
-    const count = watchingItems(wl.id).length;
-    const thumbH = wishlistCollage(wl.id);
-
-    if (s.wlEditMode) {
-      return `
-        <div class="card card-editing"
-          draggable="true"
-          ondragstart="wlDragStart(event,${idx})"
-          ondragover="wlDragOver(event,${idx})"
-          ondragleave="wlDragLeave(event)"
-          ondrop="wlDrop(event,${idx})"
-          ondragend="wlDragEnd(event)">
-          <div class="wl-delete-btn" onclick="confirmDeleteWishlist('${wl.id}')">−</div>
-          <div class="card-image" style="overflow:hidden">${thumbH}</div>
-          <div class="card-meta">
-            <p class="folder-label">${esc(wl.name)}</p>
-            <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
-          </div>
-        </div>`;
-    }
-
-    return `
-      <div class="card"
-        onclick="openWl('${wl.id}')"
-        onpointerdown="wlLongPressStart()"
-        onpointerup="wlLongPressCancel()"
-        onpointermove="wlLongPressCancel()"
-        onpointerleave="wlLongPressCancel()">
-        <div class="card-image" style="overflow:hidden">${thumbH}</div>
-        <div class="card-meta">
-          <p class="folder-label">${esc(wl.name)}</p>
-          <p class="folder-count">${count} ${count===1?'Item':'Items'}</p>
-        </div>
-      </div>`;
-  }
-
-  function wishlistListRow(wl, idx) {
-    const count = watchingItems(wl.id).length;
-    const totalVal = totalWatchingValue(wl.id);
-    const thumb = wishlistCollage(wl.id);
-    const deleteBtn = s.wlEditMode
-      ? `<div class="list-delete-btn" onclick="confirmDeleteWishlist('${wl.id}')">×</div>` : '';
-    const dragAttrs = s.wlEditMode
-      ? `draggable="true"
-         ondragstart="wlDragStart(event,${idx})"
-         ondragover="wlDragOver(event,${idx})"
-         ondragleave="wlDragLeave(event)"
-         ondrop="wlDrop(event,${idx})"
-         ondragend="wlDragEnd(event)"` : '';
-    const clickAttr = s.wlEditMode ? '' : `onclick="openWl('${wl.id}')"`;
-    return `
-      <div class="list-row ${s.wlEditMode ? 'card-editing' : ''}" ${clickAttr} ${dragAttrs} style="position:relative">
-        ${deleteBtn}
-        ${s.wlEditMode ? `<span class="list-drag-handle">⠿</span>` : ''}
-        <div class="list-thumb" style="overflow:hidden">${thumb}</div>
-        <div class="list-info">
-          <p class="list-name">${esc(wl.name)}</p>
-          <p class="list-meta">${count} ${count===1?'Item':'Items'}${totalVal ? ` · ${money(totalVal)}` : ''}</p>
-        </div>
-      </div>`;
   }
 
   // ═══════════════════════════════════════════
@@ -2194,6 +2043,20 @@
     try { localStorage.setItem('vtr_user_name', name.trim()); } catch(e) {}
   }
 
+  function getUserEmail() {
+    try { return localStorage.getItem('vtr_user_email') || ''; } catch(e) { return ''; }
+  }
+
+  function saveUserEmail(email) {
+    try { localStorage.setItem('vtr_user_email', email.trim()); } catch(e) {}
+  }
+
+  // A "signed in" user, on this no-backend/offline-first app, is simply someone
+  // who has completed the local sign-up gate — there's no server-side account.
+  function isSignedIn() {
+    return !!getUserName();
+  }
+
   const SIGNUP_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzw0GAxLcssdIfux9t0J6XPZ2k3bC8TQhbDAQvWtDhBTASkbDhYyBsajG77VpYOQQyx/exec';
 
   function showNamePrompt() {
@@ -2202,25 +2065,28 @@
         <div class="name-prompt-hero">
           <p class="ob-eyebrow">Alpha Version</p>
           <h1 class="name-prompt-title">Wishlist</h1>
-          <p class="name-prompt-sub">You're using an early build.<br/>Leave your email and we'll let you know when the app hits the App Store — and we may reach out for your initial thoughts.</p>
+          <p class="name-prompt-sub">You're using an early build.<br/>Sign up with your name and email to start — we'll let you know when the app hits the App Store.</p>
         </div>
         <div class="name-prompt-body">
-          <div class="name-prompt-field">
+          <div class="name-prompt-field" id="name-prompt-name-field">
             <p class="name-prompt-label">Your name</p>
             <input class="name-prompt-input" id="name-prompt-input" type="text"
               placeholder="First name" autocomplete="given-name" autocorrect="off"
-              onkeydown="if(event.key==='Enter')document.getElementById('email-prompt-input').focus()" />
+              oninput="clearNamePromptError('name')"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('email-prompt-input').focus();}" />
+            <p class="name-prompt-error" id="name-prompt-name-error"></p>
           </div>
-          <div class="name-prompt-field">
+          <div class="name-prompt-field" id="name-prompt-email-field">
             <p class="name-prompt-label">Email</p>
             <input class="name-prompt-input" id="email-prompt-input" type="email"
               placeholder="your@email.com" autocomplete="email" autocorrect="off" autocapitalize="off"
-              onkeydown="if(event.key==='Enter')confirmName()" />
+              oninput="clearNamePromptError('email')"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();confirmName();}" />
+            <p class="name-prompt-error" id="email-prompt-error"></p>
           </div>
         </div>
         <div class="name-prompt-actions">
-          <button class="name-prompt-cta" onclick="confirmName()">Continue</button>
-          <button class="name-prompt-skip" onclick="skipName()">Skip for now</button>
+          <button class="name-prompt-cta" onclick="confirmName()">Sign Up</button>
         </div>
       </div>`;
     setTimeout(() => {
@@ -2229,13 +2095,41 @@
     }, 100);
   }
 
+  function clearNamePromptError(field) {
+    const fieldEl = document.getElementById(`name-prompt-${field}-field`);
+    const errEl = document.getElementById(field === 'name' ? 'name-prompt-name-error' : 'email-prompt-error');
+    fieldEl?.classList.remove('has-error');
+    if (errEl) errEl.textContent = '';
+  }
+
   function confirmName() {
     const nameEl = document.getElementById('name-prompt-input');
     const emailEl = document.getElementById('email-prompt-input');
     const name = nameEl ? nameEl.value.trim() : '';
     const email = emailEl ? emailEl.value.trim() : '';
-    if (name) saveUserName(name);
-    if ((name || email) && !localStorage.getItem('vtr_signed_up')) {
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    const nameField = document.getElementById('name-prompt-name-field');
+    const emailField = document.getElementById('name-prompt-email-field');
+    const nameErr = document.getElementById('name-prompt-name-error');
+    const emailErr = document.getElementById('email-prompt-error');
+
+    let valid = true;
+    if (!name) {
+      nameField?.classList.add('has-error');
+      if (nameErr) nameErr.textContent = 'Please enter your name.';
+      valid = false;
+    }
+    if (!emailOk) {
+      emailField?.classList.add('has-error');
+      if (emailErr) emailErr.textContent = 'Please enter a valid email.';
+      valid = false;
+    }
+    if (!valid) return;
+
+    saveUserName(name);
+    saveUserEmail(email);
+    if (!localStorage.getItem('vtr_signed_up')) {
       localStorage.setItem('vtr_signed_up', '1');
       fetch(SIGNUP_SHEET_URL, {
         method: 'POST',
@@ -2243,10 +2137,7 @@
       }).catch(() => {});
     }
     render();
-  }
-
-  function skipName() {
-    render();
+    maybeShowInstallPrompt();
   }
 
   function dismissOnboarding() {
@@ -2261,12 +2152,22 @@
     }
   }
 
+  // Nudge to install as a PWA — shown after sign-up, only in Safari/browser
+  // (not yet installed) and only if the user hasn't dismissed it before.
+  function maybeShowInstallPrompt() {
+    const isInstalled = window.navigator.standalone === true
+      || window.matchMedia('(display-mode: standalone)').matches;
+    const obDismissed = (() => { try { return !!localStorage.getItem('vtr_ob_dismissed'); } catch(e) { return false; } })();
+    if (!isInstalled && !obDismissed) {
+      setTimeout(showOnboarding, 800);
+    }
+  }
+
   function buildScreen() {
     switch(s.screen) {
       case 'wishlists':       return screenWlTab();
       case 'wishlist-detail': return screenWlDetail();
       case 'items':           return screenWlTab();
-      case 'category':        return screenWlTab();
       case 'boards':          return screenBoards();
       case 'board-detail':    return screenBoardDetail();
       case 'board-editor':    return screenBoardEditor();
@@ -2281,12 +2182,11 @@
     }
   }
 
-  // Wraps items/category/wishlists into a single tabbed view (the home tab)
+  // Wraps items/wishlists into a single tabbed view (the home tab)
   // Uses s.screen as source of truth so direct screen assignments work correctly
   function screenWlTab() {
     s.wlSubTab = s.screen; // keep in sync
     switch(s.screen) {
-      case 'category':  return screenCategory();
       case 'wishlists': return screenWishlists();
       default:          return screenItems();
     }
@@ -2317,8 +2217,8 @@
     const cover = wl.coverImg && wl.coverImg.startsWith('http') ? wl.coverImg : '';
     const watchCount = sItems.length;
     const headerTitle = senderName
-      ? `${esc(senderName.toUpperCase())}'S WISHLIST`
-      : 'SHARED WISHLIST';
+      ? `${esc(senderName.toUpperCase())}'S LIST`
+      : 'SHARED LIST';
     return `
       <div class="safe-top"></div>
       <header>
@@ -2431,7 +2331,7 @@
     const newWlId = 'w' + genId();
     const newWl = {
       id: newWlId,
-      name: wl.name || 'Imported Wishlist',
+      name: wl.name || 'Imported List',
       coverImg: wl.coverImg || null,
       description: wl.description || '',
     };
@@ -2447,7 +2347,6 @@
       note: item.note || null,
       price: item.price || null,
       saved: item.saved || 0,
-      serious: item.serious || false,
       addedAt: item.addedAt || Date.now(),
       status: 'watching',
       reason: null,
@@ -2458,7 +2357,7 @@
     s.currentWid = newWlId;
     s.screen = 'wishlist-detail';
     render();
-    showToast('Wishlist imported — it\'s yours now.');
+    showToast('List imported — it\'s yours now.');
   }
 
   // ── Share encoding: compact keys + deflate compression ──────────
@@ -2561,9 +2460,6 @@
     const wItems = activeTags.length
       ? allWItems.filter(i => activeTags.some(t => (i.tags||[]).includes(t)))
       : allWItems;
-    const watchCount = watchingItems(wl.id).length;
-    const totalValue = totalWatchingValue(wl.id);
-    const wlSaved = totalSaved(wl.id);
     const cover = wl.coverImg;
 
     const coverPanel = s.overlay === 'change-cover' && s.currentWid === wl.id
@@ -2678,19 +2574,25 @@
     const active = s.itemsFilterTags;
     const filtered = active.length ? subFiltered.filter(i => active.some(t => (i.tags||[]).includes(t))) : subFiltered;
 
+    const presentCats = new Set(all.map(i => categorize(i).cat));
+    const presentFashionSubs = new Set(all.filter(i => categorize(i).cat === 'fashion').map(i => categorize(i).sub).filter(Boolean));
+    const catEntries = Object.entries(CATEGORY_TAXONOMY).filter(([key]) => presentCats.has(key));
+    const subEntries = CATEGORY_TAXONOMY.fashion.subcategories.filter(sub => presentFashionSubs.has(sub));
+
     return `
       <div class="safe-top"></div>
       ${subTabBar('items')}
+      ${catEntries.length ? `
       <div class="tag-filter-bar">
         <button class="tag-filter-pill ${!catFilters.length?'active':''}" onclick="setCategoryFilter('all')">All</button>
         <span class="tag-filter-divider"></span>
-        ${Object.entries(CATEGORY_TAXONOMY).map(([key,def]) => `<button class="tag-filter-pill ${catFilters.includes(key)?'active':''}" onclick="setCategoryFilter('${key}')">${esc(def.label)}</button>`).join('')}
-      </div>
-      ${catFilters.includes('fashion') ? `
+        ${catEntries.map(([key,def]) => `<button class="tag-filter-pill ${catFilters.includes(key)?'active':''}" onclick="setCategoryFilter('${key}')">${esc(def.label)}</button>`).join('')}
+      </div>` : ''}
+      ${catFilters.includes('fashion') && subEntries.length ? `
       <div class="tag-filter-bar">
         <button class="tag-filter-pill ${!subFilters.length?'active':''}" onclick="setCategorySubFilter('all')">All</button>
         <span class="tag-filter-divider"></span>
-        ${CATEGORY_TAXONOMY.fashion.subcategories.map(sub => `<button class="tag-filter-pill ${subFilters.includes(sub)?'active':''}" onclick="setCategorySubFilter('${sub}')">${esc(SUBCATEGORY_LABELS[sub])}</button>`).join('')}
+        ${subEntries.map(sub => `<button class="tag-filter-pill ${subFilters.includes(sub)?'active':''}" onclick="setCategorySubFilter('${sub}')">${esc(SUBCATEGORY_LABELS[sub])}</button>`).join('')}
       </div>` : ''}
       ${allTags.length ? `
       <div class="filter-control-bar">
@@ -2713,76 +2615,13 @@
       ${homeNav('wishlists')}`;
   }
 
-  function categoryDirectoryRow(key, label, catItems) {
-    const count = catItems.length;
-    const imgs = catItems.filter(i => i.img).slice(0, 4);
-    const thumb = imgs.length
-      ? `<div class="wl-collage wl-collage-${imgs.length}">${imgs.map(i => `<img src="${i.img}" alt="" loading="lazy" />`).join('')}</div>`
-      : `<div class="folder-initial">${esc(label[0])}</div>`;
-    return `
-      <div class="home-wl-row" onclick="openCategoryFromDirectory('${key}')">
-        <div class="home-wl-row-img">${thumb}</div>
-        <div class="home-wl-row-info">
-          <p class="home-wl-row-meta">${count} ${count===1?'item':'items'}</p>
-          <p class="home-wl-row-name">${esc(label)}</p>
-        </div>
-      </div>`;
-  }
-
-  function screenCategory() {
-    const all = savedItems();
-    const sections = [
-      { key: 'fashion', label: 'Fashion' },
-      { key: 'beauty', label: 'Beauty' },
-      { key: 'home', label: 'Home' },
-    ];
-    const categorize = (item) => {
-      const guess = classifyItem(item);
-      return { cat: item.category || guess.category, sub: item.subcategory || guess.subcategory };
-    };
-    const grouped = { fashion: [], beauty: [], home: [] };
-    all.forEach(item => {
-      const { cat } = categorize(item);
-      if (cat && grouped[cat]) grouped[cat].push(item);
-    });
-
-    return `
-      <div class="safe-top"></div>
-      ${subTabBar('category')}
-      <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll" style="padding-top:10px">
-        ${sections.map(sec => categoryDirectoryRow(sec.key, sec.label, grouped[sec.key])).join('')}
-        <div class="safe-bottom"></div>
-      </div>
-      ${homeNav('wishlists')}`;
-  }
-
-  function openCategoryFromDirectory(key) {
-    s.categoryFilters = [key];
-    s.categorySubFilters = [];
-    s.screen = 'items';
-    s.wlSubTab = 'items';
-    render();
-  }
-
   // ═══════════════════════════════════════════
   // BOARDS SCREENS
   // ═══════════════════════════════════════════
 
   function screenBoards() {
-    const subtitle = boards.length > 0 ? `${boards.length} ${boards.length===1?'board':'boards'}` : '';
     return `
-      <div class="home-screen-hdr">
-        <div>
-          <p class="home-big-title">Boards</p>
-          ${subtitle ? `<p style="font-size:13px;color:#aaa;margin-top:5px;font-weight:400">${subtitle}</p>` : ''}
-        </div>
-        <button class="home-profile-btn" onclick="navTab('profile')" title="Profile">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="10" cy="7" r="3.5"/>
-            <path d="M3,18c0-3.87 3.13-7 7-7s7,3.13 7,7"/>
-          </svg>
-        </button>
-      </div>
+      ${minimalHeader()}
       <div class="scroll-area${s.wlSlideDir?' wl-slide-from-'+s.wlSlideDir:''}" id="wl-subtab-scroll" style="padding-top:10px">
         ${boards.length === 0 ? `
           <div class="empty-state">
@@ -2897,7 +2736,7 @@
                 </div>`).join('')
               : baseItems.length
                 ? `<p class="be-panel-empty">No items match the selected filters</p>`
-                : `<p class="be-panel-empty">Add items to your wishlist first</p>`}
+                : `<p class="be-panel-empty">Add some items first</p>`}
           </div>
         </div>
         <div class="be-action-bar" id="be-action-bar">
@@ -2969,7 +2808,7 @@
 
     if (items.length === 0) {
       return `
-        ${homeHeader('Stats', '')}
+        ${minimalHeader()}
         <div class="scroll-area">
           <div class="empty-state">
             <p class="empty-hero">no<br/>data<br/>yet</p>
@@ -2995,7 +2834,7 @@
       </div>`;
 
     return `
-      ${homeHeader('Stats', `${items.length} ${items.length===1?'item':'items'} tracked`)}
+      ${minimalHeader()}
       <div class="scroll-area">
         <div style="padding:8px 28px 80px">
 
@@ -3126,7 +2965,7 @@
       ${item.note ? metaRow('Note', `<span style="white-space:normal;font-size:14px">${esc(item.note)}</span>`) : ''}
 
       <div class="item-detail-actions">
-        ${!item.wid && !purchased && wishlists.length ? `
+        ${!item.wid && wishlists.length ? `
           <button class="btn btn-outline" onclick="openMoveToWishlist('${item.id}')">+ Add to a List</button>` : ''}
         ${purchased
           ? `<button class="btn btn-black" onclick="addBackToWishlist('${item.id}')">Add Back to List</button>`
@@ -3366,14 +3205,14 @@
   function buildOverlay() {
     if (s.overlay === 'confirm-delete-wl') {
       const wl = getWl(s.pendingDeleteWlId);
-      const name = wl ? wl.name : 'this wishlist';
+      const name = wl ? wl.name : 'this list';
       return `
         <div class="item-sheet-backdrop" onclick="s.overlay=null;render()" style="z-index:310"></div>
         <div class="item-sheet" style="z-index:311;max-height:50dvh">
           <div class="item-sheet-handle"></div>
           <div style="padding:28px 24px 8px;text-align:center">
             <p style="font-size:18px;font-weight:700;letter-spacing:-0.02em;margin-bottom:10px">Delete "${esc(name)}"?</p>
-            <p style="font-size:14px;color:#999;line-height:1.5;margin-bottom:28px">All items in this wishlist will be deleted permanently and cannot be undone.</p>
+            <p style="font-size:14px;color:#999;line-height:1.5;margin-bottom:28px">All items in this list will be deleted permanently and cannot be undone.</p>
             <button onclick="deleteWishlist('${s.pendingDeleteWlId}')"
               style="width:100%;background:#e33;color:#fff;border:none;font-family:inherit;font-size:15px;font-weight:600;padding:16px;border-radius:12px;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent">
               Delete
@@ -3428,7 +3267,7 @@
             <p style="font-size:12px;color:#bbb;margin-bottom:24px;line-height:1.5">
               ${perm==='view'
                 ? 'Recipient can browse items but cannot add or remove anything.'
-                : 'Recipient can add items from your wishlist to their own.'}
+                : 'Recipient can add items from your list to their own.'}
             </p>
             <button onclick="confirmShareWishlist('${wl.id}')"
               style="width:100%;background:var(--accent);color:#fff;border:none;font-family:inherit;font-size:15px;font-weight:600;padding:16px;border-radius:12px;cursor:pointer;-webkit-tap-highlight-color:transparent">
@@ -3480,7 +3319,7 @@
           <div style="padding:8px 20px 0">
             <button onclick="deleteWlFromSheet('${wl.id}')"
               style="width:100%;background:none;border:none;font-family:inherit;font-size:13px;color:#e33;padding:12px;cursor:pointer;-webkit-tap-highlight-color:transparent">
-              Delete Wishlist
+              Delete List
             </button>
           </div>
           <div style="height:max(env(safe-area-inset-bottom,0px),20px)"></div>
@@ -3574,7 +3413,7 @@
     s.wlItemEditMode = false;
     s.wlEditMode = false;
     // Keep wlSubTab in sync so the sub-tab indicator stays correct
-    if (screen === 'items' || screen === 'category' || screen === 'wishlists') {
+    if (screen === 'items' || screen === 'wishlists') {
       s.wlSubTab = screen;
       s.currentWid = null;
       s.wlDetailFilterTags = [];
@@ -3588,7 +3427,7 @@
     s.wlItemEditMode = false;
     s.wlEditMode = false;
     if (tab === 'wishlists') {
-      const SUB_TABS = ['items', 'category', 'wishlists'];
+      const SUB_TABS = ['items', 'wishlists'];
       const fromIdx = SUB_TABS.indexOf(s.screen);
       // If already on a sub-tab that isn't the default (Items), slide back to it
       if (fromIdx > 0) {
@@ -3616,7 +3455,7 @@
 
   // Switch between sub-tabs (Items / Category / Lists) within the home main tab
   function setWlSubTab(tab) {
-    const SUB_TABS = ['items', 'category', 'wishlists'];
+    const SUB_TABS = ['items', 'wishlists'];
     const fromIdx = SUB_TABS.indexOf(s.screen);
     const toIdx   = SUB_TABS.indexOf(tab);
     if (toIdx !== fromIdx) s.wlSlideDir = toIdx > fromIdx ? 'right' : 'left';
@@ -3726,7 +3565,7 @@
     s.addStep = 'url';
     s.addIsEdit = false;
     s.clipboardChecked = false;
-    s.addForm = { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid: wid || '', serious:false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false };
+    s.addForm = { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid: wid || '', showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false };
     s.screen = 'add-item';
     s.overlay = null;
     render();
@@ -3770,7 +3609,6 @@
       saved: item.saved != null ? String(item.saved) : '',
       note: item.note || '',
       wid: item.wid || '',
-      serious: !!item.serious,
       category: item.category || '',
       subcategory: item.subcategory || '',
       owned: item.status === 'purchased',
@@ -3795,7 +3633,7 @@
       s.currentWid = s.addWid;
     } else {
       s.overlay = null;
-      s.screen = (s.fromScreen === 'items' || s.fromScreen === 'category' || s.fromScreen === 'wishlists')
+      s.screen = (s.fromScreen === 'items' || s.fromScreen === 'wishlists')
         ? s.fromScreen : 'items';
     }
     render();
@@ -3804,24 +3642,6 @@
   function closeOverlay() {
     s.overlay = null;
     render();
-  }
-
-  function openQuickSave(id) {
-    s.currentIid = id;
-    s.overlay = 'quick-save';
-    render();
-    setTimeout(() => document.getElementById('quick-save-input')?.focus(), 60);
-  }
-
-  function commitQuickSave(id) {
-    const val = document.getElementById('quick-save-input')?.value;
-    const amount = parseFloat(val);
-    if (isNaN(amount) || amount < 0) return;
-    items = items.map(i => i.id === id ? { ...i, saved: savedAmount(i) + amount } : i);
-    saveData();
-    s.overlay = null;
-    render();
-
   }
 
   // ═══════════════════════════════════════════
@@ -4451,13 +4271,6 @@
     render();
   }
 
-  function setAddIntent(value) {
-    const input = document.getElementById('f-serious');
-    if (input) input.value = value;
-    document.getElementById('intent-casual')?.classList.toggle('active', value === 'casual');
-    document.getElementById('intent-serious')?.classList.toggle('active', value === 'serious');
-  }
-
   function saveItem() {
     const name = document.getElementById('f-name')?.value.trim();
     if (!name) { document.getElementById('f-name')?.focus(); return; }
@@ -4469,7 +4282,6 @@
     const saved = savedEl?.dataset.cents ? String(parseInt(savedEl.dataset.cents,10) / 100) : savedEl?.value;
     const note = document.getElementById('f-note')?.value.trim();
     const wid = document.getElementById('f-wid')?.value;
-    const serious = document.getElementById('f-serious')?.value === 'serious';
     const img = s.addForm.img || null;
 
     // Whatever the user explicitly picked in the Category/Subcategory pills wins;
@@ -4493,7 +4305,6 @@
         saved: saved ? parseFloat(saved) : 0,
         note,
         wid: wid || null,
-        serious,
         img: img || i.img,
         category,
         subcategory,
@@ -4514,7 +4325,6 @@
         note,
         price: price ? parseFloat(price) : null,
         saved: saved ? parseFloat(saved) : 0,
-        serious,
         category, subcategory,
         addedAt: Date.now(), status, reason: null,
       };
@@ -4592,7 +4402,6 @@
       if (item?.wid) s.currentWid = item.wid;
     } else {
       s.screen = s.fromScreen === 'items' ? 'items'
-        : s.fromScreen === 'category' ? 'category'
         : s.fromScreen === 'stats' ? 'stats'
         : s.fromScreen === 'board-detail' ? 'board-detail'
         : 'wishlist-detail';
@@ -4605,11 +4414,6 @@
   // ═══════════════════════════════════════════
   // WISHLIST EDIT MODE + DRAG
   // ═══════════════════════════════════════════
-
-  function toggleWlEdit() {
-    s.wlEditMode = !s.wlEditMode;
-    render();
-  }
 
   function toggleWlItemEdit() {
     s.wlItemEditMode = !s.wlItemEditMode;
@@ -4830,108 +4634,6 @@
       saveData();
       render();
     });
-  }
-
-  // ── Pointer-based list drag (smooth, animated) ──────────────────────
-  let _listDrag = null; // active drag state
-
-  function listDragStart(e, fromIdx) {
-    // Only drag within wishlist detail list view
-    if (s.screen !== 'wishlist-detail') return;
-    e.preventDefault();
-    e.stopPropagation();
-
-    const rows = [...document.querySelectorAll('.list-view .list-row')];
-    const srcRow = rows[fromIdx];
-    if (!srcRow) return;
-
-    const rect = srcRow.getBoundingClientRect();
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const offsetY = clientY - rect.top;
-
-    // Build ghost clone
-    const ghost = srcRow.cloneNode(true);
-    ghost.className = 'drag-ghost';
-    ghost.style.top = rect.top + 'px';
-    ghost.style.height = rect.height + 'px';
-    ghost.style.opacity = '0';
-    document.body.appendChild(ghost);
-    // Animate ghost in
-    requestAnimationFrame(() => {
-      ghost.style.transition = 'opacity 0.12s ease, top 0.14s cubic-bezier(0.16,1,0.3,1)';
-      ghost.style.opacity = '1';
-    });
-
-    srcRow.classList.add('dragging');
-
-    _listDrag = { fromIdx, curIdx: fromIdx, offsetY, ghost, rows, rowHeights: rows.map(r => r.getBoundingClientRect().height) };
-
-    document.addEventListener('pointermove', _listDragMove, { passive: false });
-    document.addEventListener('pointerup', _listDragEnd);
-    document.addEventListener('pointercancel', _listDragEnd);
-  }
-
-  function _listDragMove(e) {
-    if (!_listDrag) return;
-    e.preventDefault();
-    const { offsetY, ghost, rows, rowHeights, fromIdx } = _listDrag;
-    const clientY = e.clientY;
-    const ghostTop = clientY - offsetY;
-    ghost.style.transition = 'opacity 0.12s ease';
-    ghost.style.top = ghostTop + 'px';
-
-    // Determine which row we're over
-    let newIdx = fromIdx;
-    for (let i = 0; i < rows.length; i++) {
-      if (i === fromIdx) continue;
-      const r = rows[i].getBoundingClientRect();
-      const mid = r.top + r.height / 2;
-      if (clientY < mid) { newIdx = i; break; }
-      newIdx = i;
-    }
-    // Clamp
-    newIdx = Math.max(0, Math.min(rows.length - 1, newIdx));
-
-    // Update row indicators
-    rows.forEach((r, i) => {
-      r.classList.remove('drag-over-above', 'drag-over-below');
-      if (i !== fromIdx && i === newIdx) {
-        r.classList.add(newIdx < fromIdx ? 'drag-over-above' : 'drag-over-below');
-      }
-    });
-
-    _listDrag.curIdx = newIdx;
-  }
-
-  function _listDragEnd(e) {
-    if (!_listDrag) return;
-    document.removeEventListener('pointermove', _listDragMove);
-    document.removeEventListener('pointerup', _listDragEnd);
-    document.removeEventListener('pointercancel', _listDragEnd);
-
-    const { fromIdx, curIdx, ghost, rows } = _listDrag;
-    _listDrag = null;
-
-    // Animate ghost out
-    ghost.style.transition = 'opacity 0.14s ease';
-    ghost.style.opacity = '0';
-    setTimeout(() => ghost.remove(), 150);
-
-    rows.forEach(r => r.classList.remove('dragging', 'drag-over-above', 'drag-over-below'));
-
-    if (fromIdx === curIdx) return;
-
-    // Commit reorder
-    const wid = s.currentWid;
-    const wlList = wishlistItems(wid);
-    const moved = wlList.splice(fromIdx, 1)[0];
-    wlList.splice(curIdx, 0, moved);
-    const base = Date.now();
-    wlList.forEach((itm, i) => {
-      items = items.map(x => x.id === itm.id ? { ...x, order: base - i * 1000 } : x);
-    });
-    saveData();
-    render();
   }
 
   // ═══════════════════════════════════════════
@@ -5252,7 +4954,7 @@
     s.addForm = {
       url: '', name: '', brand: '', tags: [], img: '', price: '', saved: '', note: '',
       wid: s.addWid || '',
-      serious: false, showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false,
+      showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false,
     };
     s.addStep = 'form';
     s.screen = 'add-item';
@@ -5262,30 +4964,6 @@
   // ═══════════════════════════════════════════
   // LIST RENDERERS
   // ═══════════════════════════════════════════
-
-  function itemListRow(item, idx=0) {
-    const purchased = item.status === 'purchased';
-    const thumbH = item.img
-      ? `<img src="${item.img}" alt="${esc(item.name)}" loading="lazy" />`
-      : `<div class="ph">${esc(item.name)}</div>`;
-    const clickAttr = s.wlItemEditMode ? '' : `onclick="openItem('${item.id}')"`;
-    return `
-      <div class="swipe-row-wrap" onpointerdown="swipeRowStart(event,'${item.id}')">
-        <div class="swipe-inner">
-          <div class="list-row ${purchased ? 'list-row-purchased' : ''} ${s.newlyAddedId === item.id ? 'item-row-new' : ''}" data-idx="${idx}" ${clickAttr}>
-            ${s.wlItemEditMode ? `<span class="list-drag-handle" onpointerdown="event.stopPropagation();listDragStart(event,${idx})">⠿</span>` : ''}
-            <div class="list-thumb">${thumbH}</div>
-            <div class="list-info">
-              <p class="list-name">${esc(item.name)}</p>
-              <p class="list-meta">${purchased ? 'Owned' : item.serious ? 'Serious' : 'Watching'}</p>
-            </div>
-            ${item.price ? `<span class="list-price">${money(item.price)}</span>` : ''}
-          </div>
-          <button class="swipe-act-btn swipe-act-delete" onclick="swipeDeleteItem('${item.id}')">Delete</button>
-          <button class="swipe-act-btn swipe-act-purchase" onclick="swipePurchaseItem('${item.id}')">Purchase</button>
-        </div>
-      </div>`;
-  }
 
   // ═══════════════════════════════════════════
   // VIEW MODES + FILTER
@@ -5620,7 +5298,7 @@
     if (!wl) return;
     const wItems = watchingItems(wid);
     const senderName = getUserName();
-    const shareTitle = senderName ? `${senderName}'s Wishlist` : wl.name;
+    const shareTitle = senderName ? `${senderName}'s List` : wl.name;
 
     // ── Build share URL — only http images included (no network calls before
     // navigator.share). CompressionStream is local so it's safe to await here;
@@ -6447,7 +6125,7 @@
           url: bm.url || '', name: bm.name || '', brand: bm.brand || '',
           tags: [], img: bm.img || '', price: bm.price || '',
           saved: '', note: '', wid: wishlists[0]?.id || '',
-          serious: false, showImgEdit: false, showTagInput: false,
+          showImgEdit: false, showTagInput: false,
           tagQuery: '', showNewWl: false,
         };
       } catch {}
@@ -6502,13 +6180,13 @@
     if (shareData) {
       // Viewing a shared wishlist — skip onboarding and name prompt
       render();
+    } else if (!isSignedIn()) {
+      // First-time user — mandatory sign-up gate, blocks the rest of the app
+      showNamePrompt();
     } else if (!isInstalled && !obDismissed) {
-      // Not installed yet — render app first, then show install dialog after a short delay
+      // Signed in, but not installed yet — render app, then show install dialog after a short delay
       render();
       setTimeout(showOnboarding, 800);
-    } else if (!getUserName()) {
-      // Installed (or browser user) but no name set yet — prompt for name
-      showNamePrompt();
     } else {
       render();
     }
@@ -6544,7 +6222,6 @@
         case 'item-detail': {
           const item = getItem(s.currentIid);
           if (s.fromScreen === 'items') navTo('items');
-          else if (s.fromScreen === 'category') navTo('category');
           else if (s.fromScreen === 'wishlists') navTo('wishlists');
           else if (item?.wid) openWl(item.wid);
           else navTo('wishlists');
@@ -6639,7 +6316,7 @@
   // the content visually follows the finger during the drag (rather than only
   // snapping at release) so it doesn't feel choppy.
   (function initSubTabSwipe() {
-    const SUB_TABS = ['items', 'category', 'wishlists'];
+    const SUB_TABS = ['items', 'wishlists'];
     const MIN_X = 48;
     let startX = 0, startY = 0, tracking = false, dragging = false, contentEl = null;
 
