@@ -1066,56 +1066,6 @@
     .profile-substat-label { color: #c7c7c7; }
 
     /* ─── Add item — URL step ─── */
-    .url-step { flex: 1; display: flex; flex-direction: column; padding: 32px 24px 48px; }
-    .url-prompt { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; margin-bottom: 20px; }
-    .url-paste-btn {
-      width: 100%; font-family: inherit; font-size: 10px; letter-spacing: 0.18em;
-      text-transform: uppercase; background: var(--accent); color: #000;
-      border: none; padding: 16px; cursor: pointer; text-align: center;
-    }
-    .url-paste-btn:active { opacity: 0.8; }
-    .url-input {
-      width: 100%; border: none; border-bottom: 2px solid #000;
-      padding: 10px 0; font-size: 14px; font-family: inherit;
-      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
-    }
-    .url-input::placeholder { color: #ddd; }
-    .url-fetch-btn {
-      margin-top: 24px;
-      font-family: inherit; font-size: 10px; letter-spacing: 0.18em;
-      text-transform: uppercase; background: #000; color: #fff;
-      border: none; padding: 14px; cursor: pointer; text-align: center;
-    }
-    .url-hint { margin-top: 14px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #ccc; line-height: 1.7; }
-    .url-divider {
-      display: flex; align-items: center; gap: 12px;
-      margin: 24px 0 0;
-    }
-    .url-divider::before, .url-divider::after {
-      content: ''; flex: 1; height: 1px; background: #ebebeb;
-    }
-    .url-divider span { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc; }
-    .url-manual-btn {
-      margin-top: 14px;
-      font-family: inherit; font-size: 10px; letter-spacing: 0.18em;
-      text-transform: uppercase; background: none;
-      border: 1px solid #d8d8d8; color: #888;
-      padding: 14px; cursor: pointer; text-align: center; width: 100%;
-    }
-
-    /* ─── Add item — Fetching step ─── */
-    .fetching-step { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 32px 24px; gap: 12px; }
-    .fetching-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #bbb; }
-    .fetching-url { font-size: 11px; letter-spacing: 0.04em; color: #ccc; word-break: break-all; }
-    .fetching-dots { display: flex; gap: 5px; margin-top: 4px; }
-    .fetching-dot {
-      width: 6px; height: 6px; background: #000; border-radius: 50%;
-      animation: pulse 1.2s infinite;
-    }
-    .fetching-dot:nth-child(2) { animation-delay: 0.2s; }
-    .fetching-dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes pulse { 0%,100%{opacity:0.2} 50%{opacity:1} }
-
     /* ─── Add item — Form step ─── */
     .form-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .form-image-area {
@@ -1139,24 +1089,28 @@
       background: rgba(255,255,255,0.9); border: 1px solid #e0e0e0;
       padding: 5px 9px; cursor: pointer; font-family: inherit; color: #555;
     }
-    .form-image-url-row {
-      padding: 10px 20px 0;
-      border-bottom: 1px solid #f0f0f0;
+    /* Alternate images found while fetching — tap one to swap the main preview,
+       instead of having to download/re-upload when the auto-pick is wrong. */
+    .form-img-candidates {
+      display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+      padding: 10px 20px; border-bottom: 1px solid #f0f0f0;
     }
-    .form-image-url-input {
-      width: 100%; border: none; border-bottom: 1px solid #ccc;
-      padding: 6px 0; font-size: 12px; font-family: inherit;
-      letter-spacing: 0.03em; outline: none; color: #000; background: transparent;
-      margin-bottom: 10px;
+    .form-img-candidates::-webkit-scrollbar { display: none; }
+    .form-img-cand {
+      flex-shrink: 0; width: 48px; height: 48px;
+      background: #fafafa; border: 2px solid transparent; padding: 0;
+      cursor: pointer; overflow: hidden;
     }
-    .form-image-url-input::placeholder { color: #ccc; }
-    .form-image-upload-btn {
-      display: block; width: 100%;
-      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
-      background: none; border: 1px solid #000;
-      padding: 10px; cursor: pointer; font-family: inherit; color: #000;
-      margin-bottom: 10px; text-align: center;
+    .form-img-cand.active { border-color: var(--accent); }
+    .form-img-cand img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .form-url-row { display: flex; gap: 8px; }
+    .form-url-row .form-input { flex: 1; }
+    .form-fetch-btn {
+      flex-shrink: 0; font-family: inherit; font-size: 9px; letter-spacing: 0.15em;
+      text-transform: uppercase; background: #000; color: #fff;
+      border: none; padding: 0 16px; cursor: pointer;
     }
+    .form-fetch-status { margin-top: 8px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; }
     .form-body { padding: 20px 20px 60px; }
     .form-group { margin-bottom: 24px; }
     .form-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #bbb; display: block; margin-bottom: 8px; }
@@ -1440,13 +1394,6 @@
   const DAY = 86400000;
   const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
-  // ─── Add-item mode ───────────────────────────────────────────────
-  // 'url-input' → URL text field auto-focused on open; iOS shows a
-  //               native "Paste" suggestion in the QuickType bar —
-  //               no clipboard permission prompt required.
-  const ADD_MODE = 'url-input';
-  // ─────────────────────────────────────────────────────────────────
-
   let wishlists = [];
   let items = [];
   let boards = [];
@@ -1569,8 +1516,9 @@
     fromScreen: null,
     fromWid: null,
     addWid: null,
-    addStep: 'url',
+    addStep: 'form',
     addIsEdit: false,
+    addFetching: false,
     wlEditMode: false,
     wlItemEditMode: false,
     wlDetailFilterTags: [], // active tag filters inside a wishlist detail
@@ -1578,7 +1526,7 @@
     itemsFilterTags: [],
     categoryFilters: [],    // active category filter pills on Items; empty = All
     categorySubFilters: [], // active fashion subcategory keys; empty = All (only shown when 'fashion' is selected)
-    addForm: { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid:'', showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false },
+    addForm: { url:'', name:'', brand:'', tags:[], img:'', imgCandidates: [], price:'', saved:'', note:'', wid:'', showTagInput: false, tagQuery: '', showNewWl: false },
     removingBg: false,
     shrinkingImages: false,
     sharedItemIdx: 0,
@@ -1648,9 +1596,6 @@
           smartCropThumb(img);
         }
       });
-      if (s.screen === 'add-item' && s.addStep === 'url') {
-        document.getElementById('url-field')?.focus();
-      }
       if (s.screen === 'add-wishlist') {
         document.getElementById('wl-name-input')?.focus();
       }
@@ -3001,65 +2946,7 @@
   }
 
   function screenAddItem() {
-    switch(s.addStep) {
-      case 'url':      return addItemUrl();
-      case 'fetching': return addItemFetching();
-      case 'form':     return addItemForm();
-      default:         return addItemUrl();
-    }
-  }
-
-  function addItemUrl() {
-    const header = `
-      <div class="safe-top"></div>
-      <header>
-        <button class="h-left h-muted" onclick="cancelAdd()">Cancel</button>
-        <span></span>
-      </header>`;
-
-    if (ADD_MODE === 'paste') {
-      return header + `
-      <div class="url-step">
-        <p class="url-prompt">Add a product</p>
-        <button class="url-paste-btn" onclick="pasteAndFetch()">
-          Paste Copied Link
-        </button>
-        <div class="url-divider"><span>or</span></div>
-        <button class="url-manual-btn" onclick="addManually()">Add Manually</button>
-      </div>`;
-    }
-
-    // ADD_MODE === 'url-input'
-    return header + `
-      <div class="url-step">
-        <p class="url-prompt">Add a product</p>
-        <input class="url-input" id="url-field" type="url" placeholder="https://..."
-          value="${esc(s.addForm.url)}"
-          onpaste="handleUrlPaste()"
-          onkeydown="if(event.key==='Enter') fetchUrl()" />
-        <button class="url-fetch-btn" onclick="fetchUrl()">Fetch Details →</button>
-        <p class="url-hint">Works with SSENSE, Net-a-Porter, Mr Porter, Mytheresa, and most product pages.</p>
-        <div class="url-divider"><span>or</span></div>
-        <button class="url-manual-btn" onclick="addManually()">Add Manually</button>
-      </div>`;
-  }
-
-  function addItemFetching() {
-    return `
-      <div class="safe-top"></div>
-      <header>
-        <button class="h-left h-muted" onclick="cancelAdd()">Cancel</button>
-        <span></span>
-      </header>
-      <div class="fetching-step">
-        <p class="fetching-label">Fetching product details</p>
-        <p class="fetching-url">${esc(s.addForm.url)}</p>
-        <div class="fetching-dots">
-          <div class="fetching-dot"></div>
-          <div class="fetching-dot"></div>
-          <div class="fetching-dot"></div>
-        </div>
-      </div>`;
+    return addItemForm();
   }
 
   function addItemForm() {
@@ -3068,9 +2955,35 @@
       ? `<img src="${f.img}" alt="" id="form-img-preview" />`
       : `<div class="ph-lg" id="form-img-preview">No image found</div>`;
     const selectedWid = f.wid || s.addWid || '';
-    const imgBtns = f.img ? `
-      <div class="form-image-btn-row">
+    // Always rendered so liveUpdateImg() can toggle it as the image changes
+    // via background fetch, without needing a full re-render.
+    const imgBtns = `
+      <div class="form-image-btn-row" id="form-image-btn-row" style="${f.img ? '' : 'display:none'}">
         <button class="form-image-change-btn" onclick="event.stopPropagation();document.getElementById('item-file-input').click()">Change Image</button>
+      </div>`;
+    // Always rendered (even empty) so later candidates can be appended via
+    // direct DOM updates as fetch sources resolve, without a full re-render
+    // that would blow away whatever the user is mid-typing elsewhere in the form.
+    const candidates = f.imgCandidates || [];
+    const candStrip = `
+      <div class="form-img-candidates" id="form-img-candidates" onclick="event.stopPropagation()" style="${candidates.length > 1 ? '' : 'display:none'}">
+        ${candidates.map(url => `
+          <button type="button" class="form-img-cand ${url===f.img?'active':''}" data-src="${esc(url)}" onclick="selectImgCandidate(this)">
+            <img src="${esc(url)}" alt="" />
+          </button>`).join('')}
+      </div>`;
+    const urlRow = !s.addIsEdit ? `
+      <div class="form-group">
+        <label class="form-label">Product Link</label>
+        <div class="form-url-row">
+          <input class="form-input" id="url-field" type="url" placeholder="Paste a link to auto-fill"
+            value="${esc(f.url || '')}"
+            oninput="s.addForm.url=this.value"
+            onpaste="handleUrlPaste()"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();fetchUrl();}" />
+          <button type="button" class="form-fetch-btn" onclick="fetchUrl()">Fetch</button>
+        </div>
+        <p class="form-fetch-status" id="form-fetch-status" style="${s.addFetching ? '' : 'display:none'}">Fetching details…</p>
       </div>` : '';
     return `
       <div class="safe-top"></div>
@@ -3085,7 +2998,9 @@
           ${imgH}
           ${imgBtns}
         </div>
+        ${candStrip}
         <div class="form-body">
+          ${urlRow}
           <div class="form-group">
             <label class="form-label">Brand</label>
             <input class="form-input" id="f-brand" type="text" value="${esc(f.brand || '')}" maxlength="80" placeholder="e.g. Toteme" oninput="s.addForm.brand=this.value" />
@@ -3557,27 +3472,15 @@
   function openAddItem(wid) {
     s.addWid = wid;
     s.fromScreen = s.screen;
-    s.addStep = 'url';
+    s.addStep = 'form';
     s.addIsEdit = false;
-    s.clipboardChecked = false;
-    s.addForm = { url:'', name:'', brand:'', tags:[], img:'', price:'', saved:'', note:'', wid: wid || '', showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false };
+    s.addFetching = false;
+    s.addForm = { url:'', name:'', brand:'', tags:[], img:'', imgCandidates: [], price:'', saved:'', note:'', wid: wid || '', showTagInput: false, tagQuery: '', showNewWl: false };
     s.screen = 'add-item';
     s.overlay = null;
     render();
     // Focus immediately while still in user gesture context — opens keyboard on iOS
     document.getElementById('url-field')?.focus();
-  }
-
-  async function pasteAndFetch() {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (!text) return;
-      try { new URL(text); } catch { showToast('No link found — copy a product URL first.'); return; }
-      s.addForm.url = text;
-      fetchUrl();
-    } catch {
-      showToast('Tap Paste when prompted.');
-    }
   }
 
   function handleUrlPaste() {
@@ -3600,6 +3503,7 @@
       brand: item.brand || '',
       tags: item.tags || [],
       img: item.img || '',
+      imgCandidates: [],
       price: item.price != null ? String(item.price) : '',
       saved: item.saved != null ? String(item.saved) : '',
       note: item.note || '',
@@ -3607,7 +3511,6 @@
       category: item.category || '',
       subcategory: item.subcategory || '',
       owned: item.status === 'purchased',
-      showImgEdit: false,
       showTagInput: false,
       tagQuery: '',
       showNewWl: false,
@@ -4168,6 +4071,10 @@
     return { urlMeta, allSources: [mlPromise, ...htmlProxies] };
   }
 
+  // The add-item form is always on screen now (no separate blocking "fetching"
+  // step) — every update below has to be a direct DOM patch rather than a full
+  // render(), or it would blow away whatever the user is mid-typing elsewhere
+  // in the form the moment a slower source resolves.
   async function fetchUrl() {
     const urlEl = document.getElementById('url-field');
     const rawUrl = urlEl ? urlEl.value.trim() : s.addForm.url;
@@ -4177,8 +4084,21 @@
 
     s.addForm.url = url;
     s.addForm.name = ''; s.addForm.brand = ''; s.addForm.img = ''; s.addForm.price = '';
-    s.addStep = 'fetching';
-    render();
+    s.addForm.imgCandidates = [];
+    s.addFetching = true;
+
+    // Clear whatever's currently showing to match the fresh lookup — by hand,
+    // since there's no full re-render to do it for us anymore.
+    const nameEl = document.getElementById('f-name');
+    const brandEl = document.getElementById('f-brand');
+    const priceEl = document.getElementById('f-price');
+    if (nameEl) nameEl.value = '';
+    if (brandEl) brandEl.value = '';
+    if (priceEl) { priceEl.value = '0.00'; priceEl.dataset.cents = '0'; }
+    liveUpdateImg('');
+    renderImgCandidates();
+    const statusEl = document.getElementById('form-fetch-status');
+    if (statusEl) statusEl.style.display = '';
 
     // Analytics: log the domain (never the full URL)
     try {
@@ -4190,19 +4110,14 @@
     const masterTimer = setTimeout(() => abort.abort(), 14000);
     const { urlMeta, allSources } = buildMetaSources(url, abort);
 
-    let formShown = false;
     let bgTriggered = false;
     let gotAny = false;
 
-    // Once the form is on screen, patch fields directly in the DOM instead of doing
-    // a full re-render, so a slower source filling in a gap doesn't wipe out
-    // anything the user has already typed in the meantime.
+    // First source to report name/brand/price wins; later sources only fill in
+    // whatever's still missing. Images are different — every distinct image any
+    // source finds gets added as a candidate (first one auto-selected), so a
+    // wrong auto-pick is a tap to fix instead of a download/re-upload round trip.
     const patchField = (field, value) => {
-      if (field === 'img') {
-        if (s.addForm.img) return false;
-        liveUpdateImg(value);
-        return true;
-      }
       if (field === 'price') {
         const el = document.getElementById('f-price');
         if (el && el.dataset.cents && el.dataset.cents !== '0') return false;
@@ -4221,25 +4136,13 @@
       return true;
     };
 
-    // First source to report a given field wins; later sources only fill in
-    // whatever's still missing (image from one proxy, price from another, etc).
     const applyResult = (data) => {
       let changed = false;
-      ['name', 'brand', 'img', 'price'].forEach(field => {
-        if (!data[field]) return;
-        if (!formShown) {
-          if (!s.addForm[field]) { s.addForm[field] = data[field]; changed = true; }
-        } else if (patchField(field, data[field])) {
-          changed = true;
-        }
+      ['name', 'brand', 'price'].forEach(field => {
+        if (data[field] && patchField(field, data[field])) changed = true;
       });
-      if (!changed) return;
-      gotAny = true;
-      if (!formShown) {
-        formShown = true;
-        s.addStep = 'form';
-        render();
-      }
+      if (data.img && addImgCandidate(data.img)) changed = true;
+      if (changed) gotAny = true;
       if (s.addForm.img && !bgTriggered) {
         bgTriggered = true;
         autoRemoveBgIfWhite();
@@ -4249,15 +4152,13 @@
     allSources.forEach(p => p.then(applyResult).catch(() => {}));
     await Promise.allSettled(allSources);
     clearTimeout(masterTimer);
+    s.addFetching = false;
+    if (statusEl) statusEl.style.display = 'none';
 
     if (!gotAny) {
-      s.addForm.name  = urlMeta?.name  || '';
-      s.addForm.brand = urlMeta?.brand || '';
-      s.addForm.img   = urlMeta?.img   || '';
-      s.addForm.price = '';
-      s.addStep = 'form';
-      render();
-      autoRemoveBgIfWhite();
+      if (urlMeta?.name) patchField('name', urlMeta.name);
+      if (urlMeta?.brand) patchField('brand', urlMeta.brand);
+      if (urlMeta?.img) addImgCandidate(urlMeta.img);
       showToast(urlMeta?.name
         ? 'Site blocked auto-fetch — check name and add image.'
         : "Couldn't fetch — fill in manually.");
@@ -4268,17 +4169,39 @@
     // can be derived from the URL itself for the remaining gaps.
     ['name', 'brand'].forEach(field => {
       if (s.addForm[field] || !urlMeta?.[field]) return;
-      s.addForm[field] = urlMeta[field];
-      const el = document.getElementById(field === 'name' ? 'f-name' : 'f-brand');
-      if (el && el.value.trim() === '') el.value = urlMeta[field];
+      patchField(field, urlMeta[field]);
     });
-    if (!s.addForm.img && urlMeta?.img) liveUpdateImg(urlMeta.img);
+    if (!s.addForm.img && urlMeta?.img) addImgCandidate(urlMeta.img);
     if (!bgTriggered && s.addForm.img) { bgTriggered = true; autoRemoveBgIfWhite(); }
   }
 
-  function toggleImgEdit() {
-    s.addForm.showImgEdit = !s.addForm.showImgEdit;
-    render();
+  // Adds a distinct image URL to the candidate strip; auto-selects it as the
+  // main image if it's the first one found. Returns true if it was new.
+  function addImgCandidate(url) {
+    const cands = s.addForm.imgCandidates || (s.addForm.imgCandidates = []);
+    if (cands.includes(url)) return false;
+    cands.push(url);
+    if (!s.addForm.img) liveUpdateImg(url);
+    renderImgCandidates();
+    return true;
+  }
+
+  function renderImgCandidates() {
+    const wrap = document.getElementById('form-img-candidates');
+    if (!wrap) return;
+    const cands = s.addForm.imgCandidates || [];
+    if (cands.length < 2) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    wrap.style.display = '';
+    wrap.innerHTML = cands.map(url => `
+      <button type="button" class="form-img-cand ${url===s.addForm.img?'active':''}" data-src="${esc(url)}" onclick="selectImgCandidate(this)">
+        <img src="${esc(url)}" alt="" />
+      </button>`).join('');
+  }
+
+  function selectImgCandidate(btn) {
+    const url = btn.getAttribute('data-src');
+    liveUpdateImg(url);
+    document.querySelectorAll('.form-img-cand').forEach(b => b.classList.toggle('active', b.getAttribute('data-src') === url));
   }
 
   function liveUpdateImg(url) {
@@ -4291,7 +4214,12 @@
         el.insertAdjacentHTML('beforebegin', `<img src="${url}" alt="" id="form-img-preview" />`);
         el.remove();
       }
+    } else if (el.tagName === 'IMG') {
+      el.insertAdjacentHTML('beforebegin', `<div class="ph-lg" id="form-img-preview">No image found</div>`);
+      el.remove();
     }
+    const btnRow = document.getElementById('form-image-btn-row');
+    if (btnRow) btnRow.style.display = url ? '' : 'none';
     s.addForm.img = url;
   }
 
@@ -4979,17 +4907,6 @@
       render();
       showToast('Could not remove background.');
     }
-  }
-
-  function addManually() {
-    s.addForm = {
-      url: '', name: '', brand: '', tags: [], img: '', price: '', saved: '', note: '',
-      wid: s.addWid || '',
-      showImgEdit: false, showTagInput: false, tagQuery: '', showNewWl: false,
-    };
-    s.addStep = 'form';
-    s.screen = 'add-item';
-    render();
   }
 
   // ═══════════════════════════════════════════
@@ -6154,9 +6071,9 @@
         s.addIsEdit = false;
         s.addForm = {
           url: bm.url || '', name: bm.name || '', brand: bm.brand || '',
-          tags: [], img: bm.img || '', price: bm.price || '',
+          tags: [], img: bm.img || '', imgCandidates: [], price: bm.price || '',
           saved: '', note: '', wid: wishlists[0]?.id || '',
-          showImgEdit: false, showTagInput: false,
+          showTagInput: false,
           tagQuery: '', showNewWl: false,
         };
       } catch {}
@@ -6445,9 +6362,9 @@
     try { new URL(sharedUrl); } catch { return; }
     history.replaceState({}, '', '/');
     s.screen = 'add-item';
-    s.addStep = 'url';
-    s.addForm = { ...s.addForm, url: sharedUrl, name: p.get('title') || '' };
-    fetchUrl(); // transitions to fetching → form automatically
+    s.addStep = 'form';
+    s.addForm = { ...s.addForm, url: sharedUrl, name: p.get('title') || '', imgCandidates: [] };
+    fetchUrl(); // shows the form immediately, fields fill in as sources resolve
   })();
   </script>
 </body>
