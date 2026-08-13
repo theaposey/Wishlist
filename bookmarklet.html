@@ -163,7 +163,7 @@
       <div class="step-content">
         <p class="step-title">Use it on any product page</p>
         <p class="step-desc">
-          On SSENSE, Net-a-Porter, or anywhere — tap the book icon → <strong>Curate Save</strong>. A green save button appears. Tap it, confirm, done.
+          On SSENSE, Net-a-Porter, or anywhere — tap the book icon → <strong>Curate Save</strong>. Pick the right image from every photo on the page, review the details, save.
         </p>
       </div>
     </div>
@@ -185,10 +185,12 @@ var ex=document.getElementById('_vtr');
 if(ex){ex.remove();return;}
 function og(p){var m=document.querySelector('meta[property="'+p+'"]');return m?m.content:'';}
 function mt(n){var m=document.querySelector('meta[name="'+n+'"]');return m?m.content:'';}
+function abs(u){if(!u)return'';if(/^https?:\/\//.test(u))return u;try{return new URL(u,location.href).href;}catch(e){return'';}}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function cleanTitle(t){
   t=(t||'').trim();
-  t=t.replace(/\s*[\|\-\u2013\u2014][^\|\-\u2013\u2014]{2,60}$/, '').trim();
-  t=t.replace(/\s*[\|\-\u2013\u2014][^\|\-\u2013\u2014]{2,60}$/, '').trim();
+  t=t.replace(/\s*[\|\-–—][^\|\-–—]{2,60}$/, '').trim();
+  t=t.replace(/\s*[\|\-–—][^\|\-–—]{2,60}$/, '').trim();
   return t;
 }
 function getBrand(){
@@ -217,11 +219,36 @@ function getPrice(){
   }
   return (p||'').replace(/[^0-9.]/g,'');
 }
+// Every real image on the page, not just the one og:image guess — filters out
+// icons/logos/tracking pixels by rendered size, biggest first, og:image (if
+// found) pinned to the front since it's usually — but not always — right.
+function collectImages(){
+  var seen={},out=[];
+  var ogImg=abs(og('og:image:secure_url')||og('og:image')||mt('twitter:image'));
+  if(ogImg){seen[ogImg]=1;out.push({src:ogImg,w:99999,h:99999});}
+  var imgs=document.querySelectorAll('img');
+  for(var i=0;i<imgs.length;i++){
+    var el=imgs[i];
+    var src=el.currentSrc||el.src||el.getAttribute('data-src')||el.getAttribute('data-lazy-src')||el.getAttribute('data-original')||'';
+    src=abs(src);
+    if(!src||seen[src])continue;
+    if(/sprite|placeholder|spinner|loading|blank\.gif|1x1|pixel|favicon|logo/i.test(src))continue;
+    var w=el.naturalWidth||el.width||0,h=el.naturalHeight||el.height||0;
+    var r=el.getBoundingClientRect();
+    var dw=Math.max(w,r.width||0),dh=Math.max(h,r.height||0);
+    if(dw<120||dh<120)continue;
+    seen[src]=1;
+    out.push({src:src,w:dw,h:dh});
+  }
+  out.sort(function(a,b){return(b.w*b.h)-(a.w*a.h);});
+  return out.slice(0,30);
+}
 var title=cleanTitle(og('og:title')||mt('twitter:title')||document.title||'');
 var brand=getBrand();
-var img=og('og:image:secure_url')||og('og:image')||mt('twitter:image')||'';
 var price=getPrice();
 var pageUrl=location.href;
+var images=collectImages();
+var selectedIdx=images.length?0:-1;
 var root=document.createElement('div');
 root.id='_vtr';
 root.style.cssText='position:fixed;inset:0;z-index:2147483647;pointer-events:none;font-family:-apple-system,Helvetica Neue,sans-serif;';
@@ -230,40 +257,83 @@ fab.style.cssText='position:absolute;bottom:28px;right:20px;width:52px;height:52
 fab.innerHTML='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>';
 root.appendChild(fab);
 var sheet=document.createElement('div');
-sheet.style.cssText='position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e8e8e8;padding:22px 20px 48px;pointer-events:all;display:none;box-shadow:0 -2px 24px rgba(0,0,0,.1);';
-var st=title.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-var sb=brand.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-sheet.innerHTML='<p style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#bbb;margin:0 0 16px">SAVE TO WISHLIST</p>'
-+'<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">'
-+(img?'<img src="'+img+'" style="width:64px;height:64px;object-fit:contain;background:#fafafa;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
-+'<div style="flex:1;min-width:0"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Name</p>'
-+'<input id="_vtr-name" type="text" value="'+st+'" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div></div>'
-+'<div style="display:flex;gap:14px;margin-bottom:14px">'
-+'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Brand</p><input id="_vtr-brand" type="text" value="'+sb+'" placeholder="Optional" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
-+'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Price</p><input id="_vtr-price" type="text" inputmode="decimal" value="'+price+'" placeholder="0.00" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
-+'</div>'
-+'<div style="margin-bottom:20px"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">List</p><input id="_vtr-wl" type="text" placeholder="Optional" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
-+'<button id="_vtr-save" style="width:100%;background:#000;color:#fff;border:none;padding:16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;-webkit-appearance:none;border-radius:0;">SAVE</button>'
-+'<button id="_vtr-cancel" style="display:block;width:100%;background:none;border:none;padding:10px 0;margin-top:6px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#bbb;text-decoration:underline;cursor:pointer;font-family:inherit;">Cancel</button>';
+sheet.style.cssText='position:absolute;bottom:0;left:0;right:0;max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#fff;border-top:1px solid #e8e8e8;padding:22px 20px 40px;pointer-events:all;display:none;box-shadow:0 -2px 24px rgba(0,0,0,.1);';
 root.appendChild(sheet);
 document.body.appendChild(root);
+
+function renderPicker(){
+  var html='<p style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#bbb;margin:0 0 4px">Curate</p>';
+  html+='<p style="font-size:15px;font-weight:700;margin:0 0 16px">Choose an image</p>';
+  if(!images.length){
+    html+='<p style="font-size:12px;color:#999;padding:10px 0 24px;text-align:center">No images found on this page.</p>';
+  }else{
+    html+='<div id="_vtr-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:18px">';
+    for(var i=0;i<images.length;i++){
+      var sel=i===selectedIdx;
+      html+='<div data-idx="'+i+'" class="_vtr-thumb" style="position:relative;aspect-ratio:1;background:#fafafa;cursor:pointer;border:2px solid '+(sel?B:'transparent')+';overflow:hidden">'
+        +'<img src="'+esc(images[i].src)+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentNode.style.display=\'none\'">'
+        +(sel?'<div style="position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:'+B+';color:#fff;font-size:11px;line-height:18px;text-align:center">✓</div>':'')
+        +'</div>';
+    }
+    html+='</div>';
+  }
+  html+='<button id="_vtr-next" style="width:100%;background:#000;color:#fff;border:none;padding:16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;-webkit-appearance:none;border-radius:0;">'+(images.length?'Use This Image →':'Continue Without Image →')+'</button>'
+  +'<button id="_vtr-cancel" style="display:block;width:100%;background:none;border:none;padding:10px 0;margin-top:6px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#bbb;text-decoration:underline;cursor:pointer;font-family:inherit;">Cancel</button>';
+  sheet.innerHTML=html;
+  var grid=document.getElementById('_vtr-grid');
+  if(grid){
+    grid.onclick=function(e){
+      var t=e.target.closest('._vtr-thumb');
+      if(!t)return;
+      selectedIdx=parseInt(t.getAttribute('data-idx'),10);
+      renderPicker();
+    };
+  }
+  document.getElementById('_vtr-next').onclick=function(){renderDetails();};
+  document.getElementById('_vtr-cancel').onclick=function(){root.remove();};
+}
+
+function renderDetails(){
+  var img=selectedIdx>=0?images[selectedIdx].src:'';
+  var st=esc(title),sb=esc(brand);
+  var html='<p style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#bbb;margin:0 0 16px">Save to Curate</p>'
+  +'<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">'
+  +(img?'<img src="'+esc(img)+'" style="width:64px;height:64px;object-fit:contain;background:#fafafa;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
+  +'<div style="flex:1;min-width:0"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Name</p>'
+  +'<input id="_vtr-name" type="text" value="'+st+'" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div></div>';
+  if(images.length>1){
+    html+='<button id="_vtr-changeimg" style="display:block;background:none;border:none;padding:0 0 14px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:'+B+';text-decoration:underline;cursor:pointer;font-family:inherit;">Change Image</button>';
+  }
+  html+='<div style="display:flex;gap:14px;margin-bottom:14px">'
+  +'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Brand</p><input id="_vtr-brand" type="text" value="'+sb+'" placeholder="Optional" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
+  +'<div style="flex:1"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">Price</p><input id="_vtr-price" type="text" inputmode="decimal" value="'+esc(price)+'" placeholder="0.00" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
+  +'</div>'
+  +'<div style="margin-bottom:20px"><p style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#bbb;margin:0 0 5px">List</p><input id="_vtr-wl" type="text" placeholder="Optional" style="width:100%;border:none;border-bottom:1px solid #d8d8d8;padding:5px 0;font-size:13px;font-family:inherit;outline:none;background:transparent;color:#000;-webkit-appearance:none;border-radius:0;"></div>'
+  +'<button id="_vtr-save" style="width:100%;background:#000;color:#fff;border:none;padding:16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;-webkit-appearance:none;border-radius:0;">SAVE</button>'
+  +'<button id="_vtr-cancel2" style="display:block;width:100%;background:none;border:none;padding:10px 0;margin-top:6px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#bbb;text-decoration:underline;cursor:pointer;font-family:inherit;">Cancel</button>';
+  sheet.innerHTML=html;
+  setTimeout(function(){var inp=document.getElementById('_vtr-name');if(inp)inp.select();},80);
+  var chImg=document.getElementById('_vtr-changeimg');
+  if(chImg)chImg.onclick=function(){renderPicker();};
+  document.getElementById('_vtr-cancel2').onclick=function(){root.remove();};
+  document.getElementById('_vtr-save').onclick=function(){
+    var n=(document.getElementById('_vtr-name').value||'').trim()||title;
+    var br=(document.getElementById('_vtr-brand').value||'').trim();
+    var pr=(document.getElementById('_vtr-price').value||'').trim();
+    var wl=(document.getElementById('_vtr-wl').value||'').trim();
+    var data={url:pageUrl,name:n,brand:br,img:img,price:pr,wl:wl};
+    var encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    window.open(V+'/#bm='+encoded,'_blank');
+    root.remove();
+  };
+}
+
 var open=false;
 fab.onclick=function(e){
 e.stopPropagation();
 open=!open;
-if(open){fab.style.background=B;fab.style.borderColor=B;fab.querySelector('svg').setAttribute('stroke','#fff');sheet.style.display='block';setTimeout(function(){var inp=document.getElementById('_vtr-name');if(inp)inp.select();},80);}
+if(open){fab.style.background=B;fab.style.borderColor=B;fab.querySelector('svg').setAttribute('stroke','#fff');sheet.style.display='block';renderPicker();}
 else{fab.style.background='#fff';fab.style.borderColor='#ddd';fab.querySelector('svg').setAttribute('stroke','#aaa');sheet.style.display='none';}
-};
-document.getElementById('_vtr-cancel').onclick=function(){root.remove();};
-document.getElementById('_vtr-save').onclick=function(){
-var n=(document.getElementById('_vtr-name').value||'').trim()||title;
-var br=(document.getElementById('_vtr-brand').value||'').trim();
-var pr=(document.getElementById('_vtr-price').value||'').trim();
-var wl=(document.getElementById('_vtr-wl').value||'').trim();
-var data={url:pageUrl,name:n,brand:br,img:img,price:pr,wl:wl};
-var encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-window.open(V+'/#bm='+encoded,'_blank');
-root.remove();
 };
 })()`;
 
